@@ -1,0 +1,7 @@
+package com.koshpal_android.koshpalapp.model
+
+data class User(
+    val uid: String = "",
+    val phoneNumber: String = "",
+    val isVerified: Boolean = false
+)

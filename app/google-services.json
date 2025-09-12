@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "425552555244",
+    "project_id": "koshpal-c494c",
+    "storage_bucket": "koshpal-c494c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:425552555244:android:fa88f9728fc31e1d4b89c9",
+        "android_client_info": {
+          "package_name": "com.koshpal_android.koshpalapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "425552555244-l1fmhl5gmo9fgsjgtmhnamic91ufbnoa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBED8ODMofAfbac2iK3MIGgYAsE3S5jczE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "425552555244-l1fmhl5gmo9fgsjgtmhnamic91ufbnoa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
