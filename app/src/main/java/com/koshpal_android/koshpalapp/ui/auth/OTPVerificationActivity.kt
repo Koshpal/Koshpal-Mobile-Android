@@ -1,6 +1,7 @@
 package com.koshpal_android.koshpalapp.ui.auth
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -98,7 +99,14 @@ class OTPVerificationActivity : AppCompatActivity() {
             }
         }
         val filter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
-        registerReceiver(smsReceiver, filter)
+        filter.priority = 1000
+        
+        // For Android 12+ (API 31+), we need to specify the receiver export flag
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(smsReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(smsReceiver, filter)
+        }
     }
 
     override fun onDestroy() {

@@ -4,99 +4,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    android:padding="24dp">
+    android:background="@color/background_light">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardWelcome"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/white"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="32dp"
-            android:gravity="center">
-
-            <ImageView
-                android:id="@+id/ivWelcome"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@mipmap/ic_launcher"
-                android:contentDescription="Welcome" />
-
-            <TextView
-                android:id="@+id/tvWelcome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Welcome to KoshpalApp!"
-                android:textColor="@color/text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:gravity="center" />
-
-            <TextView
-                android:id="@+id/tvDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="You have successfully logged in"
-                android:textColor="@color/text_secondary"
-                android:textSize="16sp"
-                android:gravity="center" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardActions"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/white"
+        android:background="@color/white"
+        app:elevation="8dp"
+        app:itemIconTint="@color/text_primary"
+        app:itemTextColor="@color/text_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardWelcome">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Quick Actions"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Logout"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:cornerRadius="12dp"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
+        app:menu="@menu/bottom_navigation_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

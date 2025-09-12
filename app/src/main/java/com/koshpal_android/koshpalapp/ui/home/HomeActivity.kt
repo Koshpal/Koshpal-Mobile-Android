@@ -1,43 +1,52 @@
 package com.koshpal_android.koshpalapp.ui.home
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.Fragment
+import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
-import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
-import kotlinx.coroutines.launch
+import com.koshpal_android.koshpalapp.ui.payments.PaymentsFragment
+import com.koshpal_android.koshpalapp.ui.profile.ProfileFragment
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
-    private val viewModel: HomeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupUI()
-        observeViewModel()
-    }
-
-    private fun setupUI() {
-        binding.btnLogout.setOnClickListener {
-            viewModel.logout()
+        setupBottomNavigation()
+        
+        // Load default fragment
+        if (savedInstanceState == null) {
+            loadFragment(HomeFragment())
         }
     }
 
-    private fun observeViewModel() {
-        lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                binding.tvWelcome.text = state.welcomeMessage
-
-                if (state.isLoggedOut) {
-                    startActivity(Intent(this@HomeActivity, LoginActivity::class.java))
-                    finishAffinity()
+    private fun setupBottomNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    loadFragment(HomeFragment())
+                    true
                 }
+                R.id.nav_payments -> {
+                    loadFragment(PaymentsFragment())
+                    true
+                }
+                R.id.nav_profile -> {
+                    loadFragment(ProfileFragment())
+                    true
+                }
+                else -> false
             }
         }
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
     }
 }

@@ -16,13 +16,26 @@ class AuthRepository {
         activity: androidx.fragment.app.FragmentActivity,
         callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     ) {
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth)
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(callbacks)
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
+        try {
+            val options = PhoneAuthOptions.newBuilder(firebaseAuth)
+                .setPhoneNumber(phoneNumber)
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setActivity(activity)
+                .setCallbacks(callbacks)
+                .build()
+            PhoneAuthProvider.verifyPhoneNumber(options)
+        } catch (e: Exception) {
+            // Handle specific Firebase Auth exceptions
+            throw when {
+                e.message?.contains("CAPTCHA") == true -> 
+                    Exception("CAPTCHA verification required. Please try again later.")
+                e.message?.contains("quota") == true -> 
+                    Exception("SMS quota exceeded. Please try again later.")
+                e.message?.contains("invalid") == true -> 
+                    Exception("Invalid phone number format.")
+                else -> Exception("Failed to send OTP: ${e.message}")
+            }
+        }
     }
 
     suspend fun verifyOTP(verificationId: String, otp: String): Result<User> {
