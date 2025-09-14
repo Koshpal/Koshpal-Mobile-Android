@@ -2,14 +2,20 @@ package com.koshpal_android.koshpalapp.ui.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.repository.AuthRepository
+import com.koshpal_android.koshpalapp.repository.UserRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-class SplashViewModel : ViewModel() {
-    private val authRepository = AuthRepository()
+class SplashViewModel(
+    private val userRepository: UserRepository,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
+
+    private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _navigationEvent = MutableSharedFlow<NavigationDestination>()
     val navigationEvent: SharedFlow<NavigationDestination> = _navigationEvent

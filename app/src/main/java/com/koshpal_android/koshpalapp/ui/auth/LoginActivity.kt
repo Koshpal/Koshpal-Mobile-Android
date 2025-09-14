@@ -9,11 +9,33 @@ import com.koshpal_android.koshpalapp.databinding.ActivityLoginBinding
 import com.koshpal_android.koshpalapp.utils.Constants
 import com.koshpal_android.koshpalapp.utils.isValidPhoneNumber
 import com.koshpal_android.koshpalapp.utils.showToast
+import com.koshpal_android.koshpalapp.data.local.UserPreferences
+import com.koshpal_android.koshpalapp.network.RetrofitClient
+import com.koshpal_android.koshpalapp.repository.UserRepository
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private val viewModel: LoginViewModel by viewModels()
+
+    // Create dependencies
+    private val userPreferences by lazy {
+        UserPreferences(this)
+    }
+
+    private val userRepository by lazy {
+        UserRepository(
+            apiService = RetrofitClient.instance,
+            userPreferences = userPreferences
+        )
+    }
+
+    // Use factory to create ViewModel
+    private val viewModel: LoginViewModel by viewModels {
+        LoginViewModelFactory(
+            userRepository = userRepository,
+            userPreferences = userPreferences
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

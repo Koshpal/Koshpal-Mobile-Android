@@ -7,12 +7,18 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import com.koshpal_android.koshpalapp.repository.AuthRepository
+import com.koshpal_android.koshpalapp.repository.UserRepository
+import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
-    private val authRepository = AuthRepository()
+class LoginViewModel(
+    private val userRepository: UserRepository,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
+
+    private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
@@ -25,6 +31,7 @@ class LoginViewModel : ViewModel() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                     // Auto-verification completed
                     // You can directly sign in with the credential here
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
@@ -56,11 +63,44 @@ class LoginViewModel : ViewModel() {
             }
         }
     }
+
+    fun verifyOTP(otp: String, phoneNumber: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            try {
+                val result = authRepository.verifyOTPAndCreateUser(
+                    _uiState.value.verificationId,
+                    otp,
+                    phoneNumber
+                )
+
+                if (result.isSuccess) {
+                    // Handle successful verification
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isVerified = true
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Verification failed"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to verify OTP"
+                )
+            }
+        }
+    }
 }
 
 data class LoginUiState(
     val isLoading: Boolean = false,
     val isOTPSent: Boolean = false,
+    val isVerified: Boolean = false,
     val verificationId: String = "",
     val error: String? = null
 )

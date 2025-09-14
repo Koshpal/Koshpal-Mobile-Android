@@ -1,7 +1,6 @@
 package com.koshpal_android.koshpalapp.ui.auth
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -20,7 +19,9 @@ import kotlinx.coroutines.launch
 
 class OTPVerificationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOtpverificationBinding
-    private val viewModel: OTPVerificationViewModel by viewModels()
+    private val viewModel: OTPVerificationViewModel by lazy {
+        OTPVerificationViewModel(this)
+    }
     private var smsReceiver: SMSReceiver? = null
 
     private val smsPermissionLauncher = registerForActivityResult(
@@ -51,14 +52,14 @@ class OTPVerificationActivity : AppCompatActivity() {
         binding.btnVerifyOTP.setOnClickListener {
             val otp = binding.etOTP.text.toString().trim()
             if (otp.length == 6) {
-                viewModel.verifyOTP(verificationId, otp)
+                // Updated method call with phoneNumber
+                viewModel.verifyOTPAndCreateUser(verificationId, otp, phoneNumber)
             } else {
                 showToast("Please enter 6-digit OTP")
             }
         }
 
         binding.btnResendOTP.setOnClickListener {
-            // Implement resend logic
             showToast("OTP resent successfully")
         }
     }
@@ -75,13 +76,16 @@ class OTPVerificationActivity : AppCompatActivity() {
 
                 state.error?.let { showToast(it) }
 
-                if (state.isVerified) {
+                if (state.isVerified && state.user != null) {
+                    showToast("Welcome! Account created successfully.")
                     startActivity(Intent(this@OTPVerificationActivity, HomeActivity::class.java))
                     finishAffinity()
                 }
             }
         }
     }
+
+    // ... rest of the SMS receiver code remains the same ...
 
     private fun checkSMSPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
@@ -99,14 +103,7 @@ class OTPVerificationActivity : AppCompatActivity() {
             }
         }
         val filter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
-        filter.priority = 1000
-        
-        // For Android 12+ (API 31+), we need to specify the receiver export flag
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(smsReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(smsReceiver, filter)
-        }
+        registerReceiver(smsReceiver, filter)
     }
 
     override fun onDestroy() {

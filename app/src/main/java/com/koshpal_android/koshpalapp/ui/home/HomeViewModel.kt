@@ -2,13 +2,19 @@ package com.koshpal_android.koshpalapp.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.repository.AuthRepository
+import com.koshpal_android.koshpalapp.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel : ViewModel() {
-    private val authRepository = AuthRepository()
+class HomeViewModel(
+    private val userRepository: UserRepository,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
+
+    private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
