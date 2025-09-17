@@ -7,7 +7,7 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    @POST("users/create")
+    @POST("create-user")
     suspend fun createUser(
         @Body request: CreateUserRequest
     ): Response<CreateUserResponse>

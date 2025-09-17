@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
+import com.koshpal_android.koshpalapp.network.RetrofitClient
 import com.koshpal_android.koshpalapp.repository.AuthRepository
 import com.koshpal_android.koshpalapp.repository.UserRepository
 import kotlinx.coroutines.delay
@@ -13,7 +14,10 @@ import kotlinx.coroutines.launch
 
 class OTPVerificationViewModel(context: Context) : ViewModel() {
     private val userPreferences = UserPreferences(context)
-    private val userRepository = UserRepository(userPreferences = userPreferences)
+    private val userRepository = UserRepository(
+        apiService = RetrofitClient.instance,
+        userPreferences = userPreferences
+    )
     private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _uiState = MutableStateFlow(OTPUiState())

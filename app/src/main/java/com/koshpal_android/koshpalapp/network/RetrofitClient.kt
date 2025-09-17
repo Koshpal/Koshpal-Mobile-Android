@@ -10,18 +10,21 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
+    // Logging for debugging
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // OkHttp client with interceptors and timeouts
     private val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
-        .addInterceptor(AuthInterceptor())
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        // .addInterceptor(AuthInterceptor()) // Temporarily removed to debug 400 error
+        .connectTimeout(Constants.CONNECT_TIMEOUT, TimeUnit.SECONDS)
+        .readTimeout(Constants.READ_TIMEOUT, TimeUnit.SECONDS)
+        .writeTimeout(Constants.WRITE_TIMEOUT, TimeUnit.SECONDS)
         .build()
 
+    // Retrofit instance
     val instance: ApiService by lazy {
         val retrofit = Retrofit.Builder()
             .baseUrl(Constants.API_BASE_URL)

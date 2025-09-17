@@ -8,7 +8,7 @@ object Constants {
     const val OTP_TIMEOUT = 60L
 
     // API Constants
-    const val API_BASE_URL = "http://10.147.39.107:5000/api/" // LAN IP base URL (keep trailing slash)
+    const val API_BASE_URL = "http://10.147.39.107:5000/" // Updated to match actual endpoint structure
     const val CONNECT_TIMEOUT = 30L
     const val READ_TIMEOUT = 30L
     const val WRITE_TIMEOUT = 30L

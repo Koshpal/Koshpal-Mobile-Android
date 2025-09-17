@@ -6,7 +6,9 @@ import android.content.Intent
 import android.os.Build
 import android.telephony.SmsMessage
 
-class SMSReceiver(private val onOTPReceived: (String) -> Unit) : BroadcastReceiver() {
+class SMSReceiver : BroadcastReceiver() {
+
+    var onOTPReceived: ((String) -> Unit)? = null
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == "android.provider.Telephony.SMS_RECEIVED") {
@@ -28,7 +30,7 @@ class SMSReceiver(private val onOTPReceived: (String) -> Unit) : BroadcastReceiv
                         if (messageBody != null) {
                             val otp = messageBody.extractOTP()
                             if (otp != null) {
-                                onOTPReceived(otp)
+                                onOTPReceived?.invoke(otp)
                                 return
                             }
                         }

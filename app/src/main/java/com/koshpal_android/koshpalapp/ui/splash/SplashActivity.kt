@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.koshpal_android.koshpalapp.databinding.ActivitySplashBinding
+import com.koshpal_android.koshpalapp.ui.auth.CheckActivity
 import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
@@ -58,6 +59,10 @@ class SplashActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.navigationEvent.collect { destination ->
                     when (destination) {
+                        SplashViewModel.NavigationDestination.CHECK -> {
+                            startActivity(Intent(this@SplashActivity, CheckActivity::class.java))
+                            finish()
+                        }
                         SplashViewModel.NavigationDestination.LOGIN -> {
                             startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
                             finish()

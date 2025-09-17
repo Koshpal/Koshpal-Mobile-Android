@@ -97,9 +97,11 @@ class OTPVerificationActivity : AppCompatActivity() {
     }
 
     private fun registerSMSReceiver() {
-        smsReceiver = SMSReceiver { otp ->
-            runOnUiThread {
-                binding.etOTP.setText(otp)
+        smsReceiver = SMSReceiver().apply {
+            onOTPReceived = { otp ->
+                runOnUiThread {
+                    binding.etOTP.setText(otp)
+                }
             }
         }
         val filter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")

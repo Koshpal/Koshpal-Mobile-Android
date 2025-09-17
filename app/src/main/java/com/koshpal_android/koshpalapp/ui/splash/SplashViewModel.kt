@@ -28,12 +28,14 @@ class SplashViewModel(
             if (currentUser != null && currentUser.isVerified) {
                 _navigationEvent.emit(NavigationDestination.HOME)
             } else {
-                _navigationEvent.emit(NavigationDestination.LOGIN)
+                _navigationEvent.emit(NavigationDestination.CHECK)
             }
         }
     }
 
     enum class NavigationDestination {
-        LOGIN, HOME
+        CHECK,
+        LOGIN,
+        HOME
     }
 }
