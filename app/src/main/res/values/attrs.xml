@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LiquidProgressView attributes -->
+    <declare-styleable name="LiquidProgressView">
+        <attr name="liquidColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+        <attr name="cornerRadius" format="dimension" />
+        <attr name="animationDuration" format="integer" />
+        <attr name="waveAmplitude" format="dimension" />
+    </declare-styleable>
+
+    <!-- TierCard attributes -->
+    <declare-styleable name="TierCard">
+        <attr name="tierType" format="enum">
+            <enum name="essentials" value="0" />
+            <enum name="wants" value="1" />
+            <enum name="goals" value="2" />
+        </attr>
+        <attr name="tierPercentage" format="integer" />
+        <attr name="tierTitle" format="string" />
+        <attr name="tierDescription" format="string" />
+    </declare-styleable>
+
+    <!-- FinancialUniverseView attributes -->
+    <declare-styleable name="FinancialUniverseView">
+        <attr name="universeBackground" format="color" />
+        <attr name="orbitLineColor" format="color" />
+        <attr name="centerGlowColor" format="color" />
+        <attr name="planetGlowColor" format="color" />
+        <attr name="animationSpeed" format="float" />
+    </declare-styleable>
+</resources>

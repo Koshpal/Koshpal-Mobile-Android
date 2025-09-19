@@ -5,9 +5,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
+import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
+import com.koshpal_android.koshpalapp.ui.dashboard.DashboardFragment
 import com.koshpal_android.koshpalapp.ui.payments.PaymentsFragment
 import com.koshpal_android.koshpalapp.ui.profile.ProfileFragment
+import com.koshpal_android.koshpalapp.ui.savings.SavingsGoalsFragment
+import com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
 
@@ -31,8 +37,16 @@ class HomeActivity : AppCompatActivity() {
                     loadFragment(HomeFragment())
                     true
                 }
-                R.id.nav_payments -> {
-                    loadFragment(PaymentsFragment())
+                R.id.nav_dashboard -> {
+                    loadFragment(DashboardFragment())
+                    true
+                }
+                R.id.nav_budget -> {
+                    loadFragment(BudgetFragment())
+                    true
+                }
+                R.id.nav_savings -> {
+                    loadFragment(SavingsGoalsFragment())
                     true
                 }
                 R.id.nav_profile -> {
@@ -48,5 +62,23 @@ class HomeActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
+    }
+
+    // Helper methods for HomeFragment navigation
+    fun switchToDashboardTab() {
+        binding.bottomNavigation.selectedItemId = R.id.nav_dashboard
+    }
+
+    fun switchToBudgetTab() {
+        binding.bottomNavigation.selectedItemId = R.id.nav_budget
+    }
+
+    fun switchToSavingsTab() {
+        binding.bottomNavigation.selectedItemId = R.id.nav_savings
+    }
+    
+    fun showTransactionsFragment() {
+        // Load the transactions fragment directly
+        loadFragment(TransactionsFragment())
     }
 }

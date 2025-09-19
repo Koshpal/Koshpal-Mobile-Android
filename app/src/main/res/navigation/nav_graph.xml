@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        
+        <action
+            android:id="@+id/action_home_to_dashboard"
+            app:destination="@id/dashboardFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_budget"
+            app:destination="@id/budgetFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_savings"
+            app:destination="@id/savingsGoalsFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_insights"
+            app:destination="@id/insightsFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_transactions"
+            app:destination="@id/transactionsFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_notifications"
+            app:destination="@id/notificationsFragment" />
+            
+        <action
+            android:id="@+id/action_home_to_alerts"
+            app:destination="@id/alertsFragment" />
+            
+    </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/budgetFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.budget.BudgetFragment"
+        android:label="Budget Planner"
+        tools:layout="@layout/fragment_budget" />
+
+    <fragment
+        android:id="@+id/savingsGoalsFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.savings.SavingsGoalsFragment"
+        android:label="Savings Goals"
+        tools:layout="@layout/fragment_savings_goals" />
+
+    <fragment
+        android:id="@+id/insightsFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.insights.InsightsFragment"
+        android:label="Financial Insights"
+        tools:layout="@layout/fragment_insights" />
+
+    <fragment
+        android:id="@+id/transactionsFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment"
+        android:label="Transactions"
+        tools:layout="@layout/fragment_transactions" />
+
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/alertsFragment"
+        android:name="com.koshpal_android.koshpalapp.ui.alerts.AlertsFragment"
+        android:label="Spending Alerts"
+        tools:layout="@layout/fragment_alerts" />
+
+</navigation>

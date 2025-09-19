@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tier Colors - Essentials (50%) -->
+    <color name="tier_essentials_primary">#2563EB</color>
+    <color name="tier_essentials_secondary">#DBEAFE</color>
+    <color name="tier_essentials_gradient_start">#3B82F6</color>
+    <color name="tier_essentials_gradient_end">#1E40AF</color>
+    
+    <!-- Tier Colors - Wants (30%) -->
+    <color name="tier_wants_primary">#7C3AED</color>
+    <color name="tier_wants_secondary">#EDE9FE</color>
+    <color name="tier_wants_gradient_start">#8B5CF6</color>
+    <color name="tier_wants_gradient_end">#6D28D9</color>
+    
+    <!-- Tier Colors - Goals (20%) -->
+    <color name="tier_goals_primary">#059669</color>
+    <color name="tier_goals_secondary">#D1FAE5</color>
+    <color name="tier_goals_gradient_start">#10B981</color>
+    <color name="tier_goals_gradient_end">#047857</color>
+    
+    <!-- Urgency Level Colors -->
+    <color name="urgency_low">#10B981</color>
+    <color name="urgency_medium">#F59E0B</color>
+    <color name="urgency_high">#EF4444</color>
+    <color name="urgency_critical">#DC2626</color>
+    
+    <!-- Liquid Progress Animation Colors -->
+    <color name="liquid_progress_excellent">#10B981</color>
+    <color name="liquid_progress_good">#84CC16</color>
+    <color name="liquid_progress_warning">#F59E0B</color>
+    <color name="liquid_progress_danger">#EF4444</color>
+    <color name="liquid_progress_critical">#DC2626</color>
+    
+    <!-- Financial Universe Colors -->
+    <color name="universe_background">#0F172A</color>
+    <color name="universe_orbit_line">#334155</color>
+    <color name="universe_center_glow">#8B5CF6</color>
+    <color name="planet_glow_effect">#FFFFFF</color>
+    
+    <!-- Smart Insight Colors -->
+    <color name="insight_positive">#10B981</color>
+    <color name="insight_neutral">#6B7280</color>
+    <color name="insight_warning">#F59E0B</color>
+    <color name="insight_critical">#EF4444</color>
+    
+    <!-- Animation Colors -->
+    <color name="celebration_confetti_1">#F59E0B</color>
+    <color name="celebration_confetti_2">#8B5CF6</color>
+    <color name="celebration_confetti_3">#10B981</color>
+    <color name="celebration_confetti_4">#EF4444</color>
+    <color name="celebration_confetti_5">#3B82F6</color>
+    
+    <!-- Subscription Detection Colors -->
+    <color name="subscription_active">#10B981</color>
+    <color name="subscription_inactive">#6B7280</color>
+    <color name="subscription_overdue">#EF4444</color>
+    <color name="subscription_upcoming">#F59E0B</color>
+</resources>

@@ -6,9 +6,19 @@
         android:title="Home" />
     
     <item
-        android:id="@+id/nav_payments"
-        android:icon="@drawable/ic_payments"
-        android:title="Payments" />
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/ic_summary"
+        android:title="Dashboard" />
+    
+    <item
+        android:id="@+id/nav_budget"
+        android:icon="@drawable/ic_budget_empty"
+        android:title="Budget" />
+    
+    <item
+        android:id="@+id/nav_savings"
+        android:icon="@drawable/ic_savings"
+        android:title="Savings" />
     
     <item
         android:id="@+id/nav_profile"
