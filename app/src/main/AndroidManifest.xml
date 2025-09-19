@@ -34,6 +34,9 @@
             android:name=".ui.auth.LoginActivity"
             android:exported="false" />
         <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat">
@@ -44,7 +47,7 @@
         </activity>
 
         <receiver
-            android:name=".utils.SMSReceiver"
+            android:name=".utils.TransactionSMSReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">
