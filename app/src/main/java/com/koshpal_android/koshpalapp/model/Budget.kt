@@ -12,48 +12,39 @@ enum class BudgetStatus {
     EXCEEDED
 }
 
-@Entity(
-    tableName = "budgets",
-    foreignKeys = [
-        ForeignKey(
-            entity = TransactionCategory::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index(value = ["categoryId"])]
-)
 data class Budget(
-    @PrimaryKey
-    val id: String,
-    val categoryId: String,
-    val monthlyLimit: Double,
-    val spent: Double = 0.0,
-    val month: Int,
-    val year: Int,
+    val id: String = "",
+    val categoryId: String = "",
+    val amount: Double = 0.0,
+    val spentAmount: Double = 0.0,
+    val period: BudgetPeriod = BudgetPeriod.MONTHLY,
+    val startDate: Long = System.currentTimeMillis(),
+    val endDate: Long = System.currentTimeMillis(),
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
-    val remaining: Double get() = monthlyLimit - spent
-    val progressPercentage: Float get() = (spent / monthlyLimit * 100).toFloat()
-    val status: BudgetStatus get() = when {
-        progressPercentage <= 50 -> BudgetStatus.SAFE
-        progressPercentage <= 80 -> BudgetStatus.WARNING
-        progressPercentage <= 100 -> BudgetStatus.CRITICAL
-        else -> BudgetStatus.EXCEEDED
+    fun getRemainingAmount(): Double {
+        return amount - spentAmount
     }
     
-    fun getFormattedLimit(): String {
-        return "₹${String.format("%.2f", monthlyLimit)}"
+    fun getSpentPercentage(): Float {
+        return if (amount > 0) (spentAmount / amount * 100).toFloat() else 0f
     }
     
-    fun getFormattedSpent(): String {
-        return "₹${String.format("%.2f", spent)}"
+    fun getStatus(): BudgetStatus {
+        val percentage = getSpentPercentage()
+        return when {
+            percentage >= 100 -> BudgetStatus.EXCEEDED
+            percentage >= 80 -> BudgetStatus.CRITICAL
+            percentage >= 50 -> BudgetStatus.WARNING
+            else -> BudgetStatus.SAFE
+        }
     }
-    
-    fun getFormattedRemaining(): String {
-        return "₹${String.format("%.2f", remaining)}"
-    }
+}
+
+enum class BudgetPeriod {
+    WEEKLY,
+    MONTHLY,
+    YEARLY
 }

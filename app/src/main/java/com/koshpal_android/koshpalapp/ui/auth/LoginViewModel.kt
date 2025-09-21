@@ -9,11 +9,14 @@ import com.google.firebase.auth.PhoneAuthProvider
 import com.koshpal_android.koshpalapp.repository.AuthRepository
 import com.koshpal_android.koshpalapp.repository.UserRepository
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(
+@HiltViewModel
+class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val userPreferences: UserPreferences
 ) : ViewModel() {

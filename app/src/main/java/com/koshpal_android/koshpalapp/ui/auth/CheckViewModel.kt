@@ -5,13 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.remote.dto.CreateUserRequest
 import com.koshpal_android.koshpalapp.network.ApiService
-import com.koshpal_android.koshpalapp.network.RetrofitClient
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CheckViewModel : ViewModel() {
-    private val apiService: ApiService = RetrofitClient.instance
+@HiltViewModel
+class CheckViewModel @Inject constructor(
+    private val apiService: ApiService
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckUiState())
     val uiState: StateFlow<CheckUiState> = _uiState
@@ -28,7 +31,7 @@ class CheckViewModel : ViewModel() {
                 
                 val request = CreateUserRequest(phoneNumber)
                 Log.d("CheckViewModel", "Request object: $request")
-                Log.d("CheckViewModel", "JSON will be: {\"phoneNumber\":\"$phoneNumber\"}")
+                Log.d("CheckViewModel", "JSON will be: {\"mobile\":\"$phoneNumber\"}")
                 
                 val response = apiService.createUser(request)
 

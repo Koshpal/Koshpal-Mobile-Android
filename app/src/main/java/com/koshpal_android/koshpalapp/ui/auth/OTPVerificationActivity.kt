@@ -15,13 +15,13 @@ import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.utils.Constants
 import com.koshpal_android.koshpalapp.utils.SMSReceiver
 import com.koshpal_android.koshpalapp.utils.showToast
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class OTPVerificationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOtpverificationBinding
-    private val viewModel: OTPVerificationViewModel by lazy {
-        OTPVerificationViewModel(this)
-    }
+    private val viewModel: OTPVerificationViewModel by viewModels()
     private var smsReceiver: SMSReceiver? = null
 
     private val smsPermissionLauncher = registerForActivityResult(

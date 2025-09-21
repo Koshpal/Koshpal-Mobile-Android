@@ -1,15 +1,15 @@
 package com.koshpal_android.koshpalapp.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "payment_sms")
 data class PaymentSms(
-    @PrimaryKey
-    val id: String,
-    val address: String,
-    val body: String,
-    val timestamp: Long,
-    val date: String,
-    val isProcessed: Boolean = false
+    val id: String = "",
+    val smsBody: String = "",
+    val sender: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
+    val isProcessed: Boolean = false,
+    val amount: Double? = null,
+    val merchant: String? = null,
+    val transactionType: String? = null,
+    val accountNumber: String? = null,
+    val balance: Double? = null,
+    val createdAt: Long = System.currentTimeMillis()
 )

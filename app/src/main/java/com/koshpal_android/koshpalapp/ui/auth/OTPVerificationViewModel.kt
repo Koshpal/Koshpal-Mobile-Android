@@ -1,23 +1,22 @@
 package com.koshpal_android.koshpalapp.ui.auth
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
-import com.koshpal_android.koshpalapp.network.RetrofitClient
 import com.koshpal_android.koshpalapp.repository.AuthRepository
 import com.koshpal_android.koshpalapp.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OTPVerificationViewModel(context: Context) : ViewModel() {
-    private val userPreferences = UserPreferences(context)
-    private val userRepository = UserRepository(
-        apiService = RetrofitClient.instance,
-        userPreferences = userPreferences
-    )
+@HiltViewModel
+class OTPVerificationViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
     private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _uiState = MutableStateFlow(OTPUiState())

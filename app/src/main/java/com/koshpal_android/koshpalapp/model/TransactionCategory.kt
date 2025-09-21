@@ -1,12 +1,8 @@
 package com.koshpal_android.koshpalapp.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.koshpal_android.koshpalapp.R
 
-@Entity(tableName = "transaction_categories")
 data class TransactionCategory(
-    @PrimaryKey
     val id: String,
     val name: String,
     val icon: Int,

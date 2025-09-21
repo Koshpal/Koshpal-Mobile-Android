@@ -10,8 +10,11 @@ import com.koshpal_android.koshpalapp.model.User
 import com.koshpal_android.koshpalapp.network.NetworkResult
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthRepository(
+@Singleton
+class AuthRepository @Inject constructor(
     private val userRepository: UserRepository,
     private val userPreferences: UserPreferences
 ) {

@@ -1,6 +1,5 @@
 package com.koshpal_android.koshpalapp.network
 
-import com.koshpal_android.koshpalapp.network.interceptors.AuthInterceptor
 import com.koshpal_android.koshpalapp.utils.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

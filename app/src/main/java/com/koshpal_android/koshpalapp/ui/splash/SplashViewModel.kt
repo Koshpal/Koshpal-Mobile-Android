@@ -22,27 +22,16 @@ class SplashViewModel(
 
     fun startSplashTimer() {
         viewModelScope.launch {
-            delay(1000) // 1 second delay for faster testing
+            delay(2000) // 2 seconds delay
 
-
+            // Check if user is logged in and verified
             val currentUser = authRepository.getCurrentUser()
             if (currentUser != null && currentUser.isVerified) {
                 _navigationEvent.emit(NavigationDestination.HOME)
             } else {
+                // Navigate to CheckActivity for new users
                 _navigationEvent.emit(NavigationDestination.CHECK)
             }
-
-            // FOR TESTING: Always navigate to HOME (bypass authentication)
-            _navigationEvent.emit(NavigationDestination.HOME)
-            
-            // Original authentication logic (commented out for testing)
-            // val currentUser = authRepository.getCurrentUser()
-            // if (currentUser != null && currentUser.isVerified) {
-            //     _navigationEvent.emit(NavigationDestination.HOME)
-            // } else {
-            //     _navigationEvent.emit(NavigationDestination.LOGIN)
-            // }
-
         }
     }
 

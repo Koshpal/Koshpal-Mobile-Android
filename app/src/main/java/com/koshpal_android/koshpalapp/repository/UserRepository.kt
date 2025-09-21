@@ -5,10 +5,12 @@ import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.data.remote.dto.CreateUserRequest
 import com.koshpal_android.koshpalapp.network.ApiService
 import com.koshpal_android.koshpalapp.network.NetworkResult
-import com.koshpal_android.koshpalapp.network.RetrofitClient
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserRepository(
-    private val apiService: ApiService = RetrofitClient.instance,
+@Singleton
+class UserRepository @Inject constructor(
+    private val apiService: ApiService,
     private val userPreferences: UserPreferences
 ) {
 

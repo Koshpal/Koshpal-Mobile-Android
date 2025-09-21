@@ -1,17 +1,14 @@
 package com.koshpal_android.koshpalapp.alerts
 
 import android.content.Context
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.koshpal_android.koshpalapp.repository.BudgetRepository
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import com.koshpal_android.koshpalapp.repository.SpendingAlertManager
 
-@HiltWorker
-class BudgetCheckWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted workerParams: WorkerParameters,
+class BudgetCheckWorker(
+    context: Context,
+    workerParams: WorkerParameters,
     private val budgetRepository: BudgetRepository,
     private val spendingAlertManager: SpendingAlertManager
 ) : CoroutineWorker(context, workerParams) {

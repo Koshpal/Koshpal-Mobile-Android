@@ -1,6 +1,5 @@
 package com.koshpal_android.koshpalapp.repository
 
-import com.koshpal_android.koshpalapp.data.local.dao.BudgetDao
 import com.koshpal_android.koshpalapp.data.local.dao.TransactionDao
 import com.koshpal_android.koshpalapp.model.Budget
 import com.koshpal_android.koshpalapp.model.TransactionType

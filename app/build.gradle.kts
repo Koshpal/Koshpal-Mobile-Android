@@ -54,42 +54,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.recyclerview)
     
-    // Room Database
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    implementation("androidx.room:room-paging:2.6.1")
-    kapt(libs.androidx.room.compiler)
-    
-    // WorkManager
-    implementation(libs.androidx.work.runtime.ktx)
-    
-    // Paging
-    implementation(libs.androidx.paging.runtime)
-    
-    // Charts
-    implementation(libs.mpandroidchart)
-    
-    // Animations
-    implementation(libs.lottie)
-    
-    // Coroutines
-    implementation(libs.kotlinx.coroutines.android)
-    
-    // Navigation
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
-    
-    // ViewPager2
-    implementation(libs.androidx.viewpager2)
-    
-    // SwipeRefreshLayout
-    implementation(libs.androidx.swiperefreshlayout)
-    
-    // Hilt Dependency Injection
+    // Hilt Dependency Injection (minimal setup)
     implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
     kapt("com.google.dagger:hilt-compiler:2.48")
-    implementation("androidx.hilt:hilt-work:1.1.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
     
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -101,6 +70,9 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
+    
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

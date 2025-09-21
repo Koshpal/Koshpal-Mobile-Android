@@ -11,38 +11,15 @@ import com.koshpal_android.koshpalapp.databinding.ActivitySplashBinding
 import com.koshpal_android.koshpalapp.ui.auth.CheckActivity
 import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
-import com.koshpal_android.koshpalapp.data.local.UserPreferences
-import com.koshpal_android.koshpalapp.network.RetrofitClient
-import com.koshpal_android.koshpalapp.repository.UserRepository
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
 
-    // Create dependencies
-    private val userPreferences by lazy {
-        UserPreferences(this)
-    }
-
-    private val userRepository by lazy {
-        UserRepository(
-            apiService = RetrofitClient.instance,
-            userPreferences = userPreferences
-        )
-    }
-
-    // Option 1: Using ViewModels with factory
-    private val viewModel: SplashViewModel by viewModels {
-        SplashViewModelFactory(
-            userRepository = userRepository,
-            userPreferences = userPreferences
-        )
-    }
-
-    // Alternative Option 2: Manual ViewModel creation
-    // private val viewModel: SplashViewModel by lazy {
-    //     SplashViewModel(userRepository, userPreferences)
-    // }
+    // Use Hilt for ViewModel injection
+    private val viewModel: SplashViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.koshpal_android.koshpalapp.databinding.ActivityCheckBinding
 import com.koshpal_android.koshpalapp.utils.showToast
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class CheckActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCheckBinding
     private val viewModel: CheckViewModel by viewModels()
