@@ -34,6 +34,6 @@ interface PaymentSmsDao {
     @Query("DELETE FROM payment_sms WHERE timestamp < :timestamp")
     suspend fun deleteOldSms(timestamp: Long)
     
-    @Query("SELECT * FROM payment_sms WHERE body = :body AND address = :address LIMIT 1")
+    @Query("SELECT * FROM payment_sms WHERE smsBody = :body AND sender = :address LIMIT 1")
     suspend fun getSMSByBodyAndSender(body: String, address: String): PaymentSms?
 }

@@ -59,10 +59,9 @@ class SMSReader @Inject constructor(
                             if (existingSms == null) {
                                 val paymentSms = PaymentSms(
                                     id = UUID.randomUUID().toString(),
-                                    address = address,
-                                    body = body,
+                                    sender = address,
+                                    smsBody = body,
                                     timestamp = date,
-                                    date = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(date)),
                                     isProcessed = false
                                 )
                                 

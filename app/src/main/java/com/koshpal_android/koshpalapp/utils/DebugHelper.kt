@@ -103,26 +103,23 @@ object DebugHelper {
         return listOf(
             PaymentSms(
                 id = UUID.randomUUID().toString(),
-                address = "SBIINB",
-                body = "Your A/c XX1234 debited by Rs.500.00 on 15-Dec-23 at AMAZON INDIA. Avl Bal: Rs.10000.00",
+                sender = "SBIINB",
+                smsBody = "Your A/c XX1234 debited by Rs.500.00 on 15-Dec-23 at AMAZON INDIA. Avl Bal: Rs.10000.00",
                 timestamp = currentTime - 86400000,
-                date = dateFormat.format(Date(currentTime - 86400000)),
                 isProcessed = false
             ),
             PaymentSms(
                 id = UUID.randomUUID().toString(),
-                address = "HDFCBK",
-                body = "Rs.1200 debited from A/c XX5678 for UPI/ZOMATO/123456789 on 15-Dec-23. Bal: Rs.8800",
+                sender = "HDFCBK",
+                smsBody = "Rs.1200 debited from A/c XX5678 for UPI/ZOMATO/123456789 on 15-Dec-23. Bal: Rs.8800",
                 timestamp = currentTime - 172800000,
-                date = dateFormat.format(Date(currentTime - 172800000)),
                 isProcessed = false
             ),
             PaymentSms(
                 id = UUID.randomUUID().toString(),
-                address = "ICICIB",
-                body = "Your account credited with Rs.25000.00 on 15-Dec-23. Salary credit. Available balance Rs.35000.00",
+                sender = "ICICIB",
+                smsBody = "Your account credited with Rs.25000.00 on 15-Dec-23. Salary credit. Available balance Rs.35000.00",
                 timestamp = currentTime - 259200000,
-                date = dateFormat.format(Date(currentTime - 259200000)),
                 isProcessed = false
             )
         )
@@ -139,7 +136,7 @@ object DebugHelper {
                 merchant = "Amazon India",
                 categoryId = "shopping",
                 confidence = 0.95f,
-                timestamp = currentTime - 86400000,
+                date = currentTime - 86400000,
                 description = "Online shopping",
                 smsBody = "Amazon purchase"
             ),
@@ -150,9 +147,9 @@ object DebugHelper {
                 merchant = "Zomato",
                 categoryId = "food",
                 confidence = 0.90f,
-                timestamp = currentTime - 172800000,
+                date = currentTime - 172800000,
                 description = "Food delivery",
-                smsBody = "Zomato order"
+                smsBody = "Rs.1200 debited from A/c XX5678 for UPI/ZOMATO/123456789 on 15-Dec-23. Bal: Rs.8800"
             ),
             Transaction(
                 id = UUID.randomUUID().toString(),
@@ -161,7 +158,7 @@ object DebugHelper {
                 merchant = "Salary Credit",
                 categoryId = "salary",
                 confidence = 0.98f,
-                timestamp = currentTime - 259200000,
+                date = currentTime - 259200000,
                 description = "Monthly salary",
                 smsBody = "Salary credit"
             ),
@@ -172,7 +169,7 @@ object DebugHelper {
                 merchant = "Uber",
                 categoryId = "transport",
                 confidence = 0.85f,
-                timestamp = currentTime - 345600000,
+                date = currentTime - 345600000,
                 description = "Cab ride",
                 smsBody = "Uber trip"
             ),
@@ -183,7 +180,7 @@ object DebugHelper {
                 merchant = "DMart",
                 categoryId = "grocery",
                 confidence = 0.88f,
-                timestamp = currentTime - 432000000,
+                date = currentTime - 432000000,
                 description = "Grocery shopping",
                 smsBody = "DMart purchase"
             )

@@ -44,10 +44,9 @@ class TransactionsFragment : Fragment() {
         setupRecyclerView()
         setupClickListeners()
         setupSearchFilter()
-        observeViewModel()
 
-        // Load initial data
-        viewModel.loadTransactions()
+        // Load data directly without ViewModel Flow issues
+        loadTransactionsDirectly()
     }
 
     private fun setupBackPressHandling() {
@@ -108,24 +107,49 @@ class TransactionsFragment : Fragment() {
         }
     }
 
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.transactions.collect { transactions ->
+    private fun loadTransactionsDirectly() {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("TransactionsFragment", "🚀 Loading transactions directly...")
+                
+                // Show loading
+                binding.progressBar.visibility = View.VISIBLE
+                
+                // Get data directly from database
+                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                val transactions = database.transactionDao().getAllTransactionsOnce()
+                
+                android.util.Log.d("TransactionsFragment", "📊 Found ${transactions.size} transactions")
+                
+                // Calculate summary
+                var totalIncome = 0.0
+                var totalExpense = 0.0
+                
+                transactions.forEach { transaction ->
+                    if (transaction.type == com.koshpal_android.koshpalapp.model.TransactionType.CREDIT) {
+                        totalIncome += transaction.amount
+                    } else {
+                        totalExpense += transaction.amount
+                    }
+                }
+                
+                // Update UI
                 transactionsAdapter.submitList(transactions)
                 updateEmptyState(transactions.isEmpty())
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.isLoading.collect { isLoading ->
-                binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.summaryData.collect { summary ->
-                binding.tvTotalIncome.text = "₹${String.format("%.2f", summary.totalIncome)}"
-                binding.tvTotalExpense.text = "₹${String.format("%.2f", summary.totalExpense)}"
+                
+                // Update summary
+                binding.tvTotalIncome.text = "₹${String.format("%.2f", totalIncome)}"
+                binding.tvTotalExpense.text = "₹${String.format("%.2f", totalExpense)}"
+                
+                // Hide loading
+                binding.progressBar.visibility = View.GONE
+                
+                android.util.Log.d("TransactionsFragment", "✅ Transactions loaded successfully")
+                
+            } catch (e: Exception) {
+                android.util.Log.e("TransactionsFragment", "❌ Failed to load transactions: ${e.message}", e)
+                binding.progressBar.visibility = View.GONE
+                updateEmptyState(true)
             }
         }
     }
@@ -147,7 +171,7 @@ class TransactionsFragment : Fragment() {
         val bottomNavigation = homeActivity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
             com.koshpal_android.koshpalapp.R.id.bottomNavigation
         )
-        bottomNavigation?.selectedItemId = com.koshpal_android.koshpalapp.R.id.nav_home
+        bottomNavigation?.selectedItemId = com.koshpal_android.koshpalapp.R.id.homeFragment
     }
 
     override fun onDestroyView() {

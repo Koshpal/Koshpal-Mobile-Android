@@ -12,13 +12,12 @@ import com.koshpal_android.koshpalapp.data.local.dao.*
     entities = [
         Transaction::class,
         TransactionCategory::class,
-        Budget::class,
-        SavingsGoal::class,
-        FinancialInsight::class,
         PaymentSms::class,
-        User::class
+        User::class,
+        Budget::class,
+        BudgetCategory::class
     ],
-    version = 1,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -26,11 +25,10 @@ abstract class KoshpalDatabase : RoomDatabase() {
     
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
-    abstract fun budgetDao(): BudgetDao
-    abstract fun savingsGoalDao(): SavingsGoalDao
-    abstract fun financialInsightDao(): FinancialInsightDao
     abstract fun paymentSmsDao(): PaymentSmsDao
     abstract fun userDao(): UserDao
+    abstract fun budgetNewDao(): BudgetNewDao
+    abstract fun budgetCategoryNewDao(): BudgetCategoryNewDao
     
     companion object {
         @Volatile
@@ -41,15 +39,10 @@ abstract class KoshpalDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     KoshpalDatabase::class.java,
-                    "koshpal_database"
+                    "koshpal_database_v5"
                 )
-                .addCallback(object : RoomDatabase.Callback() {
-                    override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        // Initialize default categories
-                        // This will be handled in the repository
-                    }
-                })
+                .fallbackToDestructiveMigration() // Allow database recreation when schema changes
+                .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
                 .build()
                 INSTANCE = instance
                 instance

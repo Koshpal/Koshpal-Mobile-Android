@@ -5,17 +5,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
-import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
-import com.koshpal_android.koshpalapp.ui.dashboard.DashboardFragment
-import com.koshpal_android.koshpalapp.ui.payments.PaymentsFragment
-import com.koshpal_android.koshpalapp.ui.profile.ProfileFragment
-import com.koshpal_android.koshpalapp.ui.savings.SavingsGoalsFragment
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment
+import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
+    
+    // FIXED: Keep fragment instances to prevent recreation
+    private val homeFragment = HomeFragment()
+    private val budgetFragment = BudgetFragment()
+    private val transactionsFragment = TransactionsFragment()
+    private var activeFragment: Fragment = homeFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,33 +26,42 @@ class HomeActivity : AppCompatActivity() {
 
         setupBottomNavigation()
         
-        // Load default fragment
+        // Load default fragment only once
         if (savedInstanceState == null) {
-            loadFragment(HomeFragment())
+            setupFragments()
         }
     }
 
+    private fun setupFragments() {
+        // Add all fragments but hide them initially
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragmentContainer, homeFragment, "HOME")
+            .add(R.id.fragmentContainer, budgetFragment, "BUDGET")
+            // Transactions fragment kept for internal navigation only
+            .add(R.id.fragmentContainer, transactionsFragment, "TRANSACTIONS")
+            .hide(budgetFragment)
+            .hide(transactionsFragment)
+            .commit()
+
+        // Ensure Home is selected by default
+        binding.bottomNavigation.selectedItemId = R.id.homeFragment
+    }
+    
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> {
-                    loadFragment(HomeFragment())
+                R.id.homeFragment -> {
+                    showFragment(homeFragment)
                     true
                 }
-                R.id.nav_dashboard -> {
-                    loadFragment(DashboardFragment())
+                R.id.budgetFragment -> {
+                    showFragment(budgetFragment)
                     true
                 }
-                R.id.nav_budget -> {
-                    loadFragment(BudgetFragment())
-                    true
-                }
-                R.id.nav_savings -> {
-                    loadFragment(SavingsGoalsFragment())
-                    true
-                }
-                R.id.nav_profile -> {
-                    loadFragment(ProfileFragment())
+                // Transactions menu removed
+                R.id.insightsFragment -> {
+                    // TODO: Create InsightsFragment
+                    showFragment(homeFragment) // Temporary fallback
                     true
                 }
                 else -> false
@@ -58,27 +69,18 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadFragment(fragment: Fragment) {
+    private fun showFragment(fragment: Fragment) {
+        // FIXED: Show/hide fragments instead of recreating them
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)
+            .hide(activeFragment)
+            .show(fragment)
             .commit()
+        activeFragment = fragment
     }
 
-    // Helper methods for HomeFragment navigation
-    fun switchToDashboardTab() {
-        binding.bottomNavigation.selectedItemId = R.id.nav_dashboard
-    }
-
-    fun switchToBudgetTab() {
-        binding.bottomNavigation.selectedItemId = R.id.nav_budget
-    }
-
-    fun switchToSavingsTab() {
-        binding.bottomNavigation.selectedItemId = R.id.nav_savings
-    }
-    
     fun showTransactionsFragment() {
-        // Load the transactions fragment directly
-        loadFragment(TransactionsFragment())
+        // Show the existing transactions fragment
+        showFragment(transactionsFragment)
+        // Do not change bottom navigation selection (no tab for transactions)
     }
 }

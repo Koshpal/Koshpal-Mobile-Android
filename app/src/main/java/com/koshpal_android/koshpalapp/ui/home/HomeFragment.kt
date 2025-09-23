@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -37,11 +38,21 @@ import com.koshpal_android.koshpalapp.utils.SMSReader
 import com.koshpal_android.koshpalapp.utils.SMSTestHelper
 import com.koshpal_android.koshpalapp.utils.DebugHelper
 import com.koshpal_android.koshpalapp.utils.SMSManager
+import com.koshpal_android.koshpalapp.utils.DebugDataManager
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.service.TransactionProcessingService
 import dagger.hilt.android.AndroidEntryPoint
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,6 +70,7 @@ class HomeFragment : Fragment() {
     lateinit var transactionProcessingService: TransactionProcessingService
     
     private lateinit var featureAdapter: FeatureAdapter
+    private lateinit var recentTransactionsAdapter: com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
 
     // Permission launcher for SMS permissions
     private val permissionLauncher = registerForActivityResult(
@@ -90,28 +102,41 @@ class HomeFragment : Fragment() {
 
         setupRecyclerViews()
         setupClickListeners()
+        setupRecentTransactionsRecyclerView()
+        
+        // FIXED: Use single data source - ViewModel only
+        android.util.Log.d("HomeFragment", "🚀 Setting up ViewModel observation...")
         observeViewModel()
-        checkPermissions()
-        
-        // Load initial data
-        android.util.Log.d("HomeFragment", "🚀 Loading initial dashboard data...")
-        viewModel.loadDashboardData()
-        
-        // Also manually trigger refresh after a short delay to ensure data is loaded
-        lifecycleScope.launch {
-            kotlinx.coroutines.delay(2000) // Wait 2 seconds
-            android.util.Log.d("HomeFragment", "🔄 Manual refresh after delay...")
-            viewModel.refreshData()
-        }
     }
 
     private fun setupRecyclerViews() {
         // RecyclerViews removed for new Figma design
         // Features are now integrated into the main layout
     }
+    
+    private fun setupRecentTransactionsRecyclerView() {
+        recentTransactionsAdapter = com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter { transaction ->
+            // Handle transaction click - could navigate to transaction details
+            android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
+        }
+        
+        binding.rvRecentTransactions.apply {
+            adapter = recentTransactionsAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+            isNestedScrollingEnabled = false
+        }
+        
+        android.util.Log.d("HomeFragment", "📱 Recent transactions RecyclerView setup complete")
+    }
 
     private fun setupClickListeners() {
         binding.apply {
+            // Real SMS parsing button
+            cardSmsParser.setOnClickListener {
+                android.util.Log.d("HomeFragment", "📱 SMS Parser card clicked - starting real SMS parsing")
+                createSampleTransactions()
+            }
+            
             // Import button click
             btnImport.setOnClickListener {
                 createSampleTransactions()
@@ -119,8 +144,12 @@ class HomeFragment : Fragment() {
             
             // Add budget button click
             btnAddBudget.setOnClickListener {
-                // Switch to Budget tab in bottom navigation
-                (activity as? HomeActivity)?.switchToBudgetTab()
+                navigateToBudget()
+            }
+            
+            // Budget card click (feature removed)
+            cardBudget.setOnClickListener {
+                Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT).show()
             }
             
             tvViewAllTransactions.setOnClickListener {
@@ -136,23 +165,40 @@ class HomeFragment : Fragment() {
                 createSampleTransactions()
             }
             
-            // Add test button for immediate data (temporary)
+            // Long press for real SMS parsing
             cardFinancialOverview.setOnLongClickListener {
+                android.util.Log.d("HomeFragment", "📱 Financial overview long pressed - starting real SMS parsing")
                 createSampleTransactions()
                 true
             }
             
             cardFinancialOverview.setOnClickListener {
-                // Show current transaction count and hint
+                // Perform comprehensive debugging check
                 lifecycleScope.launch {
                     try {
-                        val database = KoshpalDatabase.getDatabase(requireContext())
-                        val transactionDao = database.transactionDao()
-                        val allTransactions = transactionDao.getRecentTransactions(100)
+                        val debugManager = DebugDataManager(requireContext())
+                        val checkResult = debugManager.performCompleteDataCheck()
+                        val homeDebugResult = debugManager.debugHomeScreenData()
                         
-                        showMessage("📊 CURRENT STATUS:\n\n💳 Total Transactions: ${allTransactions.size}\n\n🔍 DEBUG MODE: Long press this card to create sample transactions!\n\nThis will:\n✅ Create 8 sample transactions\n✅ Show detailed results\n✅ Enable all app features")
+                        val message = buildString {
+                            append("🔍 COMPREHENSIVE DEBUG STATUS:\n\n")
+                            append("📊 DATABASE STATUS:\n")
+                            append("Connected: ${checkResult.databaseConnected}\n")
+                            append("Categories: ${checkResult.categoriesCount}\n")
+                            append("Transactions: ${checkResult.transactionsCount}\n")
+                            append("Orphaned: ${checkResult.orphanedTransactions}\n\n")
+                            append("💰 FINANCIAL DATA:\n")
+                            append("Income: ₹${String.format("%.2f", homeDebugResult.totalIncome)}\n")
+                            append("Expenses: ₹${String.format("%.2f", homeDebugResult.totalExpenses)}\n")
+                            append("Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n\n")
+                            append("🔍 ACTIONS:\n")
+                            append("• Long press: Create sample data\n")
+                            append("• Import button: Process SMS/Create data")
+                        }
+                        
+                        showMessage(message)
                     } catch (e: Exception) {
-                        showMessage("🔍 DEBUG MODE: Long press this card to create sample transactions!\n\nError checking current data: ${e.message}")
+                        showMessage("❌ Debug check failed: ${e.message}")
                     }
                 }
             }
@@ -165,26 +211,36 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        android.util.Log.d("HomeFragment", "🔍 Setting up ViewModel observation...")
-        
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                android.util.Log.d("HomeFragment", "🔍 Starting to collect uiState...")
-                viewModel.uiState.collect { state ->
-                    android.util.Log.d("HomeFragment", "🔍 Received new state in collect block")
-                    updateUI(state)
-                }
+            viewModel.uiState.collect { uiState ->
+                android.util.Log.d("HomeFragment", "🔄 UI State received: hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}")
+                updateUI(uiState)
+                updateCurrentMonthDisplay()
+                renderLast4MonthsChart(uiState)
             }
         }
         
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.recentTransactions.collect { transactions ->
+                    android.util.Log.d("HomeFragment", "📱 Recent transactions received: ${transactions.size}")
+                    
                     // Update the "View All" text to show transaction count
                     binding.tvViewAllTransactions.text = if (transactions.isEmpty()) {
                         "View All (0)"
                     } else {
                         "View All (${transactions.size})"
+                    }
+                    
+                    // Show recent transactions (limit to 5)
+                    val recentTransactions = transactions.take(5)
+                    recentTransactionsAdapter.submitList(recentTransactions)
+                    
+                    // Show/hide recent transactions RecyclerView
+                    binding.rvRecentTransactions.visibility = if (recentTransactions.isNotEmpty()) {
+                        View.VISIBLE
+                    } else {
+                        View.GONE
                     }
                     
                     // Show/hide the no transactions card based on transaction count
@@ -193,9 +249,92 @@ class HomeFragment : Fragment() {
                     } else {
                         View.GONE
                     }
+                    
+                    android.util.Log.d("HomeFragment", "📱 Displaying ${recentTransactions.size} recent transactions")
                 }
             }
         }
+    }
+    
+    private fun updateCurrentMonthDisplay() {
+        val calendar = java.util.Calendar.getInstance()
+        val monthNames = arrayOf(
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        )
+        val currentMonth = monthNames[calendar.get(java.util.Calendar.MONTH)]
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
+        
+        _binding?.tvCurrentMonth?.text = "$currentMonth $currentYear"
+        android.util.Log.d("HomeFragment", "📅 Updated month display: $currentMonth $currentYear")
+    }
+
+    private fun renderLast4MonthsChart(state: HomeUiState) {
+        val chart: BarChart = binding.chartLast4Months
+        // Basic styling
+        chart.description.isEnabled = false
+        chart.setPinchZoom(false)
+        chart.setScaleEnabled(false)
+        chart.axisRight.isEnabled = false
+        chart.axisLeft.axisMinimum = 0f
+        chart.axisLeft.textColor = android.graphics.Color.parseColor("#6B7280")
+        chart.setNoDataText("No data yet")
+        chart.setExtraOffsets(8f, 8f, 8f, 8f)
+
+        val months = state.last4MonthsComparison.map { it.month }
+        if (months.isEmpty()) {
+            chart.clear()
+            return
+        }
+
+        val incomeEntries = mutableListOf<BarEntry>()
+        val expenseEntries = mutableListOf<BarEntry>()
+        state.last4MonthsComparison.forEachIndexed { index, item ->
+            incomeEntries.add(BarEntry(index.toFloat(), item.totalIncome.toFloat()))
+            expenseEntries.add(BarEntry(index.toFloat(), item.totalSpent.toFloat()))
+        }
+
+        val incomeSet = BarDataSet(incomeEntries, "Income").apply {
+            color = android.graphics.Color.parseColor("#10B981")
+            valueTextColor = android.graphics.Color.parseColor("#374151")
+        }
+        val expenseSet = BarDataSet(expenseEntries, "Expenses").apply {
+            color = android.graphics.Color.parseColor("#EF4444")
+            valueTextColor = android.graphics.Color.parseColor("#374151")
+        }
+
+        val data = BarData(incomeSet, expenseSet).apply {
+            setValueTextSize(10f)
+            barWidth = 0.32f
+        }
+
+        val groupSpace = 0.36f
+        val barSpace = 0.0f
+
+        chart.data = data
+        chart.xAxis.apply {
+            position = XAxis.XAxisPosition.BOTTOM
+            setDrawGridLines(false)
+            valueFormatter = IndexAxisValueFormatter(months)
+            granularity = 1f
+            textColor = android.graphics.Color.parseColor("#6B7280")
+        }
+
+        chart.legend.apply {
+            verticalAlignment = Legend.LegendVerticalAlignment.TOP
+            horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
+            orientation = Legend.LegendOrientation.HORIZONTAL
+            textColor = android.graphics.Color.parseColor("#374151")
+            setDrawInside(false)
+        }
+
+        // Ensure proper grouping across x range [0, count)
+        chart.xAxis.axisMinimum = 0f
+        chart.xAxis.axisMaximum = 0f + data.getGroupWidth(groupSpace, barSpace) * months.size
+        chart.groupBars(0f, groupSpace, barSpace)
+        chart.invalidate()
+
+        // Budget details navigation removed
     }
 
     private fun updateUI(state: HomeUiState) {
@@ -353,12 +492,8 @@ class HomeFragment : Fragment() {
 
     private fun navigateToFeature(feature: FeatureItem) {
         when (feature.id) {
-            "dashboard" -> (activity as? HomeActivity)?.switchToDashboardTab()
-            "budget" -> (activity as? HomeActivity)?.switchToBudgetTab()
-            "savings" -> (activity as? HomeActivity)?.switchToSavingsTab()
-            "insights" -> showMessage("Financial Insights feature coming soon!")
-            "categorization" -> viewModel.onCategorizationClick()
-            "alerts" -> showMessage("Spending Alerts feature coming soon!")
+            "transactions" -> (activity as? HomeActivity)?.showTransactionsFragment()
+            else -> showMessage("Feature coming soon!")
         }
     }
 
@@ -443,64 +578,131 @@ class HomeFragment : Fragment() {
     private fun createSampleTransactions() {
         lifecycleScope.launch {
             try {
-                android.util.Log.d("HomeFragment", "🚀 Starting sample transaction creation...")
-                showMessage("🔄 Creating sample transactions... Please wait...")
+                android.util.Log.d("HomeFragment", "📱 ===== STARTING REAL SMS PARSING =====") 
                 
-                val smsManager = SMSManager(requireContext())
+                val debugManager = DebugDataManager(requireContext())
                 
-                // Try real SMS first, then fallback to sample data
-                val realResult = smsManager.processAllSMS()
+                // Step 1: Perform complete data check
+                android.util.Log.d("HomeFragment", "🔍 Step 1: Performing complete data check...")
+                val checkResult = debugManager.performCompleteDataCheck()
                 
-                if (realResult.success && realResult.transactionsCreated > 0) {
-                    // Real SMS processing worked
-                    val message = buildString {
-                        append("✅ REAL SMS PROCESSED!\n\n")
-                        append("📊 DETAILED RESULTS:\n")
-                        append("📱 Total SMS Found: ${realResult.smsFound}\n")
-                        append("💳 Transaction SMS: ${realResult.transactionSmsFound}\n")
-                        append("💾 SMS Saved: ${realResult.smsProcessed}\n")
-                        append("✅ Transactions Created: ${realResult.transactionsCreated}\n\n")
-                        append("🎉 Your actual financial data is now available!\n")
-                        append("Check Dashboard, Budget, and other tabs to see your data.")
-                    }
-                    showMessage(message)
-                    android.util.Log.d("HomeFragment", "✅ Real SMS processing successful: ${realResult.transactionsCreated} transactions")
-                } else {
-                    // Fallback to sample data
-                    android.util.Log.d("HomeFragment", "📝 Falling back to sample data creation...")
-                    val sampleResult = smsManager.createSampleData()
-                    
-                    if (sampleResult.success) {
-                        val message = "✅ SAMPLE DATA CREATED!\n\n🧪 Sample Transactions: ${sampleResult.transactionsCreated}\n\nIncludes:\n• Amazon ₹500 (Shopping)\n• Zomato ₹1,200 (Food)\n• Salary ₹25,000 (Income)\n• Uber ₹350 (Transport)\n• DMart ₹800 (Grocery)\n\nCheck Dashboard, Budget, and other tabs!"
-                        showMessage(message)
-                        android.util.Log.d("HomeFragment", "✅ Sample data creation successful: ${sampleResult.transactionsCreated} transactions")
+                if (!checkResult.success) {
+                    showErrorMessage("Data check failed: ${checkResult.error}")
+                    return@launch
+                }
+                
+                // Step 2: Parse real SMS data
+                android.util.Log.d("HomeFragment", "📱 Step 2: Parsing real SMS messages...")
+                showMessage("📱 Processing your SMS messages...\nThis may take a few moments.")
+                
+                val createResult = debugManager.parseRealSMSAndCreateData()
+                
+                if (!createResult.success) {
+                    showErrorMessage("Failed to parse SMS data: ${createResult.error}")
+                    return@launch
+                }
+                
+                // Step 3: Debug home screen data
+                android.util.Log.d("HomeFragment", "🏠 Step 3: Debugging home screen data...")
+                val homeDebugResult = debugManager.debugHomeScreenData()
+                
+                // Step 4: Show comprehensive results
+                val message = buildString {
+                    if (createResult.transactionsCreated > 0) {
+                        append("✅ REAL SMS PARSING SUCCESSFUL!\n\n")
+                        append("📱 SMS PROCESSING RESULTS:\n")
+                        append("💾 Real Transactions Created: ${createResult.transactionsCreated}\n")
+                        append("💳 Total Transaction Count: ${createResult.finalTransactionCount}\n")
+                        append("💰 Total Income: ₹${String.format("%.2f", homeDebugResult.totalIncome)}\n")
+                        append("💸 Total Expenses: ₹${String.format("%.2f", homeDebugResult.totalExpenses)}\n")
+                        append("🏦 Current Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n\n")
+                        append("🎉 Your actual financial data is now displayed!\n")
+                        append("📅 Home screen shows CURRENT MONTH data only.\n")
+                        append("📱 Recent 5 transactions are shown below.\n")
+                        append("Check Transactions tab to see your complete history.")
                     } else {
-                        val errorMsg = "Failed to create data: ${sampleResult.error}"
-                        showErrorMessage(errorMsg)
-                        android.util.Log.e("HomeFragment", "❌ Sample data creation failed: ${sampleResult.error}")
+                        append("📝 SAMPLE DATA CREATED\n\n")
+                        append("No transaction SMS found on your device.\n")
+                        append("Sample data has been created for demonstration.\n\n")
+                        append("💰 Sample Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n")
+                        append("You can now explore all app features!")
                     }
                 }
                 
-                // Force refresh UI after data creation
-                android.util.Log.d("HomeFragment", "🔄 Refreshing UI data...")
-                viewModel.refreshData()
+                showMessage(message)
+                android.util.Log.d("HomeFragment", "✅ ===== SMS PARSING COMPLETED SUCCESSFULLY =====\n" +
+                    "Created: ${createResult.transactionsCreated} transactions\n" +
+                    "Balance: ₹${homeDebugResult.balance}")
                 
-                // Small delay to ensure data is loaded
-                kotlinx.coroutines.delay(1000)
-                viewModel.refreshData()
+                // Step 5: Force refresh UI with new data
+                android.util.Log.d("HomeFragment", "🔄 Step 5: Force refreshing UI with new data...")
+                refreshUIWithDebugData(homeDebugResult)
                 
             } catch (e: Exception) {
-                val errorMsg = "Error: ${e.message}"
+                val errorMsg = "SMS parsing failed: ${e.message}"
                 showErrorMessage(errorMsg)
-                android.util.Log.e("HomeFragment", "❌ Error creating transactions: ${e.message}", e)
+                android.util.Log.e("HomeFragment", "❌ ===== SMS PARSING FAILED =====\n${e.message}", e)
             }
         }
     }
 
+    private fun refreshUIWithDebugData(debugResult: com.koshpal_android.koshpalapp.utils.HomeScreenDebugResult) {
+        android.util.Log.d("HomeFragment", "🔄 Refreshing UI with debug data...")
+        
+        _binding?.let { binding ->
+            binding.apply {
+                // Do not overwrite ViewModel-driven month figures here.
+                // Let HomeViewModel compute and bind current month income/expenses/balance.
+                
+                // Update transaction count
+                tvViewAllTransactions.text = if (debugResult.hasTransactions) {
+                    "View All (${debugResult.transactionCount})"
+                } else {
+                    "No transactions"
+                }
+                
+                // Show/hide appropriate cards
+                if (debugResult.hasTransactions) {
+                    cardNoTransactions.visibility = View.GONE
+                    cardSmsParser.visibility = View.GONE
+                    cardFinancialOverview.visibility = View.VISIBLE
+                } else {
+                    cardNoTransactions.visibility = View.VISIBLE
+                    cardSmsParser.visibility = View.VISIBLE
+                    cardFinancialOverview.visibility = View.VISIBLE
+                }
+                
+                android.util.Log.d("HomeFragment", "✅ UI refreshed with debug data (counts/visibility only) - Transactions: ${debugResult.transactionCount}")
+            }
+        }
+        
+        // Also refresh ViewModel to keep it in sync
+        viewModel.forceRefreshNow()
+    }
+
     override fun onResume() {
         super.onResume()
-        checkPermissions()
-        viewModel.refreshData()
+        android.util.Log.d("HomeFragment", "🔄 onResume - performing comprehensive data refresh...")
+        
+        // Perform comprehensive data check and refresh
+        lifecycleScope.launch {
+            try {
+                val debugManager = DebugDataManager(requireContext())
+                val homeDebugResult = debugManager.debugHomeScreenData()
+                
+                if (homeDebugResult.success) {
+                    refreshUIWithDebugData(homeDebugResult)
+                } else {
+                    android.util.Log.e("HomeFragment", "Home screen debug failed: ${homeDebugResult.error}")
+                    // Fallback to ViewModel refresh
+                    viewModel.refreshData()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "onResume data refresh failed: ${e.message}", e)
+                // Fallback to ViewModel refresh
+                viewModel.refreshData()
+            }
+        }
     }
 
     private fun showMonthSelectionDialog() {
@@ -527,6 +729,10 @@ class HomeFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+    
+    private fun navigateToBudget() {
+        Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

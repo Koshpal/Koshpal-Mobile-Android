@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.repository.AuthRepository
 import com.koshpal_android.koshpalapp.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SplashViewModel(
+@HiltViewModel
+class SplashViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
@@ -22,16 +25,20 @@ class SplashViewModel(
 
     fun startSplashTimer() {
         viewModelScope.launch {
-            delay(2000) // 2 seconds delay
-
-            // Check if user is logged in and verified
+            delay(1000) // 1 second delay for faster testing
+            
+            // Bypass authentication - directly navigate to HOME
+            _navigationEvent.emit(NavigationDestination.HOME)
+            
+            // Original authentication logic commented out for testing:
+            /*
             val currentUser = authRepository.getCurrentUser()
             if (currentUser != null && currentUser.isVerified) {
                 _navigationEvent.emit(NavigationDestination.HOME)
             } else {
-                // Navigate to CheckActivity for new users
                 _navigationEvent.emit(NavigationDestination.CHECK)
             }
+            */
         }
     }
 

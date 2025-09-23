@@ -61,10 +61,9 @@ class SmsRepository(private val context: Context) {
                         smsList.add(
                             PaymentSms(
                                 id = id,
-                                address = address,
-                                body = body,
-                                timestamp = timestamp,
-                                date = formattedDate
+                                sender = address,
+                                smsBody = body,
+                                timestamp = timestamp
                             )
                         )
                     }

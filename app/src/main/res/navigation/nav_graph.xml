@@ -15,9 +15,7 @@
             android:id="@+id/action_home_to_dashboard"
             app:destination="@id/dashboardFragment" />
             
-        <action
-            android:id="@+id/action_home_to_budget"
-            app:destination="@id/budgetFragment" />
+        <!-- action to budget removed -->
             
         <action
             android:id="@+id/action_home_to_savings"
@@ -38,6 +36,8 @@
         <action
             android:id="@+id/action_home_to_alerts"
             app:destination="@id/alertsFragment" />
+
+        <!-- action to budget details removed -->
             
     </fragment>
 
@@ -50,7 +50,7 @@
     <fragment
         android:id="@+id/budgetFragment"
         android:name="com.koshpal_android.koshpalapp.ui.budget.BudgetFragment"
-        android:label="Budget Planner"
+        android:label="Budget"
         tools:layout="@layout/fragment_budget" />
 
     <fragment
@@ -82,5 +82,7 @@
         android:name="com.koshpal_android.koshpalapp.ui.alerts.AlertsFragment"
         android:label="Spending Alerts"
         tools:layout="@layout/fragment_alerts" />
+
+    <!-- Budget details fragment removed -->
 
 </navigation>

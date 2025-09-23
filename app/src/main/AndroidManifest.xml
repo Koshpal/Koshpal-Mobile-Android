@@ -46,6 +46,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.budget.BudgetActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".utils.TransactionSMSReceiver"
             android:enabled="true"

@@ -4,49 +4,31 @@ import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.koshpal_android.koshpalapp.model.TransactionType
-import com.koshpal_android.koshpalapp.model.BudgetStatus
-import com.koshpal_android.koshpalapp.model.GoalCategory
 
 class Converters {
     
+    private val gson = Gson()
+    
     @TypeConverter
-    fun fromStringList(value: List<String>): String {
-        return Gson().toJson(value)
+    fun fromTransactionType(type: TransactionType): String {
+        return type.name
+    }
+
+    @TypeConverter
+    fun toTransactionType(type: String): TransactionType {
+        return TransactionType.valueOf(type)
     }
     
+    // Budget-related converters removed
+    
+    @TypeConverter
+    fun fromStringList(value: List<String>): String {
+        return gson.toJson(value)
+    }
+
     @TypeConverter
     fun toStringList(value: String): List<String> {
         val listType = object : TypeToken<List<String>>() {}.type
-        return Gson().fromJson(value, listType)
-    }
-    
-    @TypeConverter
-    fun fromTransactionType(value: TransactionType): String {
-        return value.name
-    }
-    
-    @TypeConverter
-    fun toTransactionType(value: String): TransactionType {
-        return TransactionType.valueOf(value)
-    }
-    
-    @TypeConverter
-    fun fromBudgetStatus(value: BudgetStatus): String {
-        return value.name
-    }
-    
-    @TypeConverter
-    fun toBudgetStatus(value: String): BudgetStatus {
-        return BudgetStatus.valueOf(value)
-    }
-    
-    @TypeConverter
-    fun fromGoalCategory(value: GoalCategory): String {
-        return value.name
-    }
-    
-    @TypeConverter
-    fun toGoalCategory(value: String): GoalCategory {
-        return GoalCategory.valueOf(value)
+        return gson.fromJson(value, listType)
     }
 }

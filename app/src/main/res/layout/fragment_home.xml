@@ -206,7 +206,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Balance"
+                            android:text="Current Month Balance"
                             android:textColor="@android:color/white"
                             android:textSize="14sp"
                             android:alpha="0.8" />
@@ -266,7 +266,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Income"
+                                    android:text="This Month Income"
                                     android:textColor="#6B7280"
                                     android:textSize="12sp" />
                                     
@@ -320,7 +320,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Expenses"
+                                    android:text="This Month Expenses"
                                     android:textColor="#6B7280"
                                     android:textSize="12sp" />
                                     
@@ -388,6 +388,16 @@
                 android:tint="#8B5CF6" />
                 
         </LinearLayout>
+        
+        <!-- Recent Transactions RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:nestedScrollingEnabled="false"
+            android:visibility="gone" />
         
         <!-- No Transactions State -->
         <com.google.android.material.card.MaterialCardView
@@ -503,13 +513,17 @@
         
         <!-- Budget Card -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBudget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="24dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="2dp"
-            app:cardBackgroundColor="@android:color/white">
+            app:cardBackgroundColor="@android:color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
             
             <LinearLayout
                 android:layout_width="match_parent"
@@ -621,6 +635,15 @@
                     android:textStyle="bold"
                     android:layout_gravity="center" />
                     
+                <!-- Last 4 Months Comparison Chart -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/chartLast4Months"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:focusable="false" />
+
             </LinearLayout>
             
         </com.google.android.material.card.MaterialCardView>
@@ -721,7 +744,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Import Your Transactions"
+                        android:text="Import Your Real Transactions"
                         android:textColor="#1F2937"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -731,7 +754,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Parse your SMS messages to automatically import banking transactions"
+                    android:text="Automatically parse your actual SMS messages to import real banking transactions from your phone"
                     android:textColor="#6B7280"
                     android:textSize="14sp"
                     android:layout_marginBottom="12dp" />
@@ -740,7 +763,7 @@
                     android:id="@+id/btnParseSms"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Parse SMS Messages"
+                    android:text="Import Real SMS Data"
                     android:textSize="14sp"
                     app:cornerRadius="8dp"
                     style="@style/Widget.Material3.Button" />

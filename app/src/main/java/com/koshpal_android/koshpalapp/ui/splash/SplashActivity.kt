@@ -1,9 +1,12 @@
 package com.koshpal_android.koshpalapp.ui.splash
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -21,13 +24,20 @@ class SplashActivity : AppCompatActivity() {
     // Use Hilt for ViewModel injection
     private val viewModel: SplashViewModel by viewModels()
 
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { _ ->
+        // Regardless of grant/deny, continue splash flow
+        startSplash()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         observeNavigation()
-        viewModel.startSplashTimer()
+        requestSmsPermissionsIfNeeded()
     }
 
     private fun observeNavigation() {
@@ -52,5 +62,26 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun requestSmsPermissionsIfNeeded() {
+        val readSms = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+        val receiveSms = ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
+        val toRequest = mutableListOf<String>()
+        if (readSms != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            toRequest.add(Manifest.permission.READ_SMS)
+        }
+        if (receiveSms != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            toRequest.add(Manifest.permission.RECEIVE_SMS)
+        }
+        if (toRequest.isNotEmpty()) {
+            permissionLauncher.launch(toRequest.toTypedArray())
+        } else {
+            startSplash()
+        }
+    }
+
+    private fun startSplash() {
+        viewModel.startSplashTimer()
     }
 }

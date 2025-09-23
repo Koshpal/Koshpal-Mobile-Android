@@ -50,10 +50,9 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                             val currentTime = System.currentTimeMillis()
                                             val paymentSms = PaymentSms(
                                                 id = java.util.UUID.randomUUID().toString(),
-                                                address = sender,
-                                                body = messageBody,
+                                                sender = sender,
+                                                smsBody = messageBody,
                                                 timestamp = currentTime,
-                                                date = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(currentTime)),
                                                 isProcessed = false
                                             )
                                             

@@ -1,11 +1,8 @@
 package com.koshpal_android.koshpalapp.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import com.koshpal_android.koshpalapp.data.local.dao.TransactionDao
 import com.koshpal_android.koshpalapp.data.local.dao.CategoryDao
-import com.koshpal_android.koshpalapp.data.local.dao.CategorySpending
+import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
@@ -23,18 +20,13 @@ class TransactionRepository @Inject constructor(
     private val categorizationEngine: TransactionCategorizationEngine
 ) {
     
-    fun getAllTransactionsPaged(): Flow<PagingData<Transaction>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { transactionDao.getAllTransactionsPaged() }
-        ).flow
-    }
     
     fun getAllTransactions(): Flow<List<Transaction>> {
         return transactionDao.getAllTransactions()
+    }
+    
+    suspend fun getAllTransactionsOnce(): List<Transaction> {
+        return transactionDao.getAllTransactionsOnce()
     }
     
     suspend fun getTransactionById(id: String): Transaction? {
@@ -160,7 +152,7 @@ class TransactionRepository @Inject constructor(
             merchant = merchant,
             categoryId = category.id,
             confidence = confidence,
-            timestamp = timestamp,
+            date = timestamp,
             description = categorizationEngine.extractTransactionDetails(smsBody).description,
             smsBody = smsBody
         )
@@ -187,6 +179,30 @@ class TransactionRepository @Inject constructor(
         }
     }
     
+    suspend fun getLastNMonthsIncomeExpenses(n: Int = 4): List<Pair<String, Pair<Double, Double>>> {
+        val calendar = Calendar.getInstance()
+        val results = mutableListOf<Pair<String, Pair<Double, Double>>>()
+        // Start from current month going back n-1 months
+        for (i in (n - 1) downTo 0) {
+            val monthCal = calendar.clone() as Calendar
+            monthCal.add(Calendar.MONTH, -i)
+            monthCal.set(Calendar.DAY_OF_MONTH, 1)
+            monthCal.set(Calendar.HOUR_OF_DAY, 0)
+            monthCal.set(Calendar.MINUTE, 0)
+            monthCal.set(Calendar.SECOND, 0)
+            monthCal.set(Calendar.MILLISECOND, 0)
+            val start = monthCal.timeInMillis
+            val label = java.text.SimpleDateFormat("MMM", java.util.Locale.getDefault()).format(monthCal.time)
+            monthCal.add(Calendar.MONTH, 1)
+            monthCal.add(Calendar.MILLISECOND, -1)
+            val end = monthCal.timeInMillis
+            val income = transactionDao.getTotalIncomeForPeriod(start, end) ?: 0.0
+            val expenses = transactionDao.getTotalExpensesForPeriod(start, end) ?: 0.0
+            results.add(label to (income to expenses))
+        }
+        return results
+    }
+
     
     suspend fun getMonthlyIncome(month: Int, year: Int): Double {
         val calendar = Calendar.getInstance()

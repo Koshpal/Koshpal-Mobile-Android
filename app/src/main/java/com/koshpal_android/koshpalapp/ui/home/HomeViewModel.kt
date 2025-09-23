@@ -1,11 +1,10 @@
 package com.koshpal_android.koshpalapp.ui.home
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
-import com.koshpal_android.koshpalapp.repository.BudgetRepository
-import com.koshpal_android.koshpalapp.repository.SavingsGoalRepository
 import com.koshpal_android.koshpalapp.ui.home.model.HomeUiState
 import com.koshpal_android.koshpalapp.ui.home.model.MonthlySpendingData
 import com.koshpal_android.koshpalapp.ui.home.model.MonthYearOption
@@ -23,10 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val transactionRepository: TransactionRepository,
-    private val budgetRepository: BudgetRepository,
-    private val savingsGoalRepository: SavingsGoalRepository
-) : ViewModel() {
+    application: Application,
+    private val transactionRepository: TransactionRepository
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -37,137 +35,173 @@ class HomeViewModel @Inject constructor(
     private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
 
     init {
-        loadDashboardData()
+        viewModelScope.launch {
+            loadDashboardData()
+        }
     }
 
-    fun loadDashboardData() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+    private suspend fun loadDashboardData() {
+        android.util.Log.d("HomeViewModel", "📊 ===== LOADING DASHBOARD DATA =====")
+        
+        try {
+            // CRITICAL FIX: Use the same database instance as DebugDataManager
+            val context = getApplication<Application>().applicationContext
+            val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(context)
+            val allTransactions = database.transactionDao().getAllTransactionsOnce()
+            android.util.Log.d("HomeViewModel", "📊 Total transactions found: ${allTransactions.size}")
             
-            try {
-                // Get all transactions
-                transactionRepository.getAllTransactions().collect { allTransactions ->
-                    
-                    android.util.Log.d("HomeViewModel", "📊 Loading dashboard data...")
-                    android.util.Log.d("HomeViewModel", "📊 Total transactions found: ${allTransactions.size}")
-                    
-                    // Calculate real financial data
-                    var totalIncome = 0.0
-                    var totalExpenses = 0.0
-                    
-                    for (transaction in allTransactions) {
-                        if (transaction.type == TransactionType.CREDIT) {
-                            totalIncome += transaction.amount
-                        } else if (transaction.type == TransactionType.DEBIT) {
-                            totalExpenses += transaction.amount
-                        }
+            // Debug: Log each transaction found
+            allTransactions.forEachIndexed { index, transaction ->
+                android.util.Log.d("HomeViewModel", "   ${index + 1}. ${transaction.merchant} - ₹${transaction.amount} (${transaction.type})")
+            }
+            
+            // Calculate totals with detailed logging
+            var totalIncome = 0.0
+            var totalExpenses = 0.0
+            
+            allTransactions.forEach { transaction ->
+                when (transaction.type) {
+                    TransactionType.CREDIT -> {
+                        totalIncome += transaction.amount
+                        android.util.Log.d("HomeViewModel", "   ➕ Income: ${transaction.merchant} +₹${transaction.amount}")
                     }
-                    
-                    val currentBalance = totalIncome - totalExpenses
-                    
-                    android.util.Log.d("HomeViewModel", "💰 Calculated - Income: ₹$totalIncome, Expenses: ₹$totalExpenses, Balance: ₹$currentBalance")
-                    
-                    // Calculate current month data
-                    val currentState = _uiState.value
-                    val selectedMonth = currentState.selectedMonth
-                    val selectedYear = currentState.selectedYear
-                    
-                    android.util.Log.d("HomeViewModel", "📅 Filtering for selected month: ${selectedMonth + 1}/$selectedYear")
-                    
-                    var currentMonthIncome = 0.0
-                    var currentMonthExpenses = 0.0
-                    
-                    val calendar = java.util.Calendar.getInstance()
-                    for (transaction in allTransactions) {
-                        calendar.timeInMillis = transaction.timestamp
-                        val transactionMonth = calendar.get(java.util.Calendar.MONTH)
-                        val transactionYear = calendar.get(java.util.Calendar.YEAR)
-                        
-                        if (transactionMonth == selectedMonth && transactionYear == selectedYear) {
-                            if (transaction.type == TransactionType.CREDIT) {
-                                currentMonthIncome += transaction.amount
-                            } else if (transaction.type == TransactionType.DEBIT) {
-                                currentMonthExpenses += transaction.amount
-                            }
-                        }
+                    TransactionType.DEBIT -> {
+                        totalExpenses += transaction.amount
+                        android.util.Log.d("HomeViewModel", "   ➖ Expense: ${transaction.merchant} -₹${transaction.amount}")
                     }
-                    
-                    val currentMonthBalance = currentMonthIncome - currentMonthExpenses
-                    android.util.Log.d("HomeViewModel", "📅 Selected Month Data - Income: ₹$currentMonthIncome, Expenses: ₹$currentMonthExpenses, Balance: ₹$currentMonthBalance")
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Step 1: Getting available months...")
-                    val availableMonths = getAvailableMonths(allTransactions)
-                    android.util.Log.d("HomeViewModel", "✅ Step 1 completed: ${availableMonths.size} available months")
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Step 1b: Getting last 3 months data...")
-                    // Get last 3 months data
-                    val last3MonthsData = try {
-                        getLast3MonthsData(allTransactions)
-                    } catch (e: Exception) {
-                        android.util.Log.e("HomeViewModel", "❌ Error in getLast3MonthsData: ${e.message}")
-                        emptyList()
+                    TransactionType.TRANSFER -> {
+                        // Handle transfer transactions - could be either income or expense depending on context
+                        android.util.Log.d("HomeViewModel", "   🔄 Transfer: ${transaction.merchant} ₹${transaction.amount}")
                     }
-                    android.util.Log.d("HomeViewModel", "✅ Step 1 completed: ${last3MonthsData.size} months")
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Step 2: Getting recent transactions...")
-                    // Load recent transactions (last 5)
-                    val recentTransactions = try {
-                        allTransactions
-                            .sortedByDescending { it.timestamp }
-                            .take(5)
-                    } catch (e: Exception) {
-                        android.util.Log.e("HomeViewModel", "❌ Error getting recent transactions: ${e.message}")
-                        emptyList()
-                    }
-                    android.util.Log.d("HomeViewModel", "✅ Step 2 completed: ${recentTransactions.size} recent transactions")
-                    
-                    _recentTransactions.value = recentTransactions
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Step 3: Setting default budget data...")
-                    // Skip problematic budget methods for now - use defaults
-                    val budgetSpent = 0.0
-                    val budgetLimit = 0.0
-                    android.util.Log.d("HomeViewModel", "✅ Step 3 completed: budgetSpent=₹$budgetSpent, budgetLimit=₹$budgetLimit")
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Step 4: Creating new UI state...")
-                    val newState = _uiState.value.copy(
-                        isLoading = false,
-                        currentBalance = currentBalance,
-                        totalBalance = currentBalance,
-                        totalIncome = totalIncome,
-                        totalExpenses = totalExpenses,
-                        budgetSpent = budgetSpent,
-                        budgetLimit = budgetLimit,
-                        hasTransactions = allTransactions.isNotEmpty(),
-                        transactionCount = allTransactions.size,
-                        last3MonthsData = last3MonthsData,
-                        availableMonths = availableMonths,
-                        currentMonthIncome = currentMonthIncome,
-                        currentMonthExpenses = currentMonthExpenses,
-                        currentMonthBalance = currentMonthBalance,
-                        errorMessage = null
-                    )
-                    
-                    android.util.Log.d("HomeViewModel", "🔄 Updating UI state:")
-                    android.util.Log.d("HomeViewModel", "   hasTransactions: ${newState.hasTransactions}")
-                    android.util.Log.d("HomeViewModel", "   totalIncome: ₹${newState.totalIncome}")
-                    android.util.Log.d("HomeViewModel", "   totalExpenses: ₹${newState.totalExpenses}")
-                    android.util.Log.d("HomeViewModel", "   currentBalance: ₹${newState.currentBalance}")
-                    android.util.Log.d("HomeViewModel", "   transactionCount: ${newState.transactionCount}")
-                    
-                    // Force UI state update
-                    _uiState.value = newState
-                    android.util.Log.d("HomeViewModel", "✅ UI state updated successfully!")
-                    
-                    // Also emit to recent transactions
-                    android.util.Log.d("HomeViewModel", "📱 Recent transactions count: ${recentTransactions.size}")
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Failed to load dashboard data: ${e.message}"
+            }
+            
+            val currentBalance = totalIncome - totalExpenses
+            android.util.Log.d("HomeViewModel", "💰 CALCULATED TOTALS - Income: ₹$totalIncome, Expenses: ₹$totalExpenses, Balance: ₹$currentBalance")
+            
+            // CRITICAL CHANGE: Show CURRENT MONTH data instead of total
+            android.util.Log.d("HomeViewModel", "📅 Calculating current month data...")
+            
+            val calendar = java.util.Calendar.getInstance()
+            val currentMonth = calendar.get(java.util.Calendar.MONTH)
+            val currentYear = calendar.get(java.util.Calendar.YEAR)
+            
+            android.util.Log.d("HomeViewModel", "📅 Current month: ${currentMonth + 1}/$currentYear")
+            
+            var currentMonthIncome = 0.0
+            var currentMonthExpenses = 0.0
+            
+            allTransactions.forEach { transaction ->
+                calendar.timeInMillis = transaction.timestamp
+                val transactionMonth = calendar.get(java.util.Calendar.MONTH)
+                val transactionYear = calendar.get(java.util.Calendar.YEAR)
+                
+                android.util.Log.d("HomeViewModel", "🔍 Transaction: ${transaction.merchant} - Date: ${java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(java.util.Date(transaction.timestamp))} - Month: ${transactionMonth + 1}/$transactionYear")
+                
+                if (transactionMonth == currentMonth && transactionYear == currentYear) {
+                    when (transaction.type) {
+                        TransactionType.CREDIT -> {
+                            currentMonthIncome += transaction.amount
+                            android.util.Log.d("HomeViewModel", "   ✅ Current Month Income: ${transaction.merchant} +₹${transaction.amount}")
+                        }
+                        TransactionType.DEBIT -> {
+                            currentMonthExpenses += transaction.amount
+                            android.util.Log.d("HomeViewModel", "   ✅ Current Month Expense: ${transaction.merchant} -₹${transaction.amount}")
+                        }
+                        TransactionType.TRANSFER -> {
+                            android.util.Log.d("HomeViewModel", "   ✅ Current Month Transfer: ${transaction.merchant} ₹${transaction.amount}")
+                        }
+                    }
+                } else {
+                    android.util.Log.d("HomeViewModel", "   ❌ Transaction NOT in current month: ${transaction.merchant} (${transactionMonth + 1}/$transactionYear vs ${currentMonth + 1}/$currentYear)")
+                }
+            }
+            
+            val currentMonthBalance = currentMonthIncome - currentMonthExpenses
+            
+            // CRITICAL: If no current month data, show total data as fallback
+            val hasCurrentMonthData = currentMonthIncome > 0 || currentMonthExpenses > 0
+            
+            val displayIncome = if (hasCurrentMonthData) currentMonthIncome else totalIncome
+            val displayExpenses = if (hasCurrentMonthData) currentMonthExpenses else totalExpenses
+            val displayBalance = if (hasCurrentMonthData) currentMonthBalance else (totalIncome - totalExpenses)
+            
+            android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION:")
+            android.util.Log.d("HomeViewModel", "   Has current month data: $hasCurrentMonthData")
+            android.util.Log.d("HomeViewModel", "   Using ${if (hasCurrentMonthData) "CURRENT MONTH" else "TOTAL"} data for display")
+            
+            android.util.Log.d("HomeViewModel", "📅 CURRENT MONTH DATA:")
+            android.util.Log.d("HomeViewModel", "   Income: ₹$displayIncome")
+            android.util.Log.d("HomeViewModel", "   Expenses: ₹$displayExpenses")
+            android.util.Log.d("HomeViewModel", "   Balance: ₹$displayBalance")
+            android.util.Log.d("HomeViewModel", "📊 TOTAL DATA (for reference):")
+            android.util.Log.d("HomeViewModel", "   Total Income: ₹$totalIncome")
+            android.util.Log.d("HomeViewModel", "   Total Expenses: ₹$totalExpenses")
+            android.util.Log.d("HomeViewModel", "   Total Balance: ₹${totalIncome - totalExpenses}")
+            
+            android.util.Log.d("HomeViewModel", "🔄 Creating simplified UI state...")
+            
+            // Get recent transactions (last 10)
+            val recentTransactions = allTransactions
+                .sortedByDescending { it.timestamp }
+                .take(10)
+            
+            // Update recent transactions
+            _recentTransactions.value = recentTransactions
+            
+            // Prepare monthly datasets
+            val availableMonths = emptyList<com.koshpal_android.koshpalapp.ui.home.model.MonthYearOption>()
+            val last3MonthsData = emptyList<com.koshpal_android.koshpalapp.ui.home.model.MonthlySpendingData>()
+            val last4 = transactionRepository.getLastNMonthsIncomeExpenses(4).map { (label, pair) ->
+                com.koshpal_android.koshpalapp.ui.home.model.MonthlySpendingData(
+                    month = label,
+                    year = Calendar.getInstance().get(Calendar.YEAR),
+                    totalSpent = pair.second,
+                    totalIncome = pair.first,
+                    transactionCount = 0
                 )
             }
+            val budgetSpent = 0.0
+            val budgetLimit = 0.0
+            
+            // Create new UI state
+            val newState = _uiState.value.copy(
+                isLoading = false,
+                currentBalance = displayBalance,
+                totalBalance = displayBalance,
+                totalIncome = displayIncome,
+                totalExpenses = displayExpenses,
+                budgetSpent = budgetSpent,
+                budgetLimit = budgetLimit,
+                hasTransactions = allTransactions.isNotEmpty(),
+                transactionCount = allTransactions.size,
+                last3MonthsData = last3MonthsData,
+                availableMonths = availableMonths,
+                last4MonthsComparison = last4,
+                currentMonthIncome = displayIncome,
+                currentMonthExpenses = displayExpenses,
+                currentMonthBalance = displayBalance,
+                errorMessage = null
+            )
+            
+            android.util.Log.d("HomeViewModel", "🔄 CREATING NEW STATE:")
+            android.util.Log.d("HomeViewModel", "   hasTransactions: ${newState.hasTransactions}")
+            android.util.Log.d("HomeViewModel", "   transactionCount: ${newState.transactionCount}")
+            android.util.Log.d("HomeViewModel", "   currentBalance: ₹${newState.currentBalance}")
+            android.util.Log.d("HomeViewModel", "   totalIncome: ₹${newState.totalIncome}")
+            android.util.Log.d("HomeViewModel", "   totalExpenses: ₹${newState.totalExpenses}")
+            
+            // Apply the new state
+            _uiState.value = newState
+            android.util.Log.d("HomeViewModel", "✅ NEW STATE APPLIED TO UI!")
+            android.util.Log.d("HomeViewModel", "📱 Recent transactions count: ${recentTransactions.size}")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("HomeViewModel", "❌ CRITICAL ERROR loading dashboard data: ${e.message}", e)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "Failed to load data: ${e.message}"
+            )
         }
     }
 
@@ -178,7 +212,9 @@ class HomeViewModel @Inject constructor(
             selectedYear = year
         )
         // Reload data with new month selection
-        loadDashboardData()
+        viewModelScope.launch {
+            loadDashboardData()
+        }
     }
 
     private fun getAvailableMonths(transactions: List<Transaction>): List<MonthYearOption> {
@@ -268,16 +304,7 @@ class HomeViewModel @Inject constructor(
     }
     
     private suspend fun getBudgetLimit(): Double {
-        return try {
-            val budgets = budgetRepository.getAllActiveBudgets()
-            var totalLimit = 0.0
-            budgets.collect { budgetList ->
-                totalLimit = budgetList.sumOf { it.monthlyLimit }
-            }
-            if (totalLimit > 0) totalLimit else 20000.0 // Default budget
-        } catch (e: Exception) {
-            20000.0 // Default budget if no budgets exist
-        }
+        return 20000.0 // Default budget limit
     }
 
     private suspend fun calculateFinancialHealthScore(): Int {
@@ -314,11 +341,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun getActiveSavingsGoalsCount(): Int {
-        return try {
-            savingsGoalRepository.getActiveSavingsGoalsCount()
-        } catch (e: Exception) {
-            0
-        }
+        return 0 // No savings goals in simplified version
     }
 
     private suspend fun loadRecentTransactions() {
@@ -374,7 +397,18 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refreshData() {
-        loadDashboardData()
+        android.util.Log.d("HomeViewModel", "🔄 Manual refresh triggered")
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        viewModelScope.launch {
+            loadDashboardData()
+        }
+    }
+    
+    fun forceRefreshNow() {
+        android.util.Log.d("HomeViewModel", "🚀 Force refresh NOW triggered")
+        viewModelScope.launch {
+            loadDashboardData()
+        }
     }
     
     suspend fun getTransactionCount(): Int {

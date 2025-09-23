@@ -22,8 +22,10 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             KoshpalDatabase::class.java,
-            "koshpal_database"
-        ).build()
+            "koshpal_database_v5"
+        ).fallbackToDestructiveMigration()
+         .fallbackToDestructiveMigrationOnDowngrade()
+         .build()
     }
     
     @Provides
@@ -36,20 +38,6 @@ object DatabaseModule {
         return database.categoryDao()
     }
     
-    @Provides
-    fun provideBudgetDao(database: KoshpalDatabase): BudgetDao {
-        return database.budgetDao()
-    }
-    
-    @Provides
-    fun provideSavingsGoalDao(database: KoshpalDatabase): SavingsGoalDao {
-        return database.savingsGoalDao()
-    }
-    
-    @Provides
-    fun provideFinancialInsightDao(database: KoshpalDatabase): FinancialInsightDao {
-        return database.financialInsightDao()
-    }
     
     @Provides
     fun providePaymentSmsDao(database: KoshpalDatabase): PaymentSmsDao {
@@ -59,6 +47,16 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(database: KoshpalDatabase): UserDao {
         return database.userDao()
+    }
+    
+    @Provides
+    fun provideBudgetNewDao(database: KoshpalDatabase): BudgetNewDao {
+        return database.budgetNewDao()
+    }
+    
+    @Provides
+    fun provideBudgetCategoryNewDao(database: KoshpalDatabase): BudgetCategoryNewDao {
+        return database.budgetCategoryNewDao()
     }
     
     @Provides

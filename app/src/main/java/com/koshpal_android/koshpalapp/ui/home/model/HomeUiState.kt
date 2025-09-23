@@ -12,6 +12,7 @@ data class HomeUiState(
     val hasTransactions: Boolean = false,
     val transactionCount: Int = 0,
     val last3MonthsData: List<MonthlySpendingData> = emptyList(),
+    val last4MonthsComparison: List<MonthlySpendingData> = emptyList(),
     val errorMessage: String? = null,
     val hasPermissions: Boolean = false,
     // Month selection fields

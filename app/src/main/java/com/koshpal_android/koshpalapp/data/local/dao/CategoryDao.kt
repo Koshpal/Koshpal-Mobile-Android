@@ -10,8 +10,14 @@ interface CategoryDao {
     @Query("SELECT * FROM transaction_categories WHERE isActive = 1 ORDER BY name ASC")
     fun getAllActiveCategories(): Flow<List<TransactionCategory>>
     
+    @Query("SELECT * FROM transaction_categories WHERE isActive = 1 ORDER BY name ASC")
+    suspend fun getAllActiveCategoriesList(): List<TransactionCategory>
+    
     @Query("SELECT * FROM transaction_categories ORDER BY name ASC")
     fun getAllCategories(): Flow<List<TransactionCategory>>
+    
+    @Query("SELECT * FROM transaction_categories ORDER BY name ASC")
+    suspend fun getAllCategoriesOnce(): List<TransactionCategory>
     
     @Query("SELECT * FROM transaction_categories WHERE id = :id")
     suspend fun getCategoryById(id: String): TransactionCategory?

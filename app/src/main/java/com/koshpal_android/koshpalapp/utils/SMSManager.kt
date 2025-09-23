@@ -94,54 +94,66 @@ class SMSManager(private val context: Context) {
                 // Step 5: Process SMS into transactions
                 Log.d("SMSManager", "⚙️ Processing SMS into transactions...")
                 val engine = TransactionCategorizationEngine()
-                val categories = database.categoryDao().getAllActiveCategories()
                 
-                categories.collect { categoryList ->
-                    transactionSMS.forEach { sms ->
-                        try {
-                            val details = engine.extractTransactionDetails(sms.body)
-                            
-                            if (details.amount > 0 && details.merchant.isNotBlank()) {
-                                // Enhanced duplicate prevention
-                                val existingTransactions = database.transactionDao().getTransactionsBySmsBody(sms.body)
-                                if (existingTransactions.isNotEmpty()) {
-                                    Log.d("SMSManager", "⏭️ Transaction already exists for this SMS, skipping")
-                                    return@forEach
-                                }
-                                
-                                // Validate merchant - skip if it's too generic or suspicious
-                                if (isValidMerchant(details.merchant)) {
-                                    val categoryId = determineCategoryId(details, categoryList)
-                                    
-                                    val transaction = Transaction(
-                                        id = UUID.randomUUID().toString(),
-                                        amount = details.amount,
-                                        type = details.type,
-                                        merchant = details.merchant,
-                                        categoryId = categoryId,
-                                        confidence = 85.0f, // High confidence for SMS-based transactions
-                                        timestamp = sms.timestamp,
-                                        description = details.description,
-                                        smsBody = sms.body
-                                    )
-                                    
-                                    database.transactionDao().insertTransaction(transaction)
-                                    result.transactionsCreated++
-                                    
-                                    Log.d("SMSManager", "✅ Created transaction: ₹${details.amount} at ${details.merchant}")
-                                } else {
-                                    Log.d("SMSManager", "⚠️ Skipping invalid merchant: ${details.merchant}")
-                                }
-                            } else {
-                                Log.d("SMSManager", "⚠️ Could not extract valid data from SMS: ${sms.body.take(50)}...")
+                // Get categories directly without Flow collection to avoid hanging
+                val categoryList = try {
+                    database.categoryDao().getAllActiveCategoriesList() // Use direct list method
+                } catch (e: Exception) {
+                    Log.e("SMSManager", "❌ Error getting categories: ${e.message}")
+                    emptyList()
+                }
+                
+                Log.d("SMSManager", "📂 Found ${categoryList.size} categories for processing")
+                
+                transactionSMS.forEach { sms ->
+                    try {
+                        val details = engine.extractTransactionDetails(sms.smsBody)
+                        
+                        if (details.amount > 0 && details.merchant.isNotBlank()) {
+                            // Enhanced duplicate prevention
+                            val existingTransaction = database.transactionDao().getTransactionsBySmsBody(sms.smsBody)
+                            if (existingTransaction != null) {
+                                Log.d("SMSManager", "⏭️ Transaction already exists for this SMS, skipping")
+                                return@forEach
                             }
-                        } catch (e: Exception) {
-                            Log.e("SMSManager", "❌ Error processing SMS: ${e.message}", e)
+                            
+                            // Validate merchant - skip if it's too generic or suspicious
+                            if (isValidMerchant(details.merchant)) {
+                                val categoryId = determineCategoryId(details, categoryList)
+                                
+                                val transaction = Transaction(
+                                    id = UUID.randomUUID().toString(),
+                                    amount = details.amount,
+                                    type = details.type,
+                                    merchant = details.merchant,
+                                    categoryId = categoryId,
+                                    confidence = 85.0f, // High confidence for SMS-based transactions
+                                    date = sms.timestamp,
+                                    description = details.description,
+                                    smsBody = sms.smsBody
+                                )
+                                
+                                database.transactionDao().insertTransaction(transaction)
+                                result.transactionsCreated++
+                                
+                                Log.d("SMSManager", "✅ Created transaction: ₹${details.amount} at ${details.merchant}")
+                            } else {
+                                Log.d("SMSManager", "⚠️ Skipping invalid merchant: ${details.merchant}")
+                            }
+                        } else {
+                            Log.d("SMSManager", "⚠️ Could not extract valid data from SMS: ${sms.body.take(50)}...")
                         }
+                    } catch (e: Exception) {
+                        Log.e("SMSManager", "❌ Error processing SMS: ${e.message}", e)
                     }
                 }
                 
-                Log.d("SMSManager", "✅ Created ${result.transactionsCreated} transactions from ${result.transactionSmsFound} transaction SMS")
+                Log.d("SMSManager", "✅ SMS processing completed successfully!")
+                Log.d("SMSManager", "📊 FINAL RESULTS:")
+                Log.d("SMSManager", "   📱 Total SMS found: ${result.smsFound}")
+                Log.d("SMSManager", "   💳 Transaction SMS: ${result.transactionSmsFound}")
+                Log.d("SMSManager", "   💾 SMS processed: ${result.smsProcessed}")
+                Log.d("SMSManager", "   ✅ Transactions created: ${result.transactionsCreated}")
                 
                 result.success = true
                 
@@ -192,10 +204,9 @@ class SMSManager(private val context: Context) {
                     
                     val sms = PaymentSms(
                         id = UUID.randomUUID().toString(), // Use UUID to avoid conflicts
-                        address = address,
-                        body = body,
+                        sender = address,
+                        smsBody = body,
                         timestamp = timestamp,
-                        date = formattedDate,
                         isProcessed = false
                     )
                     
@@ -355,8 +366,8 @@ class SMSManager(private val context: Context) {
                 // Check for duplicates before inserting
                 sampleTransactions.forEach { transaction ->
                     try {
-                        val existing = transactionDao.getTransactionsBySmsBody(transaction.smsBody)
-                        if (existing.isEmpty()) {
+                        val existing = transactionDao.getTransactionsBySmsBody(transaction.smsBody ?: "")
+                        if (existing == null) {
                             transactionDao.insertTransaction(transaction)
                             result.transactionsCreated++
                             Log.d("SMSManager", "✅ Inserted transaction: ${transaction.merchant} - ₹${transaction.amount}")
@@ -408,7 +419,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Amazon India",
                 categoryId = "shopping",
                 confidence = 0.95f,
-                timestamp = monthStart + (1 * 24 * 60 * 60 * 1000), // 1 day into month
+                date = monthStart + (1 * 24 * 60 * 60 * 1000), // 1 day into month
                 description = "Online shopping",
                 smsBody = "Your A/c debited by Rs.500.00 at AMAZON INDIA"
             ),
@@ -419,7 +430,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Zomato",
                 categoryId = "food",
                 confidence = 0.90f,
-                timestamp = monthStart + (5 * 24 * 60 * 60 * 1000), // 5 days into month
+                date = monthStart + (5 * 24 * 60 * 60 * 1000), // 5 days into month
                 description = "Food delivery",
                 smsBody = "Rs.1200 debited for UPI/ZOMATO"
             ),
@@ -430,7 +441,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Salary Credit",
                 categoryId = "salary",
                 confidence = 0.98f,
-                timestamp = monthStart + (10 * 24 * 60 * 60 * 1000), // 10 days into month
+                date = monthStart + (10 * 24 * 60 * 60 * 1000), // 10 days into month
                 description = "Monthly salary",
                 smsBody = "Your account credited with Rs.25000.00 Salary credit"
             ),
@@ -441,7 +452,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Uber",
                 categoryId = "transport",
                 confidence = 0.85f,
-                timestamp = monthStart + (12 * 24 * 60 * 60 * 1000), // 12 days into month
+                date = monthStart + (12 * 24 * 60 * 60 * 1000), // 12 days into month
                 description = "Cab ride",
                 smsBody = "INR 350.00 debited for UBER TRIP"
             ),
@@ -452,7 +463,7 @@ class SMSManager(private val context: Context) {
                 merchant = "DMart",
                 categoryId = "grocery",
                 confidence = 0.88f,
-                timestamp = monthStart + (15 * 24 * 60 * 60 * 1000), // 15 days into month
+                date = monthStart + (15 * 24 * 60 * 60 * 1000), // 15 days into month
                 description = "Grocery shopping",
                 smsBody = "Rs.800 spent at DMART GROCERY"
             ),
@@ -463,7 +474,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Flipkart",
                 categoryId = "shopping",
                 confidence = 0.92f,
-                timestamp = monthStart + (18 * 24 * 60 * 60 * 1000), // 18 days into month
+                date = monthStart + (18 * 24 * 60 * 60 * 1000), // 18 days into month
                 description = "Online shopping",
                 smsBody = "₹2500 spent at FLIPKART"
             ),
@@ -474,7 +485,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Swiggy",
                 categoryId = "food",
                 confidence = 0.89f,
-                timestamp = currentTime - 604800000,
+                date = currentTime - 604800000,
                 description = "Food delivery",
                 smsBody = "You paid ₹150 to SWIGGY via UPI"
             ),
@@ -485,7 +496,7 @@ class SMSManager(private val context: Context) {
                 merchant = "Salary Credit",
                 categoryId = "salary",
                 confidence = 0.98f,
-                timestamp = currentTime - 2592000000,
+                date = currentTime - 2592000000,
                 description = "Monthly salary",
                 smsBody = "Your salary Rs.45000 credited to account"
             )

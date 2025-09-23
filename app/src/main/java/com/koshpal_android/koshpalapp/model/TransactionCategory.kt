@@ -1,15 +1,27 @@
 package com.koshpal_android.koshpalapp.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 import com.koshpal_android.koshpalapp.R
 
+@Entity(tableName = "transaction_categories")
 data class TransactionCategory(
+    @PrimaryKey
     val id: String,
+    @ColumnInfo(name = "name")
     val name: String,
+    @ColumnInfo(name = "icon")
     val icon: Int,
+    @ColumnInfo(name = "color")
     val color: String,
+    @ColumnInfo(name = "keywords")
     val keywords: List<String>,
+    @ColumnInfo(name = "isDefault")
     val isDefault: Boolean = true,
+    @ColumnInfo(name = "isActive")
     val isActive: Boolean = true,
+    @ColumnInfo(name = "createdAt")
     val createdAt: Long = System.currentTimeMillis()
 ) {
     companion object {

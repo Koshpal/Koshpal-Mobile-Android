@@ -1,25 +1,19 @@
 package com.koshpal_android.koshpalapp.ui.budget
 
-import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.koshpal_android.koshpalapp.R
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.koshpal_android.koshpalapp.databinding.FragmentBudgetBinding
-import com.koshpal_android.koshpalapp.databinding.DialogBudgetSuccessBinding
-import com.koshpal_android.koshpalapp.ui.home.HomeActivity
-import com.koshpal_android.koshpalapp.ui.home.HomeFragment
+import com.koshpal_android.koshpalapp.ui.budget.adapter.BudgetCategoryListAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.*
 
 @AndroidEntryPoint
 class BudgetFragment : Fragment() {
@@ -28,10 +22,8 @@ class BudgetFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: BudgetViewModel by viewModels()
-    private var isMonthlySelected = true
-    private var isCustomizedSelected = true
-    private lateinit var categoryAdapter: BudgetCategoryAdapter
-    private var selectedDate = Calendar.getInstance()
+    private lateinit var adapter: BudgetCategoryListAdapter
+    private lateinit var legendAdapter: com.koshpal_android.koshpalapp.ui.budget.adapter.PieLegendAdapter
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,220 +36,127 @@ class BudgetFragment : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        setupCategoryRecyclerView()
-        setupClickListeners()
-        observeViewModel()
-        
-        // Set defaults
-        selectCustomizedTab()
-        selectMonthlyTab()
-        updateDateDisplay()
+        setupList()
+        setupClicks()
+        observeState()
+        viewModel.load()
     }
-    
-    private fun setupCategoryRecyclerView() {
-        categoryAdapter = BudgetCategoryAdapter { category ->
-            // Handle category selection
-        }
-        
-        binding.rvCategories.apply {
-            layoutManager = GridLayoutManager(requireContext(), 4)
-            adapter = categoryAdapter
-        }
-        
-        // Load sample categories
-        loadSampleCategories()
+
+    private fun setupList() {
+        adapter = BudgetCategoryListAdapter()
+        binding.rvCategories.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvCategories.adapter = adapter
+
+        legendAdapter = com.koshpal_android.koshpalapp.ui.budget.adapter.PieLegendAdapter()
+        binding.rvLegend.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvLegend.adapter = legendAdapter
     }
-    
-    private fun setupClickListeners() {
-        binding.apply {
-            // Back button
-            btnBack.setOnClickListener {
-                navigateBackToHome()
-            }
-            
-            // Simple/Customized tabs
-            tabSimple.setOnClickListener {
-                selectSimpleTab()
-            }
-            
-            tabCustomized.setOnClickListener {
-                selectCustomizedTab()
-            }
-            
-            // Date selector
-            cardDateSelector.setOnClickListener {
-                showDatePicker()
-            }
-            
-            // Monthly/Yearly tabs
-            tabMonthly.setOnClickListener {
-                selectMonthlyTab()
-            }
-            
-            tabYearly.setOnClickListener {
-                selectYearlyTab()
-            }
-            
-            // Next button
-            btnNext.setOnClickListener {
-                val amount = etBudgetAmount.text.toString().toDoubleOrNull()
-                if (amount != null && amount > 0) {
-                    if (isCustomizedSelected) {
-                        navigateToCategorySelection(amount)
-                    } else {
-                        createSimpleBudget(amount)
-                    }
-                } else {
-                    showError("Please enter a valid budget amount")
-                }
-            }
+
+    private fun setupClicks() {
+        binding.btnCreateBudget.setOnClickListener {
+            startActivity(Intent(requireContext(), BudgetActivity::class.java))
+        }
+        binding.btnUpdateBudget.setOnClickListener {
+            startActivity(Intent(requireContext(), BudgetActivity::class.java))
         }
     }
-    
-    private fun selectSimpleTab() {
-        isCustomizedSelected = false
-        binding.apply {
-            tabSimple.setCardBackgroundColor(resources.getColor(R.color.text_secondary, null))
-            tabCustomized.setCardBackgroundColor(resources.getColor(R.color.primary, null))
-        }
-    }
-    
-    private fun selectCustomizedTab() {
-        isCustomizedSelected = true
-        binding.apply {
-            tabCustomized.setCardBackgroundColor(resources.getColor(R.color.primary, null))
-            tabSimple.setCardBackgroundColor(resources.getColor(R.color.text_secondary, null))
-        }
-    }
-    
-    private fun selectMonthlyTab() {
-        isMonthlySelected = true
-        binding.apply {
-            tabMonthly.setCardBackgroundColor(resources.getColor(android.R.color.white, null))
-            tabMonthly.strokeColor = resources.getColor(R.color.primary, null)
-            tabYearly.setCardBackgroundColor(resources.getColor(R.color.background_light, null))
-            tabYearly.strokeColor = resources.getColor(android.R.color.transparent, null)
-        }
-    }
-    
-    private fun selectYearlyTab() {
-        isMonthlySelected = false
-        binding.apply {
-            tabYearly.setCardBackgroundColor(resources.getColor(android.R.color.white, null))
-            tabYearly.strokeColor = resources.getColor(R.color.primary, null)
-            tabMonthly.setCardBackgroundColor(resources.getColor(R.color.background_light, null))
-            tabMonthly.strokeColor = resources.getColor(android.R.color.transparent, null)
-        }
-    }
-    
-    private fun showDatePicker() {
-        val datePickerDialog = DatePickerDialog(
-            requireContext(),
-            { _, year, month, dayOfMonth ->
-                selectedDate.set(year, month, dayOfMonth)
-                updateDateDisplay()
-            },
-            selectedDate.get(Calendar.YEAR),
-            selectedDate.get(Calendar.MONTH),
-            selectedDate.get(Calendar.DAY_OF_MONTH)
-        )
-        datePickerDialog.show()
-    }
-    
-    private fun updateDateDisplay() {
-        val monthNames = arrayOf(
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        )
-        val monthName = monthNames[selectedDate.get(Calendar.MONTH)]
-        val year = selectedDate.get(Calendar.YEAR)
-        binding.tvSelectedDate.text = "$monthName $year"
-    }
-    
-    private fun loadSampleCategories() {
-        // Load sample categories for demonstration
-        val categories = listOf(
-            BudgetCategory("1", "Fun & Holiday Exp...", R.drawable.ic_entertainment, true),
-            BudgetCategory("2", "Food & Beverages", R.drawable.ic_menu_eat, true),
-            BudgetCategory("3", "Shopping", R.drawable.ic_store, false),
-            BudgetCategory("4", "General Home Exp...", R.drawable.ic_home, false)
-        )
-        categoryAdapter.submitList(categories)
-    }
-    
-    private fun createSimpleBudget(amount: Double) {
-        viewModel.createBudget(amount, isMonthlySelected)
-        showSuccessDialog()
-    }
-    
-    private fun navigateToCategorySelection(amount: Double) {
-        // Store the budget amount for later use
-        // Navigate to category selection screen
-        val homeActivity = requireActivity() as HomeActivity
-        val categoryFragment = BudgetCategoriesFragment().apply {
-            arguments = Bundle().apply {
-                putDouble("budget_amount", amount)
-                putBoolean("is_monthly", isMonthlySelected)
-            }
-        }
-        
-        homeActivity.supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, categoryFragment)
-            .addToBackStack(null)
-            .commit()
-    }
-    
-    private fun showSuccessDialog() {
-        val dialogBinding = DialogBudgetSuccessBinding.inflate(layoutInflater)
-        
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .setCancelable(false)
-            .create()
-            
-        dialogBinding.btnSeeMyBudget.setOnClickListener {
-            dialog.dismiss()
-            navigateBackToHome()
-        }
-        
-        dialog.show()
-    }
-    
-    private fun navigateBackToHome() {
-        val homeActivity = requireActivity() as HomeActivity
-        homeActivity.supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, HomeFragment())
-            .commit()
-        
-        // Update bottom navigation to show Home tab as selected
-        val bottomNavigation = homeActivity.findViewById<BottomNavigationView>(R.id.bottomNavigation)
-        bottomNavigation?.selectedItemId = R.id.nav_home
-    }
-    
-    private fun showError(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun showSuccess(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun observeViewModel() {
+
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                // Handle UI state changes
-                if (state.isLoading) {
-                    // Show loading state
-                } else {
-                    // Hide loading state
+            viewModel.uiState.collectLatest { state ->
+                binding.groupEmpty.visibility = if (state.budget == null) View.VISIBLE else View.GONE
+                binding.groupContent.visibility = if (state.budget != null) View.VISIBLE else View.GONE
+
+                state.budget?.let { b ->
+                    // progress: spent vs total (spent = total - savings)
+                    val spent = (b.totalBudget - b.savings).coerceAtLeast(0.0)
+                    val pct = if (b.totalBudget > 0) ((spent / b.totalBudget) * 100).toInt() else 0
+                    renderDonut(spent.toFloat(), (b.totalBudget - spent).toFloat())
+                    binding.tvSavings.text = "₹${String.format("%,.0f", b.savings)} savings"
+                    binding.tvTotalBudget.text = "₹${String.format("%,.0f", b.totalBudget)}"
+                    binding.tvTotalSpent.text = "₹${String.format("%,.0f", spent)}"
+                    binding.tvRemaining.text = "₹${String.format("%,.0f", (b.totalBudget - spent))}"
+                    binding.tvBudgetTitle.text = "Your Budget"
                 }
-                
-                state.errorMessage?.let { error ->
-                    showError(error)
-                }
+
+                adapter.submitList(state.categories)
+
+                renderPie(state)
             }
         }
+    }
+
+    private fun renderPie(state: BudgetUiState) {
+        val chart = binding.pieChart
+        val categories = state.categories
+        if (categories.isEmpty()) {
+            chart.clear()
+            return
+        }
+        val entries = categories.map { com.github.mikephil.charting.data.PieEntry(it.allocatedAmount.toFloat(), it.name) }
+        val colors = listOf(
+                android.graphics.Color.parseColor("#8B5CF6"),
+                android.graphics.Color.parseColor("#10B981"),
+                android.graphics.Color.parseColor("#F59E0B"),
+                android.graphics.Color.parseColor("#EF4444"),
+                android.graphics.Color.parseColor("#6366F1"),
+                android.graphics.Color.parseColor("#06B6D4")
+            )
+        val set = com.github.mikephil.charting.data.PieDataSet(entries, "").apply {
+            setDrawValues(false)
+            this.colors = colors
+            sliceSpace = 2f
+        }
+        val data = com.github.mikephil.charting.data.PieData(set)
+        chart.data = data
+        chart.description.isEnabled = false
+        chart.setUsePercentValues(true)
+        chart.setDrawEntryLabels(false)
+        chart.legend.isEnabled = false
+        chart.setHoleColor(android.graphics.Color.TRANSPARENT)
+        chart.transparentCircleRadius = 52f
+        chart.holeRadius = 45f
+        chart.invalidate()
+
+        val legendItems = state.categories.mapIndexed { idx, c ->
+            com.koshpal_android.koshpalapp.ui.budget.adapter.LegendItem(
+                label = c.name,
+                amount = c.allocatedAmount,
+                color = colors[idx % colors.size]
+            )
+        }
+        legendAdapter.submitList(legendItems)
+    }
+
+    private fun renderDonut(spent: Float, remaining: Float) {
+        val chart = binding.donutUsage
+        val entries = listOf(
+            com.github.mikephil.charting.data.PieEntry(spent, "Spent"),
+            com.github.mikephil.charting.data.PieEntry(remaining, "Remaining")
+        )
+        val set = com.github.mikephil.charting.data.PieDataSet(entries, "").apply {
+            colors = listOf(
+                android.graphics.Color.parseColor("#EF4444"),
+                android.graphics.Color.parseColor("#10B981")
+            )
+            setDrawValues(false)
+            sliceSpace = 2f
+        }
+        val data = com.github.mikephil.charting.data.PieData(set)
+        chart.data = data
+        chart.description.isEnabled = false
+        chart.setUsePercentValues(true)
+        chart.setDrawEntryLabels(false)
+        chart.legend.isEnabled = false
+        chart.setHoleColor(android.graphics.Color.TRANSPARENT)
+        chart.transparentCircleRadius = 58f
+        chart.holeRadius = 52f
+        chart.invalidate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.load()
     }
     
     override fun onDestroyView() {
@@ -265,3 +164,5 @@ class BudgetFragment : Fragment() {
         _binding = null
     }
 }
+
+
