@@ -13,6 +13,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.koshpal_android.koshpalapp.databinding.ActivitySplashBinding
 import com.koshpal_android.koshpalapp.ui.auth.CheckActivity
 import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
+import com.koshpal_android.koshpalapp.ui.auth.EmployeeLoginActivity
+import com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -56,6 +58,19 @@ class SplashActivity : AppCompatActivity() {
                         }
                         SplashViewModel.NavigationDestination.HOME -> {
                             startActivity(Intent(this@SplashActivity, HomeActivity::class.java))
+                            finish()
+                        }
+                        SplashViewModel.NavigationDestination.EMPLOYEE_LOGIN -> {
+                            startActivity(Intent(this@SplashActivity, EmployeeLoginActivity::class.java))
+                            finish()
+                        }
+                        SplashViewModel.NavigationDestination.ONBOARDING -> {
+                            val intent = Intent(this@SplashActivity, OnboardingActivity::class.java)
+                            // Get email from preferences for onboarding
+                            val userPreferences = com.koshpal_android.koshpalapp.data.local.UserPreferences(this@SplashActivity)
+                            val email = userPreferences.getEmail() ?: ""
+                            intent.putExtra("email", email)
+                            startActivity(intent)
                             finish()
                         }
                     }

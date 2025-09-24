@@ -17,7 +17,10 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         private const val KEY_USER_TOKEN = "user_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_PHONE_NUMBER = "phone_number"
+        private const val KEY_EMAIL = "email"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
+        private const val KEY_LOGIN_TYPE = "login_type" // "phone" or "email"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         
         // Alert preferences
         private const val KEY_ALERTS_ENABLED = "alerts_enabled"
@@ -52,12 +55,36 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         return sharedPreferences.getString(KEY_PHONE_NUMBER, null)
     }
 
+    fun saveEmail(email: String) {
+        sharedPreferences.edit().putString(KEY_EMAIL, email).apply()
+    }
+
+    fun getEmail(): String? {
+        return sharedPreferences.getString(KEY_EMAIL, null)
+    }
+
+    fun saveLoginType(loginType: String) {
+        sharedPreferences.edit().putString(KEY_LOGIN_TYPE, loginType).apply()
+    }
+
+    fun getLoginType(): String? {
+        return sharedPreferences.getString(KEY_LOGIN_TYPE, null)
+    }
+
     fun setLoggedIn(isLoggedIn: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, isLoggedIn).apply()
     }
 
     fun isLoggedIn(): Boolean {
         return sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)
+    }
+
+    fun setOnboardingCompleted(completed: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, completed).apply()
+    }
+
+    fun isOnboardingCompleted(): Boolean {
+        return sharedPreferences.getBoolean(KEY_ONBOARDING_COMPLETED, false)
     }
 
     fun clearUserData() {

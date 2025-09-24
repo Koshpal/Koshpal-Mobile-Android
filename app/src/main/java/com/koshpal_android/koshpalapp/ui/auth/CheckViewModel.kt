@@ -25,7 +25,7 @@ class CheckViewModel @Inject constructor(
 
             try {
                 Log.d("CheckViewModel", "=== API REQUEST DEBUG ===")
-                Log.d("CheckViewModel", "URL: http://10.147.39.107:5000/create-user")
+                Log.d("CheckViewModel", "URL: http://10.195.166.107:5000/create-user")
                 Log.d("CheckViewModel", "Method: POST")
                 Log.d("CheckViewModel", "Input phone number: $phoneNumber")
                 

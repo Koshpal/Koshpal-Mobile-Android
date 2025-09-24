@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Section Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Goals &amp; Priorities"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="What matters most to you? (45 seconds)"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:alpha="0.7"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Question 7: Primary Financial Goal -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Q7. What's your most important financial goal right now?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFinancialGoal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp" />
+
+        <!-- Question 8: Goal Timeframe -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Q8. When do you want to achieve this goal?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupGoalTimeframe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp" />
+
+        <!-- Question 9: Financial Stress Area -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Q9. Which area causes you the most financial stress?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFinancialStress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp" />
+
+        <!-- Completion Message -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_background"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎉 Almost Done!"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/purple_500"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your personalized financial journey is ready to begin. We'll use your responses to provide tailored insights and recommendations."
+                android:textSize="14sp"
+                android:textColor="@color/black"
+                android:alpha="0.8"
+                android:lineSpacingExtra="2dp" />
+
+        </LinearLayout>
+
+        <!-- Complete Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnComplete"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Complete Setup"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/purple_500"
+            app:cornerRadius="12dp"
+            android:enabled="false"
+            android:alpha="0.5" />
+
+        <!-- Privacy Note -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔒 Your data is secure and never shared with your employer"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:alpha="0.6"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+</ScrollView>

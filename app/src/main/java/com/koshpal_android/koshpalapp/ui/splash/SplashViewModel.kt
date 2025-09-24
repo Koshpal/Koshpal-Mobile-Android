@@ -25,26 +25,36 @@ class SplashViewModel @Inject constructor(
 
     fun startSplashTimer() {
         viewModelScope.launch {
-            delay(1000) // 1 second delay for faster testing
+            delay(1000) // 1 second delay for splash screen
             
-            // Bypass authentication - directly navigate to HOME
-            _navigationEvent.emit(NavigationDestination.HOME)
-            
-            // Original authentication logic commented out for testing:
-            /*
-            val currentUser = authRepository.getCurrentUser()
-            if (currentUser != null && currentUser.isVerified) {
-                _navigationEvent.emit(NavigationDestination.HOME)
+            // Check if user is already logged in
+            if (userPreferences.isLoggedIn()) {
+                // Check if onboarding is completed
+                if (userPreferences.isOnboardingCompleted()) {
+                    // User is logged in and onboarding completed, go to HOME
+                    _navigationEvent.emit(NavigationDestination.HOME)
+                } else {
+                    // User is logged in but onboarding not completed, go to ONBOARDING
+                    val email = userPreferences.getEmail() ?: ""
+                    if (email.isNotEmpty()) {
+                        _navigationEvent.emit(NavigationDestination.ONBOARDING)
+                    } else {
+                        // No email found, go to employee login
+                        _navigationEvent.emit(NavigationDestination.EMPLOYEE_LOGIN)
+                    }
+                }
             } else {
-                _navigationEvent.emit(NavigationDestination.CHECK)
+                // User not logged in, go to Employee Login
+                _navigationEvent.emit(NavigationDestination.EMPLOYEE_LOGIN)
             }
-            */
         }
     }
 
     enum class NavigationDestination {
         CHECK,
         LOGIN,
-        HOME
+        HOME,
+        EMPLOYEE_LOGIN,
+        ONBOARDING
     }
 }

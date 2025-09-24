@@ -3,6 +3,8 @@ package com.koshpal_android.koshpalapp.repository
 import android.util.Log
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.data.remote.dto.CreateUserRequest
+import com.koshpal_android.koshpalapp.data.remote.dto.CreateEmailUserRequest
+import com.koshpal_android.koshpalapp.data.remote.dto.CreateEmailUserResponse
 import com.koshpal_android.koshpalapp.network.ApiService
 import com.koshpal_android.koshpalapp.network.NetworkResult
 import javax.inject.Inject
@@ -66,6 +68,39 @@ class UserRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e("UserRepository", "Error handling existing user", e)
             NetworkResult.Error("Error handling existing user: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun createEmailUser(email: String): Result<CreateEmailUserResponse> {
+        return try {
+            Log.d("UserRepository", "Creating email user with email: $email")
+            val request = CreateEmailUserRequest(email)
+            val response = apiService.createEmailUser(request)
+
+            Log.d("UserRepository", "Email API Response Code: ${response.code()}")
+            Log.d("UserRepository", "Email API Response Success: ${response.isSuccessful}")
+
+            if (response.isSuccessful) {
+                response.body()?.let { createEmailUserResponse ->
+                    Log.d("UserRepository", "Email user created successfully: ${createEmailUserResponse.user.id}")
+                    Result.success(createEmailUserResponse)
+                } ?: run {
+                    Log.e("UserRepository", "Empty response body from server")
+                    Result.failure(Exception("Empty response from server"))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("UserRepository", "Email API Error: ${response.code()}, Body: $errorBody")
+                
+                when (response.code()) {
+                    409 -> Result.failure(Exception("User with this email already exists"))
+                    400 -> Result.failure(Exception("Invalid email address"))
+                    else -> Result.failure(Exception("Server error: ${response.code()} - $errorBody"))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Network error creating email user", e)
+            Result.failure(Exception("Network error: ${e.localizedMessage}"))
         }
     }
 
