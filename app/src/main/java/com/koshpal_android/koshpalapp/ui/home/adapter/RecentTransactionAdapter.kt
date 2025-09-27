@@ -62,6 +62,15 @@ class RecentTransactionAdapter(
                 // Set category icon (you can enhance this with proper category mapping)
                 ivTransactionIcon.setImageResource(getCategoryIcon(transaction.categoryId))
                 
+                // Add visual indicator for uncategorized transactions
+                if (transaction.categoryId.isEmpty() || transaction.categoryId == "uncategorized") {
+                    tvMerchantName.text = "${transaction.merchant ?: "Unknown Merchant"} • Tap to categorize"
+                    root.setBackgroundColor(ContextCompat.getColor(root.context, R.color.warning_light))
+                } else {
+                    tvMerchantName.text = transaction.merchant ?: "Unknown Merchant"
+                    root.setBackgroundColor(ContextCompat.getColor(root.context, android.R.color.transparent))
+                }
+                
                 root.setOnClickListener {
                     onTransactionClick(transaction)
                 }

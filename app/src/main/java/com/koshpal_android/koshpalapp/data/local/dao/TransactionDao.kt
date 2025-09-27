@@ -57,8 +57,11 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE type = :type AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
     suspend fun getTransactionsByDateRangeAndType(startDate: Long, endDate: Long, type: TransactionType): List<Transaction>
     
-    @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE date BETWEEN :startDate AND :endDate AND type = 'DEBIT' GROUP BY categoryId")
+    @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE date BETWEEN :startDate AND :endDate AND type = 'DEBIT' AND categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId")
     suspend fun getCategoryWiseSpending(startDate: Long, endDate: Long): List<CategorySpending>
+    
+    @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE type = 'DEBIT' AND categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId")
+    suspend fun getAllTimeCategorySpending(): List<CategorySpending>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: Transaction)

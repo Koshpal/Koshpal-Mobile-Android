@@ -126,19 +126,30 @@ class DebugDataManager(private val context: Context) {
                 val smsManager = SMSManager(context)
                 val smsResult = smsManager.processAllSMS()
                 
+                // Log detailed SMS parsing results
+                Log.d(TAG, "📊 SMS PARSING RESULTS:")
+                Log.d(TAG, "   Success: ${smsResult.success}")
+                Log.d(TAG, "   SMS Found: ${smsResult.smsFound}")
+                Log.d(TAG, "   Transaction SMS: ${smsResult.transactionSmsFound}")
+                Log.d(TAG, "   Transactions Created: ${smsResult.transactionsCreated}")
+                
                 if (smsResult.success && smsResult.transactionsCreated > 0) {
                     result.transactionsCreated = smsResult.transactionsCreated
                     result.finalTransactionCount = smsResult.transactionsCreated
                     result.success = true
                     
                     Log.d(TAG, "✅ Real SMS parsing successful!")
-                    Log.d(TAG, "   SMS Found: ${smsResult.smsFound}")
-                    Log.d(TAG, "   Transaction SMS: ${smsResult.transactionSmsFound}")
-                    Log.d(TAG, "   Transactions Created: ${smsResult.transactionsCreated}")
                 } else {
-                    // Fallback to sample data if no real SMS found
-                    Log.d(TAG, "📝 No real SMS found, creating sample data as fallback...")
-                    return@withContext createGuaranteedSampleData()
+                    // NO SAMPLE DATA FALLBACK - Show real issue
+                    Log.e(TAG, "❌ REAL SMS PARSING FAILED!")
+                    Log.e(TAG, "   Success: ${smsResult.success}")
+                    Log.e(TAG, "   SMS Found: ${smsResult.smsFound}")
+                    Log.e(TAG, "   Transaction SMS: ${smsResult.transactionSmsFound}")
+                    Log.e(TAG, "   Transactions Created: ${smsResult.transactionsCreated}")
+                    
+                    result.success = false
+                    result.error = "No real transaction SMS found. SMS Found: ${smsResult.smsFound}, Transaction SMS: ${smsResult.transactionSmsFound}"
+                    return@withContext result
                 }
                 
                 // Step 4: Verify data was inserted

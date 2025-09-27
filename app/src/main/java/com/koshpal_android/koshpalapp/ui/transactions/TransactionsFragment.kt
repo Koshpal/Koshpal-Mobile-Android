@@ -15,8 +15,11 @@ import com.koshpal_android.koshpalapp.databinding.FragmentTransactionsBinding
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeFragment
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
+import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
+import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TransactionsFragment : Fragment() {
@@ -27,6 +30,9 @@ class TransactionsFragment : Fragment() {
     private val viewModel: TransactionsViewModel by viewModels()
     private lateinit var transactionsAdapter: TransactionAdapter
     private lateinit var backPressedCallback: OnBackPressedCallback
+    
+    @Inject
+    lateinit var transactionRepository: TransactionRepository
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,8 +66,8 @@ class TransactionsFragment : Fragment() {
 
     private fun setupRecyclerView() {
         transactionsAdapter = TransactionAdapter { transaction ->
-            // Handle transaction click - navigate to details or categorization
-            viewModel.onTransactionClick(transaction)
+            // Show categorization dialog when transaction is clicked
+            showTransactionCategorizationDialog(transaction)
         }
 
         binding.rvTransactions.apply {
@@ -83,6 +89,27 @@ class TransactionsFragment : Fragment() {
             btnSearch.setOnClickListener {
                 toggleSearchVisibility()
             }
+
+            // Tab layout click handling
+            tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
+                    when (tab?.position) {
+                        0 -> {
+                            // Transactions tab - already showing
+                        }
+                        1 -> {
+                            // Categories tab - navigate to categories
+                            (activity as? HomeActivity)?.showCategoriesFragment()
+                        }
+                        2 -> {
+                            // Merchants tab - placeholder
+                            android.widget.Toast.makeText(requireContext(), "Merchants view coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+                override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+            })
 
             // Filter chips
             chipAll.setOnClickListener { viewModel.filterTransactions("all") }
@@ -172,6 +199,46 @@ class TransactionsFragment : Fragment() {
             com.koshpal_android.koshpalapp.R.id.bottomNavigation
         )
         bottomNavigation?.selectedItemId = com.koshpal_android.koshpalapp.R.id.homeFragment
+    }
+
+    private fun showTransactionCategorizationDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {
+        val dialog = TransactionCategorizationDialog.newInstance(transaction) { txn, category ->
+            // Update transaction with selected category
+            lifecycleScope.launch {
+                try {
+                    transactionRepository.updateTransactionCategory(txn.id, category.id)
+                    android.util.Log.d("TransactionsFragment", "✅ Transaction ${txn.id} categorized as ${category.name} (categoryId: ${category.id})")
+                    
+                    // Verify the update worked
+                    val updatedTransaction = transactionRepository.getTransactionById(txn.id)
+                    android.util.Log.d("TransactionsFragment", "✅ Verified - Transaction categoryId is now: ${updatedTransaction?.categoryId}")
+                    
+                    // Reload transactions to show updated data
+                    loadTransactionsDirectly()
+                    
+                    // Refresh categories data after a small delay to ensure DB transaction is committed
+                    kotlinx.coroutines.delay(100)
+                    (activity as? HomeActivity)?.refreshCategoriesData()
+                    
+                    // Show success message
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Transaction categorized as ${category.name}",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    
+                } catch (e: Exception) {
+                    android.util.Log.e("TransactionsFragment", "Failed to categorize transaction: ${e.message}")
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Failed to categorize transaction",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+        
+        dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
     }
 
     override fun onDestroyView() {

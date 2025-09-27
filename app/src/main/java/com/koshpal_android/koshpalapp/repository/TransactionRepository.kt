@@ -57,6 +57,10 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getCategoryWiseSpending(startTime, endTime)
     }
     
+    suspend fun getAllTimeCategorySpending(): List<CategorySpending> {
+        return transactionDao.getAllTimeCategorySpending()
+    }
+    
     suspend fun getTotalAmountByTypeAndDateRange(
         type: TransactionType, 
         startTime: Long, 

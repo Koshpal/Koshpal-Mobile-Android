@@ -7,16 +7,17 @@ import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment
 import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
+import com.koshpal_android.koshpalapp.ui.categories.CategoriesFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
-    
     // FIXED: Keep fragment instances to prevent recreation
     private val homeFragment = HomeFragment()
     private val budgetFragment = BudgetFragment()
     private val transactionsFragment = TransactionsFragment()
+    private val categoriesFragment = CategoriesFragment()
     private var activeFragment: Fragment = homeFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,8 +40,10 @@ class HomeActivity : AppCompatActivity() {
             .add(R.id.fragmentContainer, budgetFragment, "BUDGET")
             // Transactions fragment kept for internal navigation only
             .add(R.id.fragmentContainer, transactionsFragment, "TRANSACTIONS")
+            .add(R.id.fragmentContainer, categoriesFragment, "CATEGORIES")
             .hide(budgetFragment)
             .hide(transactionsFragment)
+            .hide(categoriesFragment)
             .commit()
 
         // Ensure Home is selected by default
@@ -82,5 +85,17 @@ class HomeActivity : AppCompatActivity() {
         // Show the existing transactions fragment
         showFragment(transactionsFragment)
         // Do not change bottom navigation selection (no tab for transactions)
+    }
+
+    fun showCategoriesFragment() {
+        // Show the existing categories fragment
+        showFragment(categoriesFragment)
+        // Do not change bottom navigation selection (no tab for categories)
+    }
+    
+    fun refreshCategoriesData() {
+        // Refresh categories fragment data immediately
+        android.util.Log.d("HomeActivity", "🔄 Refreshing categories data...")
+        categoriesFragment.refreshData()
     }
 }

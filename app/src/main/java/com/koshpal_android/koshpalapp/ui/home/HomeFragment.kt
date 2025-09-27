@@ -31,6 +31,8 @@ import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.FragmentHomeBinding
 import com.koshpal_android.koshpalapp.ui.home.adapter.FeatureAdapter
 import com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
+import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
+import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.model.FeatureItem
 import com.koshpal_android.koshpalapp.ui.home.model.HomeUiState
 import com.koshpal_android.koshpalapp.ui.home.model.MonthlySpendingData
@@ -60,25 +62,25 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
     private val viewModel: HomeViewModel by viewModels()
-    
+
     @Inject
     lateinit var smsReader: SMSReader
-    
+
     @Inject
     lateinit var transactionProcessingService: TransactionProcessingService
-    
-    private lateinit var featureAdapter: FeatureAdapter
-    private lateinit var recentTransactionsAdapter: com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
 
-    // Permission launcher for SMS permissions
+    @Inject
+    lateinit var transactionRepository: TransactionRepository
+    
+    private lateinit var recentTransactionsAdapter: RecentTransactionAdapter
+    
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val smsPermissionGranted = permissions[Manifest.permission.READ_SMS] == true
         val receivePermissionGranted = permissions[Manifest.permission.RECEIVE_SMS] == true
-        
+
         if (smsPermissionGranted && receivePermissionGranted) {
             binding.cardPermissions.visibility = View.GONE
             showManualSmsParsingOption()
@@ -103,7 +105,7 @@ class HomeFragment : Fragment() {
         setupRecyclerViews()
         setupClickListeners()
         setupRecentTransactionsRecyclerView()
-        
+
         // FIXED: Use single data source - ViewModel only
         android.util.Log.d("HomeFragment", "🚀 Setting up ViewModel observation...")
         observeViewModel()
@@ -113,19 +115,21 @@ class HomeFragment : Fragment() {
         // RecyclerViews removed for new Figma design
         // Features are now integrated into the main layout
     }
-    
+
     private fun setupRecentTransactionsRecyclerView() {
-        recentTransactionsAdapter = com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter { transaction ->
+        recentTransactionsAdapter = RecentTransactionAdapter { transaction ->
             // Handle transaction click - could navigate to transaction details
             android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
+            // Show categorization dialog when transaction is clicked
+            showTransactionCategorizationDialog(transaction)
         }
-        
+
         binding.rvRecentTransactions.apply {
             adapter = recentTransactionsAdapter
             layoutManager = LinearLayoutManager(requireContext())
             isNestedScrollingEnabled = false
         }
-        
+
         android.util.Log.d("HomeFragment", "📱 Recent transactions RecyclerView setup complete")
     }
 
@@ -133,45 +137,52 @@ class HomeFragment : Fragment() {
         binding.apply {
             // Real SMS parsing button
             cardSmsParser.setOnClickListener {
-                android.util.Log.d("HomeFragment", "📱 SMS Parser card clicked - starting real SMS parsing")
+                android.util.Log.d(
+                    "HomeFragment",
+                    "📱 SMS Parser card clicked - starting real SMS parsing"
+                )
                 createSampleTransactions()
             }
-            
-            // Import button click
+
+            // Import button click - CLEAR DATA FIRST then parse real SMS
             btnImport.setOnClickListener {
-                createSampleTransactions()
+                clearAllDataAndParseRealSMS()
             }
-            
+
             // Add budget button click
             btnAddBudget.setOnClickListener {
                 navigateToBudget()
             }
-            
+
             // Budget card click (feature removed)
             cardBudget.setOnClickListener {
-                Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT)
+                    .show()
             }
-            
+
             tvViewAllTransactions.setOnClickListener {
                 // Navigate to transactions screen
                 (activity as? HomeActivity)?.showTransactionsFragment()
             }
-            
+
             btnEnablePermissions.setOnClickListener {
                 requestSmsPermissions()
             }
-            
+
             btnParseSms.setOnClickListener {
                 createSampleTransactions()
             }
-            
-            // Long press for real SMS parsing
+
+            // Long press for FORCED real SMS parsing (no sample fallback)
             cardFinancialOverview.setOnLongClickListener {
-                android.util.Log.d("HomeFragment", "📱 Financial overview long pressed - starting real SMS parsing")
-                createSampleTransactions()
+                android.util.Log.d(
+                    "HomeFragment",
+                    "📱 Financial overview long pressed - FORCING real SMS parsing only"
+                )
+                forceRealSmsParsingOnly()
                 true
             }
-            
+
             cardFinancialOverview.setOnClickListener {
                 // Perform comprehensive debugging check
                 lifecycleScope.launch {
@@ -179,7 +190,7 @@ class HomeFragment : Fragment() {
                         val debugManager = DebugDataManager(requireContext())
                         val checkResult = debugManager.performCompleteDataCheck()
                         val homeDebugResult = debugManager.debugHomeScreenData()
-                        
+
                         val message = buildString {
                             append("🔍 COMPREHENSIVE DEBUG STATUS:\n\n")
                             append("📊 DATABASE STATUS:\n")
@@ -188,21 +199,42 @@ class HomeFragment : Fragment() {
                             append("Transactions: ${checkResult.transactionsCount}\n")
                             append("Orphaned: ${checkResult.orphanedTransactions}\n\n")
                             append("💰 FINANCIAL DATA:\n")
-                            append("Income: ₹${String.format("%.2f", homeDebugResult.totalIncome)}\n")
-                            append("Expenses: ₹${String.format("%.2f", homeDebugResult.totalExpenses)}\n")
-                            append("Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n\n")
+                            append(
+                                "Income: ₹${
+                                    String.format(
+                                        "%.2f",
+                                        homeDebugResult.totalIncome
+                                    )
+                                }\n"
+                            )
+                            append(
+                                "Expenses: ₹${
+                                    String.format(
+                                        "%.2f",
+                                        homeDebugResult.totalExpenses
+                                    )
+                                }\n"
+                            )
+                            append(
+                                "Balance: ₹${
+                                    String.format(
+                                        "%.2f",
+                                        homeDebugResult.balance
+                                    )
+                                }\n\n"
+                            )
                             append("🔍 ACTIONS:\n")
                             append("• Long press: Create sample data\n")
                             append("• Import button: Process SMS/Create data")
                         }
-                        
+
                         showMessage(message)
                     } catch (e: Exception) {
                         showMessage("❌ Debug check failed: ${e.message}")
                     }
                 }
             }
-            
+
             // Month selector click listener
             layoutMonthSelector.setOnClickListener {
                 showMonthSelectionDialog()
@@ -213,49 +245,58 @@ class HomeFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.uiState.collect { uiState ->
-                android.util.Log.d("HomeFragment", "🔄 UI State received: hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}")
+                android.util.Log.d(
+                    "HomeFragment",
+                    "🔄 UI State received: hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}"
+                )
                 updateUI(uiState)
                 updateCurrentMonthDisplay()
                 renderLast4MonthsChart(uiState)
             }
         }
-        
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.recentTransactions.collect { transactions ->
-                    android.util.Log.d("HomeFragment", "📱 Recent transactions received: ${transactions.size}")
-                    
+                    android.util.Log.d(
+                        "HomeFragment",
+                        "📱 Recent transactions received: ${transactions.size}"
+                    )
+
                     // Update the "View All" text to show transaction count
                     binding.tvViewAllTransactions.text = if (transactions.isEmpty()) {
                         "View All (0)"
                     } else {
                         "View All (${transactions.size})"
                     }
-                    
+
                     // Show recent transactions (limit to 5)
                     val recentTransactions = transactions.take(5)
                     recentTransactionsAdapter.submitList(recentTransactions)
-                    
+
                     // Show/hide recent transactions RecyclerView
                     binding.rvRecentTransactions.visibility = if (recentTransactions.isNotEmpty()) {
                         View.VISIBLE
                     } else {
                         View.GONE
                     }
-                    
+
                     // Show/hide the no transactions card based on transaction count
                     binding.cardNoTransactions.visibility = if (transactions.isEmpty()) {
                         View.VISIBLE
                     } else {
                         View.GONE
                     }
-                    
-                    android.util.Log.d("HomeFragment", "📱 Displaying ${recentTransactions.size} recent transactions")
+
+                    android.util.Log.d(
+                        "HomeFragment",
+                        "📱 Displaying ${recentTransactions.size} recent transactions"
+                    )
                 }
             }
         }
     }
-    
+
     private fun updateCurrentMonthDisplay() {
         val calendar = java.util.Calendar.getInstance()
         val monthNames = arrayOf(
@@ -264,7 +305,7 @@ class HomeFragment : Fragment() {
         )
         val currentMonth = monthNames[calendar.get(java.util.Calendar.MONTH)]
         val currentYear = calendar.get(java.util.Calendar.YEAR)
-        
+
         _binding?.tvCurrentMonth?.text = "$currentMonth $currentYear"
         android.util.Log.d("HomeFragment", "📅 Updated month display: $currentMonth $currentYear")
     }
@@ -343,50 +384,63 @@ class HomeFragment : Fragment() {
         android.util.Log.d("HomeFragment", "   totalIncome: ₹${state.totalIncome}")
         android.util.Log.d("HomeFragment", "   totalExpenses: ₹${state.totalExpenses}")
         android.util.Log.d("HomeFragment", "   transactionCount: ${state.transactionCount}")
-        
+
         binding.apply {
             tvUserName.text = state.userName
-            
+
             // Show real balance data or prompt to import SMS
             if (state.hasTransactions) {
                 // Show selected month data prominently
                 val currentBalance = state.currentMonthBalance
-                
+
                 tvCurrentBalance.text = "₹${String.format("%.0f", currentBalance)}"
                 tvTotalBalance.text = "₹${String.format("%.0f", state.totalBalance)}"
-                
+
                 // Show current month data prominently
                 tvTotalIncome.text = "₹${String.format("%.0f", state.currentMonthIncome)}"
                 tvTotalExpenses.text = "₹${String.format("%.0f", state.currentMonthExpenses)}"
-                
+
                 // Update the month display to selected month
                 val selectedDate = java.util.Calendar.getInstance()
                 selectedDate.set(state.selectedYear, state.selectedMonth, 1)
                 val monthFormat = java.text.SimpleDateFormat("MMM", java.util.Locale.getDefault())
-                tvCurrentMonth.text = "${monthFormat.format(selectedDate.time)} ${state.selectedYear}"
-                
+                tvCurrentMonth.text =
+                    "${monthFormat.format(selectedDate.time)} ${state.selectedYear}"
+
                 // Debug logging
-                android.util.Log.d("HomeFragment", "📊 UI UPDATED - Income: ₹${state.totalIncome}, Expenses: ₹${state.totalExpenses}, Balance: ₹${currentBalance}")
+                android.util.Log.d(
+                    "HomeFragment",
+                    "📊 UI UPDATED - Income: ₹${state.totalIncome}, Expenses: ₹${state.totalExpenses}, Balance: ₹${currentBalance}"
+                )
                 android.util.Log.d("HomeFragment", "📊 UI Elements Set:")
                 android.util.Log.d("HomeFragment", "   tvTotalIncome.text = ${tvTotalIncome.text}")
-                android.util.Log.d("HomeFragment", "   tvTotalExpenses.text = ${tvTotalExpenses.text}")
-                android.util.Log.d("HomeFragment", "   tvCurrentBalance.text = ${tvCurrentBalance.text}")
-                android.util.Log.d("HomeFragment", "📊 Has transactions: ${state.hasTransactions}, Transaction count: ${state.transactionCount}")
-                
+                android.util.Log.d(
+                    "HomeFragment",
+                    "   tvTotalExpenses.text = ${tvTotalExpenses.text}"
+                )
+                android.util.Log.d(
+                    "HomeFragment",
+                    "   tvCurrentBalance.text = ${tvCurrentBalance.text}"
+                )
+                android.util.Log.d(
+                    "HomeFragment",
+                    "📊 Has transactions: ${state.hasTransactions}, Transaction count: ${state.transactionCount}"
+                )
+
                 // Update budget progress
                 val budgetProgress = if (state.budgetLimit > 0) {
                     (state.budgetSpent / state.budgetLimit).toFloat()
                 } else 0f
                 progressBudget.progress = (budgetProgress * 100).toInt()
                 tvBudgetSpent.text = "₹${String.format("%.2f", state.budgetSpent)} spent"
-                
+
                 // Hide no transactions card, show transaction data
                 cardNoTransactions.visibility = View.GONE
                 cardSmsParser.visibility = View.GONE
-                
+
                 // Update monthly spending card with real data
                 updateMonthlySpendingCard(state.last3MonthsData)
-                
+
             } else {
                 // First time user - show import SMS prompt
                 tvCurrentBalance.text = "₹0.00"
@@ -395,19 +449,19 @@ class HomeFragment : Fragment() {
                 tvTotalExpenses.text = "₹0.00"
                 tvBudgetSpent.text = "₹0.00 spent"
                 progressBudget.progress = 0
-                
+
                 // Show SMS import card
                 cardSmsParser.visibility = View.VISIBLE
                 cardNoTransactions.visibility = View.VISIBLE
             }
-            
+
             // Show error if any
             state.errorMessage?.let { error ->
                 showMessage(error)
             }
         }
     }
-    
+
     private fun updateMonthlySpendingCard(monthlyData: List<MonthlySpendingData>) {
         if (monthlyData.isNotEmpty()) {
             val currentMonth = monthlyData.lastOrNull()
@@ -415,7 +469,7 @@ class HomeFragment : Fragment() {
                 binding.apply {
                     // Update the current month display
                     tvCurrentMonth.text = "${month.month} ${month.year}"
-                    
+
                     // Make the financial overview card clickable to show detailed view
                     cardFinancialOverview.setOnClickListener {
                         showMonthlySpendingDetails(monthlyData)
@@ -424,7 +478,7 @@ class HomeFragment : Fragment() {
             }
         }
     }
-    
+
     private fun showMonthlySpendingDetails(monthlyData: List<MonthlySpendingData>) {
         val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Last 3 Months Spending")
@@ -433,13 +487,13 @@ class HomeFragment : Fragment() {
             .create()
         dialog.show()
     }
-    
+
     private fun buildMonthlyDataMessage(monthlyData: List<MonthlySpendingData>): String {
         return monthlyData.joinToString("\n\n") { month ->
             "${month.month} ${month.year}:\n" +
-            "Income: ₹${String.format("%.2f", month.totalIncome)}\n" +
-            "Expenses: ₹${String.format("%.2f", month.totalSpent)}\n" +
-            "Transactions: ${month.transactionCount}"
+                    "Income: ₹${String.format("%.2f", month.totalIncome)}\n" +
+                    "Expenses: ₹${String.format("%.2f", month.totalSpent)}\n" +
+                    "Transactions: ${month.transactionCount}"
         }
     }
 
@@ -499,16 +553,17 @@ class HomeFragment : Fragment() {
 
     private fun checkPermissions() {
         val smsPermission = ContextCompat.checkSelfPermission(
-            requireContext(), 
+            requireContext(),
             Manifest.permission.READ_SMS
         )
         val receivePermission = ContextCompat.checkSelfPermission(
-            requireContext(), 
+            requireContext(),
             Manifest.permission.RECEIVE_SMS
         )
-        
-        if (smsPermission != PackageManager.PERMISSION_GRANTED || 
-            receivePermission != PackageManager.PERMISSION_GRANTED) {
+
+        if (smsPermission != PackageManager.PERMISSION_GRANTED ||
+            receivePermission != PackageManager.PERMISSION_GRANTED
+        ) {
             binding.cardPermissions.visibility = View.VISIBLE
         } else {
             binding.cardPermissions.visibility = View.GONE
@@ -516,7 +571,7 @@ class HomeFragment : Fragment() {
             showManualSmsParsingOption()
         }
     }
-    
+
     private fun showManualSmsParsingOption() {
         // Only show if no transactions exist yet
         viewLifecycleOwner.lifecycleScope.launch {
@@ -578,34 +633,34 @@ class HomeFragment : Fragment() {
     private fun createSampleTransactions() {
         lifecycleScope.launch {
             try {
-                android.util.Log.d("HomeFragment", "📱 ===== STARTING REAL SMS PARSING =====") 
-                
+                android.util.Log.d("HomeFragment", "📱 ===== STARTING REAL SMS PARSING =====")
+
                 val debugManager = DebugDataManager(requireContext())
-                
+
                 // Step 1: Perform complete data check
                 android.util.Log.d("HomeFragment", "🔍 Step 1: Performing complete data check...")
                 val checkResult = debugManager.performCompleteDataCheck()
-                
+
                 if (!checkResult.success) {
                     showErrorMessage("Data check failed: ${checkResult.error}")
                     return@launch
                 }
-                
+
                 // Step 2: Parse real SMS data
                 android.util.Log.d("HomeFragment", "📱 Step 2: Parsing real SMS messages...")
                 showMessage("📱 Processing your SMS messages...\nThis may take a few moments.")
-                
+
                 val createResult = debugManager.parseRealSMSAndCreateData()
-                
+
                 if (!createResult.success) {
                     showErrorMessage("Failed to parse SMS data: ${createResult.error}")
                     return@launch
                 }
-                
+
                 // Step 3: Debug home screen data
                 android.util.Log.d("HomeFragment", "🏠 Step 3: Debugging home screen data...")
                 val homeDebugResult = debugManager.debugHomeScreenData()
-                
+
                 // Step 4: Show comprehensive results
                 val message = buildString {
                     if (createResult.transactionsCreated > 0) {
@@ -613,9 +668,30 @@ class HomeFragment : Fragment() {
                         append("📱 SMS PROCESSING RESULTS:\n")
                         append("💾 Real Transactions Created: ${createResult.transactionsCreated}\n")
                         append("💳 Total Transaction Count: ${createResult.finalTransactionCount}\n")
-                        append("💰 Total Income: ₹${String.format("%.2f", homeDebugResult.totalIncome)}\n")
-                        append("💸 Total Expenses: ₹${String.format("%.2f", homeDebugResult.totalExpenses)}\n")
-                        append("🏦 Current Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n\n")
+                        append(
+                            "💰 Total Income: ₹${
+                                String.format(
+                                    "%.2f",
+                                    homeDebugResult.totalIncome
+                                )
+                            }\n"
+                        )
+                        append(
+                            "💸 Total Expenses: ₹${
+                                String.format(
+                                    "%.2f",
+                                    homeDebugResult.totalExpenses
+                                )
+                            }\n"
+                        )
+                        append(
+                            "🏦 Current Balance: ₹${
+                                String.format(
+                                    "%.2f",
+                                    homeDebugResult.balance
+                                )
+                            }\n\n"
+                        )
                         append("🎉 Your actual financial data is now displayed!\n")
                         append("📅 Home screen shows CURRENT MONTH data only.\n")
                         append("📱 Recent 5 transactions are shown below.\n")
@@ -624,43 +700,56 @@ class HomeFragment : Fragment() {
                         append("📝 SAMPLE DATA CREATED\n\n")
                         append("No transaction SMS found on your device.\n")
                         append("Sample data has been created for demonstration.\n\n")
-                        append("💰 Sample Balance: ₹${String.format("%.2f", homeDebugResult.balance)}\n")
+                        append(
+                            "💰 Sample Balance: ₹${
+                                String.format(
+                                    "%.2f",
+                                    homeDebugResult.balance
+                                )
+                            }\n"
+                        )
                         append("You can now explore all app features!")
                     }
                 }
-                
+
                 showMessage(message)
-                android.util.Log.d("HomeFragment", "✅ ===== SMS PARSING COMPLETED SUCCESSFULLY =====\n" +
-                    "Created: ${createResult.transactionsCreated} transactions\n" +
-                    "Balance: ₹${homeDebugResult.balance}")
-                
+                android.util.Log.d(
+                    "HomeFragment", "✅ ===== SMS PARSING COMPLETED SUCCESSFULLY =====\n" +
+                            "Created: ${createResult.transactionsCreated} transactions\n" +
+                            "Balance: ₹${homeDebugResult.balance}"
+                )
+
                 // Step 5: Force refresh UI with new data
                 android.util.Log.d("HomeFragment", "🔄 Step 5: Force refreshing UI with new data...")
                 refreshUIWithDebugData(homeDebugResult)
-                
+
             } catch (e: Exception) {
                 val errorMsg = "SMS parsing failed: ${e.message}"
                 showErrorMessage(errorMsg)
-                android.util.Log.e("HomeFragment", "❌ ===== SMS PARSING FAILED =====\n${e.message}", e)
+                android.util.Log.e(
+                    "HomeFragment",
+                    "❌ ===== SMS PARSING FAILED =====\n${e.message}",
+                    e
+                )
             }
         }
     }
 
     private fun refreshUIWithDebugData(debugResult: com.koshpal_android.koshpalapp.utils.HomeScreenDebugResult) {
         android.util.Log.d("HomeFragment", "🔄 Refreshing UI with debug data...")
-        
+
         _binding?.let { binding ->
             binding.apply {
                 // Do not overwrite ViewModel-driven month figures here.
                 // Let HomeViewModel compute and bind current month income/expenses/balance.
-                
+
                 // Update transaction count
                 tvViewAllTransactions.text = if (debugResult.hasTransactions) {
                     "View All (${debugResult.transactionCount})"
                 } else {
                     "No transactions"
                 }
-                
+
                 // Show/hide appropriate cards
                 if (debugResult.hasTransactions) {
                     cardNoTransactions.visibility = View.GONE
@@ -671,11 +760,14 @@ class HomeFragment : Fragment() {
                     cardSmsParser.visibility = View.VISIBLE
                     cardFinancialOverview.visibility = View.VISIBLE
                 }
-                
-                android.util.Log.d("HomeFragment", "✅ UI refreshed with debug data (counts/visibility only) - Transactions: ${debugResult.transactionCount}")
+
+                android.util.Log.d(
+                    "HomeFragment",
+                    "✅ UI refreshed with debug data (counts/visibility only) - Transactions: ${debugResult.transactionCount}"
+                )
             }
         }
-        
+
         // Also refresh ViewModel to keep it in sync
         viewModel.forceRefreshNow()
     }
@@ -683,17 +775,20 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         android.util.Log.d("HomeFragment", "🔄 onResume - performing comprehensive data refresh...")
-        
+
         // Perform comprehensive data check and refresh
         lifecycleScope.launch {
             try {
                 val debugManager = DebugDataManager(requireContext())
                 val homeDebugResult = debugManager.debugHomeScreenData()
-                
+
                 if (homeDebugResult.success) {
                     refreshUIWithDebugData(homeDebugResult)
                 } else {
-                    android.util.Log.e("HomeFragment", "Home screen debug failed: ${homeDebugResult.error}")
+                    android.util.Log.e(
+                        "HomeFragment",
+                        "Home screen debug failed: ${homeDebugResult.error}"
+                    )
                     // Fallback to ViewModel refresh
                     viewModel.refreshData()
                 }
@@ -708,17 +803,21 @@ class HomeFragment : Fragment() {
     private fun showMonthSelectionDialog() {
         val currentState = viewModel.uiState.value
         val availableMonths = currentState.availableMonths
-        
+
         if (availableMonths.isEmpty()) {
-            Toast.makeText(requireContext(), "No transaction data available for month selection", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "No transaction data available for month selection",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
-        
+
         val monthNames = availableMonths.map { it.displayName }.toTypedArray()
-        val currentSelection = availableMonths.indexOfFirst { 
-            it.month == currentState.selectedMonth && it.year == currentState.selectedYear 
+        val currentSelection = availableMonths.indexOfFirst {
+            it.month == currentState.selectedMonth && it.year == currentState.selectedYear
         }.takeIf { it >= 0 } ?: 0
-        
+
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("📅 Select Month")
             .setSingleChoiceItems(monthNames, currentSelection) { dialog, which ->
@@ -730,13 +829,157 @@ class HomeFragment : Fragment() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-    
+
     private fun navigateToBudget() {
         Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun showTransactionCategorizationDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {
+        val dialog = TransactionCategorizationDialog.newInstance(transaction) { txn, category ->
+            // Update transaction with selected category
+            lifecycleScope.launch {
+                try {
+                    transactionRepository.updateTransactionCategory(txn.id, category.id)
+                    android.util.Log.d(
+                        "HomeFragment",
+                        "Transaction ${txn.id} categorized as ${category.name}"
+                    )
+                    
+                    // Refresh data to show updated transaction
+                    viewModel.refreshData()
+                    
+                    // Refresh categories data after a small delay to ensure DB transaction is committed
+                    kotlinx.coroutines.delay(100)
+                    (activity as? HomeActivity)?.refreshCategoriesData()
+                    
+                    // Show success message
+                    Toast.makeText(
+                        requireContext(),
+                        "Transaction categorized as ${category.name}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                } catch (e: Exception) {
+                    android.util.Log.e(
+                        "HomeFragment",
+                        "Failed to categorize transaction: ${e.message}"
+                    )
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to categorize transaction",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
+        dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
+    }
+
+    private fun forceRealSmsParsingOnly() {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("HomeFragment", "🚀 ===== FORCING REAL SMS PARSING ONLY =====")
+                
+                val smsManager = SMSManager(requireContext())
+                val smsResult = smsManager.processAllSMS()
+                
+                val message = buildString {
+                    append("📱 REAL SMS PARSING RESULTS:\n\n")
+                    append("Success: ${smsResult.success}\n")
+                    append("Total SMS Found: ${smsResult.smsFound}\n")
+                    append("Transaction SMS: ${smsResult.transactionSmsFound}\n")
+                    append("Transactions Created: ${smsResult.transactionsCreated}\n\n")
+                    
+                    if (smsResult.transactionsCreated > 0) {
+                        append("✅ Real transactions created from your SMS!\n")
+                        append("Check the transaction list to see them.")
+                    } else {
+                        append("❌ No transaction SMS found on your device.\n")
+                        append("Make sure you have:\n")
+                        append("• Bank transaction SMS\n")
+                        append("• UPI payment notifications\n")
+                        append("• Credit/debit card alerts")
+                    }
+                }
+                
+                showMessage(message)
+                
+                // Refresh UI if transactions were created
+                if (smsResult.transactionsCreated > 0) {
+                    viewModel.refreshData()
+                }
+                
+            } catch (e: Exception) {
+                showErrorMessage("Real SMS parsing failed: ${e.message}")
+                android.util.Log.e("HomeFragment", "Real SMS parsing error: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun clearAllDataAndParseRealSMS() {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("HomeFragment", "🧽 ===== CLEARING ALL DATA AND PARSING REAL SMS =====")
+                
+                // Step 1: Clear all existing data
+                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                database.transactionDao().deleteAllTransactions()
+                android.util.Log.d("HomeFragment", "✅ Cleared all existing transactions")
+                
+                // Step 2: Check SMS permissions
+                val smsPermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_SMS)
+                val receivePermission = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECEIVE_SMS)
+                
+                if (smsPermission != PackageManager.PERMISSION_GRANTED || receivePermission != PackageManager.PERMISSION_GRANTED) {
+                    showErrorMessage("❌ SMS permissions not granted!\nPlease grant SMS permissions first.")
+                    return@launch
+                }
+                
+                android.util.Log.d("HomeFragment", "✅ SMS permissions granted")
+                
+                // Step 3: Try to parse real SMS directly
+                val smsManager = SMSManager(requireContext())
+                val smsResult = smsManager.processAllSMS()
+                
+                // Step 4: Show detailed diagnosis
+                val message = buildString {
+                    append("🔍 SMS PARSING DIAGNOSIS:\n\n")
+                    append("📱 SMS PERMISSIONS: ✅ Granted\n")
+                    append("📊 SMS SCAN RESULTS:\n")
+                    append("• Total SMS Found: ${smsResult.smsFound}\n")
+                    append("• Transaction SMS: ${smsResult.transactionSmsFound}\n")
+                    append("• Transactions Created: ${smsResult.transactionsCreated}\n")
+                    append("• Success: ${smsResult.success}\n\n")
+                    
+                    if (smsResult.transactionsCreated > 0) {
+                        append("✅ SUCCESS! Real transactions created from SMS.\n")
+                        append("Check your transaction list now.")
+                    } else if (smsResult.smsFound == 0) {
+                        append("❌ ISSUE: No SMS found at all!\n")
+                        append("• Check if SMS permission is really granted\n")
+                        append("• Try restarting the app")
+                    } else if (smsResult.transactionSmsFound == 0) {
+                        append("❌ ISSUE: SMS found but no transaction SMS!\n")
+                        append("• Found ${smsResult.smsFound} SMS total\n")
+                        append("• But none match transaction patterns\n")
+                        append("• Do you have bank/UPI transaction SMS?")
+                    } else {
+                        append("❌ ISSUE: Transaction SMS found but failed to create transactions!\n")
+                        append("• Found ${smsResult.transactionSmsFound} transaction SMS\n")
+                        append("• But parsing failed - check SMS format")
+                    }
+                }
+                
+                showMessage(message)
+                
+                // Refresh UI
+                viewModel.refreshData()
+                
+            } catch (e: Exception) {
+                showErrorMessage("❌ SMS parsing failed: ${e.message}")
+                android.util.Log.e("HomeFragment", "SMS parsing error: ${e.message}", e)
+            }
+        }
     }
 }
