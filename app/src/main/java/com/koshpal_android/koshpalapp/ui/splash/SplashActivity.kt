@@ -61,7 +61,7 @@ class SplashActivity : AppCompatActivity() {
                             finish()
                         }
                         SplashViewModel.NavigationDestination.EMPLOYEE_LOGIN -> {
-                            startActivity(Intent(this@SplashActivity, EmployeeLoginActivity::class.java))
+                            startActivity(Intent(this@SplashActivity, HomeActivity::class.java))
                             finish()
                         }
                         SplashViewModel.NavigationDestination.ONBOARDING -> {

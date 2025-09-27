@@ -61,6 +61,10 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getAllTimeCategorySpending()
     }
     
+    suspend fun getAllCategorizedTransactions(): List<Transaction> {
+        return transactionDao.getAllCategorizedTransactions()
+    }
+    
     suspend fun getTotalAmountByTypeAndDateRange(
         type: TransactionType, 
         startTime: Long, 
@@ -89,8 +93,46 @@ class TransactionRepository @Inject constructor(
         transactionDao.deleteTransaction(transaction)
     }
     
-    suspend fun updateTransactionCategory(transactionId: String, categoryId: String) {
-        transactionDao.updateTransactionCategory(transactionId, categoryId)
+    suspend fun ensureDefaultCategoriesExist() {
+        try {
+            val existingCategories = categoryDao.getAllCategoriesOnce()
+            android.util.Log.d("TransactionRepository", "🔍 Existing categories in DB: ${existingCategories.size}")
+            
+            if (existingCategories.isEmpty()) {
+                android.util.Log.d("TransactionRepository", "📝 Inserting default categories...")
+                val defaultCategories = TransactionCategory.getDefaultCategories()
+                categoryDao.insertCategories(defaultCategories)
+                android.util.Log.d("TransactionRepository", "✅ Inserted ${defaultCategories.size} default categories")
+            } else {
+                android.util.Log.d("TransactionRepository", "✅ Categories already exist in database")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Failed to ensure categories exist: ${e.message}")
+        }
+    }
+    
+    suspend fun updateTransactionCategory(transactionId: String, categoryId: String): Int {
+        // Ensure categories exist in database (but don't enforce foreign key)
+        ensureDefaultCategoriesExist()
+        
+        // Check if transaction exists
+        val transactionExists = transactionDao.transactionExists(transactionId)
+        android.util.Log.d("TransactionRepository", "🔍 Transaction $transactionId exists: $transactionExists")
+        
+        if (transactionExists == 0) {
+            android.util.Log.e("TransactionRepository", "❌ Transaction $transactionId does not exist in database!")
+            return 0
+        }
+        
+        // Direct update without foreign key constraint validation
+        try {
+            val result = transactionDao.updateTransactionCategory(transactionId, categoryId)
+            android.util.Log.d("TransactionRepository", "🔄 Update result for transaction $transactionId -> category $categoryId: $result rows affected")
+            return result
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Failed to update transaction category: ${e.message}")
+            return 0
+        }
     }
     
     suspend fun getUncategorizedTransactions(): List<Transaction> {

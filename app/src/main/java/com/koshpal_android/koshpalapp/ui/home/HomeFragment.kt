@@ -834,10 +834,19 @@ class HomeFragment : Fragment() {
         Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT).show()
     }
 
+    private var isUpdatingTransaction = false
+    
     private fun showTransactionCategorizationDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {
         val dialog = TransactionCategorizationDialog.newInstance(transaction) { txn, category ->
+            // Prevent multiple simultaneous updates
+            if (isUpdatingTransaction) {
+                android.util.Log.w("HomeFragment", "⚠️ Transaction update already in progress, ignoring...")
+                return@newInstance
+            }
+            
             // Update transaction with selected category
             lifecycleScope.launch {
+                isUpdatingTransaction = true
                 try {
                     transactionRepository.updateTransactionCategory(txn.id, category.id)
                     android.util.Log.d(
@@ -847,10 +856,6 @@ class HomeFragment : Fragment() {
                     
                     // Refresh data to show updated transaction
                     viewModel.refreshData()
-                    
-                    // Refresh categories data after a small delay to ensure DB transaction is committed
-                    kotlinx.coroutines.delay(100)
-                    (activity as? HomeActivity)?.refreshCategoriesData()
                     
                     // Show success message
                     Toast.makeText(
@@ -869,6 +874,9 @@ class HomeFragment : Fragment() {
                         "Failed to categorize transaction",
                         Toast.LENGTH_SHORT
                     ).show()
+                } finally {
+                    // Always reset the flag
+                    isUpdatingTransaction = false
                 }
             }
         }

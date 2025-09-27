@@ -94,8 +94,7 @@ class HomeActivity : AppCompatActivity() {
     }
     
     fun refreshCategoriesData() {
-        // Refresh categories fragment data immediately
-        android.util.Log.d("HomeActivity", "🔄 Refreshing categories data...")
-        categoriesFragment.refreshData()
+        // Simple refresh - the fragment will auto-refresh when it becomes visible
+        android.util.Log.d("HomeActivity", "🔄 Categories data refresh requested")
     }
 }

@@ -13,7 +13,8 @@ import androidx.room.Index
             entity = TransactionCategory::class,
             parentColumns = ["id"],
             childColumns = ["categoryId"],
-            onDelete = ForeignKey.SET_DEFAULT
+            onDelete = ForeignKey.SET_NULL,
+            onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [Index(value = ["categoryId"])]

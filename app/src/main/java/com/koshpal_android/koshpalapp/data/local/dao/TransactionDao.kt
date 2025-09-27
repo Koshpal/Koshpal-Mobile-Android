@@ -60,8 +60,11 @@ interface TransactionDao {
     @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE date BETWEEN :startDate AND :endDate AND type = 'DEBIT' AND categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId")
     suspend fun getCategoryWiseSpending(startDate: Long, endDate: Long): List<CategorySpending>
     
-    @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE type = 'DEBIT' AND categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId")
+    @Query("SELECT categoryId, SUM(CASE WHEN type = 'DEBIT' THEN amount ELSE 0 END) as totalAmount FROM transactions WHERE categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId HAVING totalAmount > 0")
     suspend fun getAllTimeCategorySpending(): List<CategorySpending>
+    
+    @Query("SELECT * FROM transactions WHERE categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized'")
+    suspend fun getAllCategorizedTransactions(): List<Transaction>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: Transaction)
@@ -84,7 +87,15 @@ interface TransactionDao {
     // Additional missing methods
     
     @Query("UPDATE transactions SET categoryId = :categoryId WHERE id = :transactionId")
-    suspend fun updateTransactionCategory(transactionId: String, categoryId: String)
+    suspend fun updateTransactionCategory(transactionId: String, categoryId: String): Int
+    
+    // Check if transaction exists
+    @Query("SELECT COUNT(*) FROM transactions WHERE id = :transactionId")
+    suspend fun transactionExists(transactionId: String): Int
+    
+    // Get transaction by ID with detailed info
+    @Query("SELECT * FROM transactions WHERE id = :transactionId")
+    suspend fun getTransactionByIdDetailed(transactionId: String): Transaction?
     
     @Query("SELECT * FROM transactions WHERE confidence < 0.8 ORDER BY date DESC")
     suspend fun getLowConfidenceTransactions(): List<Transaction>

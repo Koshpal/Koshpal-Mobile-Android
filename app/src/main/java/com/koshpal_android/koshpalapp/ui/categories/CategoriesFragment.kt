@@ -120,11 +120,9 @@ class CategoriesFragment : Fragment() {
         binding.tabLayout.selectTab(binding.tabLayout.getTabAt(1))
 
         binding.btnSetBudget.setOnClickListener {
-            android.widget.Toast.makeText(
-                requireContext(),
-                "Set monthly budget feature coming soon!",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            // For debugging - manually refresh data
+            android.util.Log.d("CategoriesFragment", "🔄 Manual refresh triggered by Set Budget button")
+            loadCategoryData()
         }
 
         binding.tvMonth.setOnClickListener {
@@ -169,6 +167,17 @@ class CategoriesFragment : Fragment() {
                 val allTransactions = transactionRepository.getAllTransactionsOnce()
                 android.util.Log.d("CategoriesFragment", "🔍 Total transactions in DB: ${allTransactions.size}")
                 
+                if (allTransactions.isEmpty()) {
+                    android.util.Log.e("CategoriesFragment", "❌ NO TRANSACTIONS FOUND IN DATABASE!")
+                    android.util.Log.e("CategoriesFragment", "❌ Database might have been recreated and data lost")
+                } else {
+                    android.util.Log.d("CategoriesFragment", "✅ Found ${allTransactions.size} transactions")
+                    // Debug: Check transaction IDs and categoryIds
+                    allTransactions.take(10).forEach { txn ->
+                        android.util.Log.d("CategoriesFragment", "🔍 Transaction: ID='${txn.id}', CategoryId='${txn.categoryId}', Merchant='${txn.merchant}', Amount=${txn.amount}")
+                    }
+                }
+                
                 val categorizedTransactions = allTransactions.filter { 
                     !it.categoryId.isNullOrEmpty() && it.categoryId != "uncategorized" 
                 }
@@ -179,8 +188,38 @@ class CategoriesFragment : Fragment() {
                 android.util.Log.d("CategoriesFragment", "🔍 Categorized transactions: ${categorizedTransactions.size}")
                 android.util.Log.d("CategoriesFragment", "🔍 Uncategorized transactions: ${uncategorizedTransactions.size}")
                 
+                android.util.Log.d("CategoriesFragment", "📋 DETAILED CATEGORIZED TRANSACTIONS:")
                 categorizedTransactions.forEach { txn ->
-                    android.util.Log.d("CategoriesFragment", "✅ Categorized: ${txn.id}, Category: '${txn.categoryId}', Amount: ${txn.amount}, Type: ${txn.type}")
+                    android.util.Log.d("CategoriesFragment", "✅ Categorized: ${txn.id}, Category: '${txn.categoryId}', Amount: ${txn.amount}, Type: ${txn.type}, Date: ${java.util.Date(txn.date)}")
+                }
+                
+                // Show unique category IDs found in database
+                val uniqueCategoryIds = categorizedTransactions.map { it.categoryId }.distinct()
+                android.util.Log.d("CategoriesFragment", "🏷️ UNIQUE CATEGORY IDs IN DB: $uniqueCategoryIds")
+                
+                // Specific check for "food" category
+                val foodTransactions = categorizedTransactions.filter { it.categoryId == "food" }
+                android.util.Log.d("CategoriesFragment", "🍔 FOOD TRANSACTIONS: Found ${foodTransactions.size} transactions")
+                foodTransactions.forEach { txn ->
+                    android.util.Log.d("CategoriesFragment", "🍔 Food txn: ${txn.id}, Amount: ${txn.amount}, Type: ${txn.type}, Date: ${java.util.Date(txn.date)}")
+                }
+                
+                
+                // Show available category definitions
+                val availableCategories = TransactionCategory.getDefaultCategories()
+                android.util.Log.d("CategoriesFragment", "📚 AVAILABLE CATEGORY DEFINITIONS:")
+                availableCategories.forEach { cat ->
+                    android.util.Log.d("CategoriesFragment", "   📂 ${cat.id} -> ${cat.name}")
+                }
+                
+                // Check for mismatches
+                uniqueCategoryIds.forEach { dbCategoryId ->
+                    val matchingCategory = availableCategories.find { it.id == dbCategoryId }
+                    if (matchingCategory == null) {
+                        android.util.Log.e("CategoriesFragment", "❌ MISMATCH: Category ID '$dbCategoryId' in DB but not in definitions!")
+                    } else {
+                        android.util.Log.d("CategoriesFragment", "✅ MATCH: Category ID '$dbCategoryId' -> '${matchingCategory.name}'")
+                    }
                 }
                 
                 uncategorizedTransactions.take(5).forEach { txn ->
@@ -192,12 +231,47 @@ class CategoriesFragment : Fragment() {
                 val allTimeCategorySpending = transactionRepository.getAllTimeCategorySpending()
                 android.util.Log.d("CategoriesFragment", "📊 All-time category spending: ${allTimeCategorySpending.size} categories")
                 
-                // Use all-time data for now (we can add month filtering later)
-                val categorySpending = allTimeCategorySpending
+                // Also try the date-filtered query for comparison
+                val monthCategorySpending = transactionRepository.getCategoryWiseSpending(startOfMonth, endOfMonth)
+                android.util.Log.d("CategoriesFragment", "📊 Month category spending: ${monthCategorySpending.size} categories")
+                
+                // Use all-time data, but if empty, calculate manually
+                val categorySpending = if (allTimeCategorySpending.isNotEmpty()) {
+                    allTimeCategorySpending
+                } else {
+                    // Fallback: Calculate manually from categorized transactions
+                    android.util.Log.d("CategoriesFragment", "📊 SQL query returned empty, calculating manually...")
+                    calculateCategorySpendingManually()
+                }
                 
                 android.util.Log.d("CategoriesFragment", "📊 Category spending data received: ${categorySpending.size} categories")
+                android.util.Log.d("CategoriesFragment", "📊 DETAILED CATEGORY SPENDING RESULTS:")
                 categorySpending.forEach { spending ->
-                    android.util.Log.d("CategoriesFragment", "📊 Category: ${spending.categoryId}, Amount: ${spending.totalAmount}")
+                    val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
+                    android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
+                }
+                
+                // Specific check if "food" is missing from results
+                val foodInResults = categorySpending.find { it.categoryId == "food" }
+                if (foodInResults != null) {
+                    android.util.Log.d("CategoriesFragment", "🍔 FOOD FOUND in results: ₹${foodInResults.totalAmount}")
+                } else {
+                    android.util.Log.e("CategoriesFragment", "🍔 FOOD MISSING from SQL results!")
+                    if (foodTransactions.isNotEmpty()) {
+                        val totalFoodAmount = foodTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }.sumOf { it.amount }
+                        android.util.Log.e("CategoriesFragment", "🍔 Expected food amount: ₹$totalFoodAmount from ${foodTransactions.size} transactions")
+                    }
+                }
+                
+                // Compare with what we expect to see
+                android.util.Log.d("CategoriesFragment", "🔍 EXPECTED vs ACTUAL:")
+                uniqueCategoryIds.forEach { expectedCategoryId ->
+                    val foundInResults = categorySpending.find { it.categoryId == expectedCategoryId }
+                    if (foundInResults != null) {
+                        android.util.Log.d("CategoriesFragment", "   ✅ Expected '$expectedCategoryId' -> Found ₹${foundInResults.totalAmount}")
+                    } else {
+                        android.util.Log.e("CategoriesFragment", "   ❌ Expected '$expectedCategoryId' -> NOT FOUND in query results!")
+                    }
                 }
                 
                 if (categorySpending.isNotEmpty()) {
@@ -285,7 +359,6 @@ class CategoriesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         // Refresh data when fragment becomes visible
-        android.util.Log.d("CategoriesFragment", "🔄 onResume - Refreshing category data...")
         loadCategoryData()
     }
     
@@ -293,16 +366,38 @@ class CategoriesFragment : Fragment() {
         super.onHiddenChanged(hidden)
         if (!hidden) {
             // Fragment became visible - refresh data
-            android.util.Log.d("CategoriesFragment", "🔄 Fragment became visible - Refreshing category data...")
             loadCategoryData()
         }
     }
     
-    fun refreshData() {
-        // Public method to refresh data from external sources
-        android.util.Log.d("CategoriesFragment", "🔄 External refresh triggered - Reloading category data...")
-        if (_binding != null) {
-            loadCategoryData()
+    private suspend fun calculateCategorySpendingManually(): List<CategorySpending> {
+        return try {
+            android.util.Log.d("CategoriesFragment", "🔧 Calculating category spending manually...")
+            
+            // Get all categorized transactions directly
+            val categorizedTransactions = transactionRepository.getAllCategorizedTransactions()
+            android.util.Log.d("CategoriesFragment", "🔧 Found ${categorizedTransactions.size} categorized transactions")
+            
+            // Group by category and sum amounts (only DEBIT transactions for expenses)
+            val categoryTotals = categorizedTransactions
+                .filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }
+                .groupBy { it.categoryId }
+                .mapValues { (_, transactions) -> transactions.sumOf { it.amount } }
+                .filter { (_, total) -> total > 0 }
+            
+            android.util.Log.d("CategoriesFragment", "🔧 Manual calculation results:")
+            categoryTotals.forEach { (categoryId, total) ->
+                android.util.Log.d("CategoriesFragment", "   🔧 $categoryId -> ₹$total")
+            }
+            
+            // Convert to CategorySpending objects
+            categoryTotals.map { (categoryId, total) ->
+                CategorySpending(categoryId = categoryId, totalAmount = total)
+            }
+            
+        } catch (e: Exception) {
+            android.util.Log.e("CategoriesFragment", "❌ Manual calculation failed: ${e.message}")
+            emptyList()
         }
     }
 
