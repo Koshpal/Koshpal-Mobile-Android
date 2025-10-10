@@ -106,6 +106,28 @@ class HomeFragment : Fragment() {
         setupClickListeners()
         setupRecentTransactionsRecyclerView()
 
+        // Only reset transactions to "others" on very first app install (one-time only)
+        // This prevents overriding user categorizations on every app launch
+        lifecycleScope.launch {
+            try {
+                // Check if this is the first time the app is running
+                val sharedPrefs = requireContext().getSharedPreferences("koshpal_prefs", Context.MODE_PRIVATE)
+                val hasResetTransactions = sharedPrefs.getBoolean("has_reset_transactions", false)
+                
+                if (!hasResetTransactions) {
+                    val resetCount = transactionRepository.resetAllTransactionsToOthers()
+                    android.util.Log.d("HomeFragment", "🔄 First-time reset: $resetCount transactions set to 'others'")
+                    
+                    // Mark that we've done the reset so we don't do it again
+                    sharedPrefs.edit().putBoolean("has_reset_transactions", true).apply()
+                } else {
+                    android.util.Log.d("HomeFragment", "✅ Skipping reset - user categorizations preserved")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "Failed to reset transactions: ${e.message}")
+            }
+        }
+
         // FIXED: Use single data source - ViewModel only
         android.util.Log.d("HomeFragment", "🚀 Setting up ViewModel observation...")
         observeViewModel()

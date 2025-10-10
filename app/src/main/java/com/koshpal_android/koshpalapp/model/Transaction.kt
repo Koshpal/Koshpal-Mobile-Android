@@ -29,7 +29,7 @@ data class Transaction(
     @ColumnInfo(name = "merchant")
     val merchant: String = "",
     @ColumnInfo(name = "categoryId")
-    val categoryId: String = "",
+    val categoryId: String = "others",
     @ColumnInfo(name = "type")
     val type: TransactionType = TransactionType.DEBIT,
     @ColumnInfo(name = "date")

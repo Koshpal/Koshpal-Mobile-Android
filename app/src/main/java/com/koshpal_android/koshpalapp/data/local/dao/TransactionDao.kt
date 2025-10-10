@@ -57,13 +57,56 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE type = :type AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
     suspend fun getTransactionsByDateRangeAndType(startDate: Long, endDate: Long, type: TransactionType): List<Transaction>
     
-    @Query("SELECT categoryId, SUM(amount) as totalAmount FROM transactions WHERE date BETWEEN :startDate AND :endDate AND type = 'DEBIT' AND categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId")
+    @Query("""
+        SELECT categoryId, SUM(amount) as totalAmount 
+        FROM transactions 
+        WHERE type = 'DEBIT' 
+        AND categoryId IS NOT NULL 
+        AND date >= :startDate 
+        AND date <= :endDate
+        GROUP BY categoryId 
+        HAVING SUM(amount) > 0
+        ORDER BY totalAmount DESC
+    """)
     suspend fun getCategoryWiseSpending(startDate: Long, endDate: Long): List<CategorySpending>
     
-    @Query("SELECT categoryId, SUM(CASE WHEN type = 'DEBIT' THEN amount ELSE 0 END) as totalAmount FROM transactions WHERE categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized' GROUP BY categoryId HAVING totalAmount > 0")
+    // Get category spending for all time
+    @Query("""
+        SELECT categoryId, SUM(amount) as totalAmount 
+        FROM transactions 
+        WHERE type = 'DEBIT' AND categoryId IS NOT NULL 
+        GROUP BY categoryId 
+        HAVING SUM(amount) > 0
+        ORDER BY totalAmount DESC
+    """)
     suspend fun getAllTimeCategorySpending(): List<CategorySpending>
     
-    @Query("SELECT * FROM transactions WHERE categoryId IS NOT NULL AND categoryId != '' AND categoryId != 'uncategorized'")
+    // Get category spending for current month only
+    @Query("""
+        SELECT categoryId, SUM(amount) as totalAmount 
+        FROM transactions 
+        WHERE type = 'DEBIT' 
+        AND categoryId IS NOT NULL 
+        AND date >= :startOfMonth 
+        AND date <= :endOfMonth
+        GROUP BY categoryId 
+        HAVING SUM(amount) > 0
+        ORDER BY totalAmount DESC
+    """)
+    suspend fun getCurrentMonthCategorySpending(startOfMonth: Long, endOfMonth: Long): List<CategorySpending>
+    
+    // Simple category spending query (all time, all categories)
+    @Query("""
+        SELECT categoryId, SUM(amount) as totalAmount 
+        FROM transactions 
+        WHERE type = 'DEBIT' AND categoryId IS NOT NULL 
+        GROUP BY categoryId 
+        HAVING SUM(amount) > 0
+        ORDER BY totalAmount DESC
+    """)
+    suspend fun getSimpleCategorySpending(): List<CategorySpending>
+    
+    @Query("SELECT * FROM transactions WHERE categoryId IS NOT NULL AND categoryId != ''")
     suspend fun getAllCategorizedTransactions(): List<Transaction>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -84,10 +127,18 @@ interface TransactionDao {
     @Query("DELETE FROM transactions")
     suspend fun deleteAllTransactions()
     
+    // Delete transactions that might be test/dummy data
+    @Query("DELETE FROM transactions WHERE merchant LIKE '%test%' OR merchant LIKE '%dummy%' OR merchant LIKE '%sample%' OR description LIKE '%test%'")
+    suspend fun deleteTestTransactions(): Int
+    
+    // Reset all transactions to "others" category
+    @Query("UPDATE transactions SET categoryId = 'others' WHERE categoryId IS NOT NULL AND categoryId != 'others'")
+    suspend fun resetAllTransactionsToOthers(): Int
+    
     // Additional missing methods
     
-    @Query("UPDATE transactions SET categoryId = :categoryId WHERE id = :transactionId")
-    suspend fun updateTransactionCategory(transactionId: String, categoryId: String): Int
+    @Query("UPDATE transactions SET categoryId = :categoryId, updatedAt = :updatedAt WHERE id = :transactionId")
+    suspend fun updateTransactionCategory(transactionId: String, categoryId: String, updatedAt: Long = System.currentTimeMillis()): Int
     
     // Check if transaction exists
     @Query("SELECT COUNT(*) FROM transactions WHERE id = :transactionId")

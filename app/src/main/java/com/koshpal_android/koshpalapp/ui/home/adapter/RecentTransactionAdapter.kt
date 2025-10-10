@@ -62,11 +62,12 @@ class RecentTransactionAdapter(
                 // Set category icon (you can enhance this with proper category mapping)
                 ivTransactionIcon.setImageResource(getCategoryIcon(transaction.categoryId))
                 
-                // Add visual indicator for uncategorized transactions
-                if (transaction.categoryId.isEmpty() || transaction.categoryId == "uncategorized") {
+                // Add visual indicator only for truly uncategorized transactions (empty categoryId)
+                if (transaction.categoryId.isEmpty()) {
                     tvMerchantName.text = "${transaction.merchant ?: "Unknown Merchant"} • Tap to categorize"
                     root.setBackgroundColor(ContextCompat.getColor(root.context, R.color.warning_light))
                 } else {
+                    // All transactions with any categoryId (including "others") are considered categorized
                     tvMerchantName.text = transaction.merchant ?: "Unknown Merchant"
                     root.setBackgroundColor(ContextCompat.getColor(root.context, android.R.color.transparent))
                 }
@@ -88,6 +89,7 @@ class RecentTransactionAdapter(
                 "healthcare" -> R.drawable.ic_category_default
                 "shopping" -> R.drawable.ic_add
                 "salary" -> R.drawable.ic_trending_up
+                "others" -> R.drawable.ic_more_vert
                 else -> R.drawable.ic_more_vert
             }
         }

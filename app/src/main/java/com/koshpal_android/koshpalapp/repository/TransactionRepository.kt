@@ -61,6 +61,14 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getAllTimeCategorySpending()
     }
     
+    suspend fun getCurrentMonthCategorySpending(startOfMonth: Long, endOfMonth: Long): List<CategorySpending> {
+        return transactionDao.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
+    }
+    
+    suspend fun getSimpleCategorySpending(): List<CategorySpending> {
+        return transactionDao.getSimpleCategorySpending()
+    }
+    
     suspend fun getAllCategorizedTransactions(): List<Transaction> {
         return transactionDao.getAllCategorizedTransactions()
     }
@@ -93,6 +101,35 @@ class TransactionRepository @Inject constructor(
         transactionDao.deleteTransaction(transaction)
     }
     
+    suspend fun deleteTestTransactions(): Int {
+        return transactionDao.deleteTestTransactions()
+    }
+    
+    suspend fun resetAllTransactionsToOthers(): Int {
+        return transactionDao.resetAllTransactionsToOthers()
+    }
+    
+    // Debug method to verify categorized transactions are saved
+    suspend fun debugCategorizedTransactions() {
+        try {
+            val allTransactions = transactionDao.getAllTransactionsOnce()
+            android.util.Log.d("TransactionRepository", "🔍 DEBUG: Total transactions in DB: ${allTransactions.size}")
+            
+            val categorizedTransactions = allTransactions.filter { it.categoryId != "others" }
+            android.util.Log.d("TransactionRepository", "🔍 DEBUG: Categorized transactions: ${categorizedTransactions.size}")
+            
+            categorizedTransactions.forEach { txn ->
+                android.util.Log.d("TransactionRepository", "   📋 ${txn.id}: '${txn.categoryId}' - ${txn.merchant} - ₹${txn.amount}")
+            }
+            
+            val othersTransactions = allTransactions.filter { it.categoryId == "others" }
+            android.util.Log.d("TransactionRepository", "🔍 DEBUG: 'Others' transactions: ${othersTransactions.size}")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Debug failed: ${e.message}")
+        }
+    }
+    
     suspend fun ensureDefaultCategoriesExist() {
         try {
             val existingCategories = categoryDao.getAllCategoriesOnce()
@@ -112,25 +149,43 @@ class TransactionRepository @Inject constructor(
     }
     
     suspend fun updateTransactionCategory(transactionId: String, categoryId: String): Int {
-        // Ensure categories exist in database (but don't enforce foreign key)
+        android.util.Log.d("TransactionRepository", "🔄 Starting updateTransactionCategory: $transactionId -> $categoryId")
+        
+        // Ensure categories exist in database
         ensureDefaultCategoriesExist()
         
-        // Check if transaction exists
-        val transactionExists = transactionDao.transactionExists(transactionId)
-        android.util.Log.d("TransactionRepository", "🔍 Transaction $transactionId exists: $transactionExists")
-        
-        if (transactionExists == 0) {
-            android.util.Log.e("TransactionRepository", "❌ Transaction $transactionId does not exist in database!")
+        // Get the current transaction to see its state
+        val currentTransaction = transactionDao.getTransactionById(transactionId)
+        if (currentTransaction == null) {
+            android.util.Log.e("TransactionRepository", "❌ Transaction $transactionId does not exist!")
             return 0
         }
         
-        // Direct update without foreign key constraint validation
+        android.util.Log.d("TransactionRepository", "📋 Current transaction: ID=$transactionId, CurrentCategory='${currentTransaction.categoryId}', Merchant='${currentTransaction.merchant}', Amount=${currentTransaction.amount}")
+        
+        // Try the update
         try {
-            val result = transactionDao.updateTransactionCategory(transactionId, categoryId)
-            android.util.Log.d("TransactionRepository", "🔄 Update result for transaction $transactionId -> category $categoryId: $result rows affected")
+            val currentTime = System.currentTimeMillis()
+            val result = transactionDao.updateTransactionCategory(transactionId, categoryId, currentTime)
+            android.util.Log.d("TransactionRepository", "✅ Update result: $result rows affected")
+            
+            if (result > 0) {
+                // Verify the update worked
+                val updatedTransaction = transactionDao.getTransactionById(transactionId)
+                android.util.Log.d("TransactionRepository", "🔍 After update: CategoryId='${updatedTransaction?.categoryId}', UpdatedAt=${updatedTransaction?.updatedAt}")
+                
+                if (updatedTransaction?.categoryId == categoryId) {
+                    android.util.Log.d("TransactionRepository", "✅ VERIFICATION SUCCESS: Category update confirmed")
+                } else {
+                    android.util.Log.e("TransactionRepository", "❌ VERIFICATION FAILED: Expected '$categoryId', got '${updatedTransaction?.categoryId}'")
+                }
+            }
+            
             return result
         } catch (e: Exception) {
-            android.util.Log.e("TransactionRepository", "❌ Failed to update transaction category: ${e.message}")
+            android.util.Log.e("TransactionRepository", "❌ Exception during update: ${e.message}")
+            android.util.Log.e("TransactionRepository", "❌ Exception cause: ${e.cause}")
+            e.printStackTrace()
             return 0
         }
     }

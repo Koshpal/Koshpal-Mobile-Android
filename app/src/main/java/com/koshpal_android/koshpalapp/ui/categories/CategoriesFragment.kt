@@ -58,7 +58,8 @@ class CategoriesFragment : Fragment() {
     private fun setupRecyclerView() {
         categorySpendingAdapter = CategorySpendingAdapter { categorySpending ->
             // Handle set budget click
-            val category = TransactionCategory.getDefaultCategories().find { it.id == categorySpending.categoryId }
+            val category = TransactionCategory.getDefaultCategories()
+                .find { it.id == categorySpending.categoryId }
             val categoryName = category?.name ?: "Unknown Category"
             android.widget.Toast.makeText(
                 requireContext(),
@@ -96,22 +97,30 @@ class CategoriesFragment : Fragment() {
 
     private fun setupClickListeners() {
         // Tab layout click handling
-        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+        binding.tabLayout.addOnTabSelectedListener(object :
+            com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
                 when (tab?.position) {
                     0 -> {
                         // Transactions tab - navigate back to transactions
                         (activity as? HomeActivity)?.showTransactionsFragment()
                     }
+
                     1 -> {
                         // Categories tab - already showing
                     }
+
                     2 -> {
                         // Merchants tab - placeholder
-                        android.widget.Toast.makeText(requireContext(), "Merchants view coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Merchants view coming soon!",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
+
             override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
             override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
         })
@@ -121,7 +130,10 @@ class CategoriesFragment : Fragment() {
 
         binding.btnSetBudget.setOnClickListener {
             // For debugging - manually refresh data
-            android.util.Log.d("CategoriesFragment", "🔄 Manual refresh triggered by Set Budget button")
+            android.util.Log.d(
+                "CategoriesFragment",
+                "🔄 Manual refresh triggered by Set Budget button"
+            )
             loadCategoryData()
         }
 
@@ -138,149 +150,67 @@ class CategoriesFragment : Fragment() {
     private fun loadCategoryData() {
         lifecycleScope.launch {
             try {
-                // Get all time data first to see if there are any categorized transactions
-                val startOfAllTime = 0L
-                val endOfAllTime = System.currentTimeMillis()
-                
-                // Also get current month data
-                val calendar = Calendar.getInstance()
-                val startOfMonth = calendar.apply {
-                    set(Calendar.DAY_OF_MONTH, 1)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
+                android.util.Log.d("CategoriesFragment", "🔄 Loading category data...")
 
-                val endOfMonth = calendar.apply {
-                    add(Calendar.MONTH, 1)
-                    add(Calendar.MILLISECOND, -1)
-                }.timeInMillis
+                // Debug: Check what transactions are actually in the database
+                transactionRepository.debugCategorizedTransactions()
+
+                // Clean up any test/dummy data first
+                val deletedTestTransactions = transactionRepository.deleteTestTransactions()
+                if (deletedTestTransactions > 0) {
+                    android.util.Log.d(
+                        "CategoriesFragment",
+                        "🧹 Cleaned up $deletedTestTransactions test transactions"
+                    )
+                }
+                
+                // Only reset on first load, not every time Categories screen opens
+                // This prevents overriding user categorizations
+
+                // Calculate current month date range
+                val calendar = Calendar.getInstance()
+                calendar.set(Calendar.DAY_OF_MONTH, 1)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startOfMonth = calendar.timeInMillis
+
+                calendar.add(Calendar.MONTH, 1)
+                calendar.add(Calendar.MILLISECOND, -1)
+                val endOfMonth = calendar.timeInMillis
 
                 // Update month display
                 val monthFormat = SimpleDateFormat("MMM", Locale.getDefault())
                 binding.tvMonth.text = monthFormat.format(Date())
+                android.util.Log.d(
+                    "CategoriesFragment",
+                    "📅 Querying current month category spending from ${Date(startOfMonth)} to ${Date(endOfMonth)}"
+                )
 
-                android.util.Log.d("CategoriesFragment", "📅 Querying category spending from ${Date(startOfMonth)} to ${Date(endOfMonth)}")
-
-                // Debug: Check all transactions first
-                val allTransactions = transactionRepository.getAllTransactionsOnce()
-                android.util.Log.d("CategoriesFragment", "🔍 Total transactions in DB: ${allTransactions.size}")
+                // Get CURRENT MONTH category spending only
+                val currentMonthCategorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
+                android.util.Log.d("CategoriesFragment", "📊 Current month category spending: ${currentMonthCategorySpending.size} categories")
                 
-                if (allTransactions.isEmpty()) {
-                    android.util.Log.e("CategoriesFragment", "❌ NO TRANSACTIONS FOUND IN DATABASE!")
-                    android.util.Log.e("CategoriesFragment", "❌ Database might have been recreated and data lost")
-                } else {
-                    android.util.Log.d("CategoriesFragment", "✅ Found ${allTransactions.size} transactions")
-                    // Debug: Check transaction IDs and categoryIds
-                    allTransactions.take(10).forEach { txn ->
-                        android.util.Log.d("CategoriesFragment", "🔍 Transaction: ID='${txn.id}', CategoryId='${txn.categoryId}', Merchant='${txn.merchant}', Amount=${txn.amount}")
-                    }
-                }
-                
-                val categorizedTransactions = allTransactions.filter { 
-                    !it.categoryId.isNullOrEmpty() && it.categoryId != "uncategorized" 
-                }
-                val uncategorizedTransactions = allTransactions.filter { 
-                    it.categoryId.isNullOrEmpty() || it.categoryId == "uncategorized" 
-                }
-                
-                android.util.Log.d("CategoriesFragment", "🔍 Categorized transactions: ${categorizedTransactions.size}")
-                android.util.Log.d("CategoriesFragment", "🔍 Uncategorized transactions: ${uncategorizedTransactions.size}")
-                
-                android.util.Log.d("CategoriesFragment", "📋 DETAILED CATEGORIZED TRANSACTIONS:")
-                categorizedTransactions.forEach { txn ->
-                    android.util.Log.d("CategoriesFragment", "✅ Categorized: ${txn.id}, Category: '${txn.categoryId}', Amount: ${txn.amount}, Type: ${txn.type}, Date: ${java.util.Date(txn.date)}")
-                }
-                
-                // Show unique category IDs found in database
-                val uniqueCategoryIds = categorizedTransactions.map { it.categoryId }.distinct()
-                android.util.Log.d("CategoriesFragment", "🏷️ UNIQUE CATEGORY IDs IN DB: $uniqueCategoryIds")
-                
-                // Specific check for "food" category
-                val foodTransactions = categorizedTransactions.filter { it.categoryId == "food" }
-                android.util.Log.d("CategoriesFragment", "🍔 FOOD TRANSACTIONS: Found ${foodTransactions.size} transactions")
-                foodTransactions.forEach { txn ->
-                    android.util.Log.d("CategoriesFragment", "🍔 Food txn: ${txn.id}, Amount: ${txn.amount}, Type: ${txn.type}, Date: ${java.util.Date(txn.date)}")
-                }
-                
-                
-                // Show available category definitions
-                val availableCategories = TransactionCategory.getDefaultCategories()
-                android.util.Log.d("CategoriesFragment", "📚 AVAILABLE CATEGORY DEFINITIONS:")
-                availableCategories.forEach { cat ->
-                    android.util.Log.d("CategoriesFragment", "   📂 ${cat.id} -> ${cat.name}")
-                }
-                
-                // Check for mismatches
-                uniqueCategoryIds.forEach { dbCategoryId ->
-                    val matchingCategory = availableCategories.find { it.id == dbCategoryId }
-                    if (matchingCategory == null) {
-                        android.util.Log.e("CategoriesFragment", "❌ MISMATCH: Category ID '$dbCategoryId' in DB but not in definitions!")
-                    } else {
-                        android.util.Log.d("CategoriesFragment", "✅ MATCH: Category ID '$dbCategoryId' -> '${matchingCategory.name}'")
-                    }
-                }
-                
-                uncategorizedTransactions.take(5).forEach { txn ->
-                    android.util.Log.d("CategoriesFragment", "❌ Uncategorized: ${txn.id}, Category: '${txn.categoryId}', Amount: ${txn.amount}, Type: ${txn.type}")
-                }
-
-                // First try to get category spending data for all time (simpler query)
-                android.util.Log.d("CategoriesFragment", "📅 Checking all-time category spending...")
-                val allTimeCategorySpending = transactionRepository.getAllTimeCategorySpending()
-                android.util.Log.d("CategoriesFragment", "📊 All-time category spending: ${allTimeCategorySpending.size} categories")
-                
-                // Also try the date-filtered query for comparison
-                val monthCategorySpending = transactionRepository.getCategoryWiseSpending(startOfMonth, endOfMonth)
-                android.util.Log.d("CategoriesFragment", "📊 Month category spending: ${monthCategorySpending.size} categories")
-                
-                // Use all-time data, but if empty, calculate manually
-                val categorySpending = if (allTimeCategorySpending.isNotEmpty()) {
-                    allTimeCategorySpending
-                } else {
-                    // Fallback: Calculate manually from categorized transactions
-                    android.util.Log.d("CategoriesFragment", "📊 SQL query returned empty, calculating manually...")
-                    calculateCategorySpendingManually()
-                }
-                
-                android.util.Log.d("CategoriesFragment", "📊 Category spending data received: ${categorySpending.size} categories")
-                android.util.Log.d("CategoriesFragment", "📊 DETAILED CATEGORY SPENDING RESULTS:")
-                categorySpending.forEach { spending ->
+                // Log the amounts for debugging
+                currentMonthCategorySpending.forEach { spending ->
                     val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
                     android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
                 }
                 
-                // Specific check if "food" is missing from results
-                val foodInResults = categorySpending.find { it.categoryId == "food" }
-                if (foodInResults != null) {
-                    android.util.Log.d("CategoriesFragment", "🍔 FOOD FOUND in results: ₹${foodInResults.totalAmount}")
-                } else {
-                    android.util.Log.e("CategoriesFragment", "🍔 FOOD MISSING from SQL results!")
-                    if (foodTransactions.isNotEmpty()) {
-                        val totalFoodAmount = foodTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }.sumOf { it.amount }
-                        android.util.Log.e("CategoriesFragment", "🍔 Expected food amount: ₹$totalFoodAmount from ${foodTransactions.size} transactions")
-                    }
-                }
-                
-                // Compare with what we expect to see
-                android.util.Log.d("CategoriesFragment", "🔍 EXPECTED vs ACTUAL:")
-                uniqueCategoryIds.forEach { expectedCategoryId ->
-                    val foundInResults = categorySpending.find { it.categoryId == expectedCategoryId }
-                    if (foundInResults != null) {
-                        android.util.Log.d("CategoriesFragment", "   ✅ Expected '$expectedCategoryId' -> Found ₹${foundInResults.totalAmount}")
-                    } else {
-                        android.util.Log.e("CategoriesFragment", "   ❌ Expected '$expectedCategoryId' -> NOT FOUND in query results!")
-                    }
-                }
+                val categorySpending = currentMonthCategorySpending
+
+                // Show ALL categories including "others" - this gives users a complete view
+                android.util.Log.d("CategoriesFragment", "📊 Total categories: ${categorySpending.size}")
                 
                 if (categorySpending.isNotEmpty()) {
+                    android.util.Log.d("CategoriesFragment", "✅ Showing all category data including 'others'")
                     updatePieChart(categorySpending)
                     updateCategoryList(categorySpending)
                     updateTotalSpending(categorySpending)
                     showDataViews()
                 } else {
-                    android.util.Log.d("CategoriesFragment", "📊 No category spending data found")
+                    android.util.Log.d("CategoriesFragment", "📊 No transactions found")
                     showEmptyState()
                 }
 
@@ -297,10 +227,11 @@ class CategoriesFragment : Fragment() {
 
         categorySpending.forEach { spending ->
             // Get category name from default categories
-            val category = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }
+            val category =
+                TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }
             val categoryName = category?.name ?: "Unknown"
             entries.add(PieEntry(spending.totalAmount.toFloat(), categoryName))
-            
+
             // Get category color
             val color = try {
                 Color.parseColor(category?.color ?: "#6750A4")
@@ -356,12 +287,13 @@ class CategoriesFragment : Fragment() {
         binding.layoutEmptyState.visibility = View.VISIBLE
     }
 
+
     override fun onResume() {
         super.onResume()
         // Refresh data when fragment becomes visible
         loadCategoryData()
     }
-    
+
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
@@ -369,34 +301,54 @@ class CategoriesFragment : Fragment() {
             loadCategoryData()
         }
     }
-    
+
     private suspend fun calculateCategorySpendingManually(): List<CategorySpending> {
         return try {
-            android.util.Log.d("CategoriesFragment", "🔧 Calculating category spending manually...")
-            
-            // Get all categorized transactions directly
-            val categorizedTransactions = transactionRepository.getAllCategorizedTransactions()
-            android.util.Log.d("CategoriesFragment", "🔧 Found ${categorizedTransactions.size} categorized transactions")
-            
+            android.util.Log.d(
+                "CategoriesFragment",
+                "🔧 Calculating category spending manually..."
+            )
+
+            // Get all transactions with any categoryId (including "others")
+            val allTransactions = transactionRepository.getAllTransactionsOnce()
+            val categorizedTransactions =
+                allTransactions.filter { !it.categoryId.isNullOrEmpty() }
+            android.util.Log.d(
+                "CategoriesFragment",
+                "🔧 Found ${categorizedTransactions.size} categorized transactions (including 'others')"
+            )
+
+            // Show breakdown by category
+            val categoryBreakdown = categorizedTransactions.groupBy { it.categoryId }
+            categoryBreakdown.forEach { (categoryId, transactions) ->
+                android.util.Log.d(
+                    "CategoriesFragment",
+                    "🔧 Category '$categoryId': ${transactions.size} transactions"
+                )
+            }
+
             // Group by category and sum amounts (only DEBIT transactions for expenses)
             val categoryTotals = categorizedTransactions
                 .filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }
                 .groupBy { it.categoryId }
                 .mapValues { (_, transactions) -> transactions.sumOf { it.amount } }
                 .filter { (_, total) -> total > 0 }
-            
+
             android.util.Log.d("CategoriesFragment", "🔧 Manual calculation results:")
             categoryTotals.forEach { (categoryId, total) ->
                 android.util.Log.d("CategoriesFragment", "   🔧 $categoryId -> ₹$total")
             }
-            
+
             // Convert to CategorySpending objects
             categoryTotals.map { (categoryId, total) ->
                 CategorySpending(categoryId = categoryId, totalAmount = total)
             }
-            
+
         } catch (e: Exception) {
-            android.util.Log.e("CategoriesFragment", "❌ Manual calculation failed: ${e.message}")
+            android.util.Log.e(
+                "CategoriesFragment",
+                "❌ Manual calculation failed: ${e.message}"
+            )
             emptyList()
         }
     }
@@ -406,3 +358,5 @@ class CategoriesFragment : Fragment() {
         _binding = null
     }
 }
+
+
