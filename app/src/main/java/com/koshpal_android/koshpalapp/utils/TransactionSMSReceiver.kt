@@ -42,7 +42,11 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                         if (messageBody != null && sender != null) {
                             // Check if this looks like a transaction SMS
                             if (isTransactionSMS(messageBody, sender)) {
-                                Log.d("TransactionSMS", "Detected transaction SMS from $sender: $messageBody")
+                                Log.d("TransactionSMS", "🔔 Detected transaction SMS from $sender")
+                                Log.d("TransactionSMS", "📱 App State: ${if (isAppInForeground(context)) "FOREGROUND" else "BACKGROUND/CLOSED"}")
+                                
+                                // FIXED: Use goAsync() to ensure processing completes even when app is closed
+                                val pendingResult = goAsync()
                                 
                                 // Process SMS immediately in background
                                 CoroutineScope(Dispatchers.IO).launch {
@@ -113,6 +117,7 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 paymentSmsDao.markAsProcessed(paymentSms.id)
                                                 
                                                 Log.d("TransactionSMS", "🎉 NEW TRANSACTION CREATED: ₹${details.amount} at ${details.merchant}")
+                                                Log.d("TransactionSMS", "💾 Transaction saved to database successfully")
                                             } else {
                                                 Log.d("TransactionSMS", "⚠️ Could not extract valid transaction data")
                                                 paymentSmsDao.markAsProcessed(paymentSms.id)
@@ -120,6 +125,14 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                         }
                                     } catch (e: Exception) {
                                         Log.e("TransactionSMS", "❌ Error processing SMS", e)
+                                    } finally {
+                                        // FIXED: Always finish the async operation to prevent ANR
+                                        try {
+                                            pendingResult.finish()
+                                            Log.d("TransactionSMS", "✅ Background processing completed")
+                                        } catch (e: Exception) {
+                                            Log.e("TransactionSMS", "Error finishing pending result", e)
+                                        }
                                     }
                                 }
                             }
@@ -156,6 +169,24 @@ class TransactionSMSReceiver : BroadcastReceiver() {
         )
         
         return (isFromBank || hasTransactionKeywords) && hasAmountPattern
+    }
+    
+    /**
+     * Check if app is in foreground
+     * Used for logging and debugging purposes
+     */
+    private fun isAppInForeground(context: Context?): Boolean {
+        if (context == null) return false
+        
+        return try {
+            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+            activityManager?.runningAppProcesses?.any { processInfo ->
+                processInfo.processName == context.packageName && 
+                processInfo.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+            } ?: false
+        } catch (e: Exception) {
+            false
+        }
     }
     
     private fun determineCategoryId(

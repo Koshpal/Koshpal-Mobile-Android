@@ -205,29 +205,16 @@ class TransactionsFragment : Fragment() {
     }
 
     private fun navigateBackToHome() {
-        // FIXED: Use show/hide pattern instead of recreating fragments
+        // Since Transactions is now in bottom nav, back button goes to Home
         val homeActivity = requireActivity() as HomeActivity
         
-        // Find the existing HomeFragment by tag
-        val homeFragment = homeActivity.supportFragmentManager.findFragmentByTag("HOME")
-        
-        if (homeFragment != null) {
-            // Show the existing HomeFragment and hide this fragment
-            homeActivity.supportFragmentManager.beginTransaction()
-                .hide(this)
-                .show(homeFragment)
-                .commit()
-            
-            android.util.Log.d("TransactionsFragment", "✅ Navigating back to existing HomeFragment")
-        } else {
-            android.util.Log.e("TransactionsFragment", "❌ HomeFragment not found by tag!")
-        }
-        
-        // Update the bottom navigation to show Home tab as selected
+        // Update bottom navigation to Home (will trigger fragment change)
         val bottomNavigation = homeActivity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
             com.koshpal_android.koshpalapp.R.id.bottomNavigation
         )
         bottomNavigation?.selectedItemId = com.koshpal_android.koshpalapp.R.id.homeFragment
+        
+        android.util.Log.d("TransactionsFragment", "✅ Navigating back to Home via bottom nav")
     }
 
     private var isUpdatingTransaction = false

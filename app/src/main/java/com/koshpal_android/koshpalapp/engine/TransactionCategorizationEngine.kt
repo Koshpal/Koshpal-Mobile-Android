@@ -63,7 +63,8 @@ class TransactionCategorizationEngine {
     // Format 1: at AMAZON, from ZOMATO, to SWIGGY
     // Format 2: trf to NAME, transferred to NAME (UPI transfers)
     // Format 3: towards GOOGLE (UPI mandate)
-    private val merchantPattern = Pattern.compile("(?:at|from|to|trf\\s+to|transferred\\s+to|towards)\\s+([a-zA-Z0-9\\s&.-]+?)(?:\\s+(?:on|from|refno|umn)|\\.|$)", Pattern.CASE_INSENSITIVE)
+    // Format 4: from NAME thru BANK (IPPB format)
+    private val merchantPattern = Pattern.compile("(?:at|from|to|trf\\s+to|transferred\\s+to|towards)\\s+([a-zA-Z0-9\\s&.-]+?)(?:\\s+(?:on|from|refno|umn|thru|through)|\\.|$)", Pattern.CASE_INSENSITIVE)
     
     fun categorizeTransaction(
         smsBody: String, 

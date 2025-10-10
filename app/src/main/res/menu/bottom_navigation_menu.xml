@@ -6,11 +6,9 @@
         android:title="Home" />
     
     <item
-        android:id="@+id/budgetFragment"
-        android:icon="@drawable/ic_chart"
-        android:title="Budget" />
-    
-    <!-- Transactions menu item removed -->
+        android:id="@+id/transactionsFragment"
+        android:icon="@drawable/ic_payments"
+        android:title="Transactions" />
     
     <item
         android:id="@+id/insightsFragment"

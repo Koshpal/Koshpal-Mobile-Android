@@ -319,7 +319,7 @@ class SMSManager(private val context: Context) {
         // Skip if merchant is too short or generic
         if (cleanMerchant.length < 3) return false
         
-        // Skip generic/suspicious merchants
+        // Skip generic/suspicious merchants (WHOLE WORD matching only)
         val invalidMerchants = listOf(
             "unknown", "merchant", "payment", "transaction", "transfer", 
             "debit", "credit", "bank", "upi", "imps", "neft", "rtgs",
@@ -327,8 +327,14 @@ class SMSManager(private val context: Context) {
             "sms", "alert", "notification", "service", "charge", "fee"
         )
         
-        for (invalid in invalidMerchants) {
-            if (cleanMerchant.contains(invalid)) return false
+        // FIXED: Match whole words only, not substrings
+        // This prevents "bankar" (surname) from being rejected due to "bank"
+        val words = cleanMerchant.split("\\s+".toRegex())
+        for (word in words) {
+            if (word in invalidMerchants) {
+                Log.d("SMSManager", "❌ Invalid merchant word detected: '$word' in '$merchant'")
+                return false
+            }
         }
         
         // Must contain at least one letter (not just numbers/symbols)

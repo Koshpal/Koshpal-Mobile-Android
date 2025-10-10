@@ -37,13 +37,12 @@ class HomeActivity : AppCompatActivity() {
         // Add all fragments but hide them initially
         supportFragmentManager.beginTransaction()
             .add(R.id.fragmentContainer, homeFragment, "HOME")
-            .add(R.id.fragmentContainer, budgetFragment, "BUDGET")
-            // Transactions fragment kept for internal navigation only
             .add(R.id.fragmentContainer, transactionsFragment, "TRANSACTIONS")
             .add(R.id.fragmentContainer, categoriesFragment, "CATEGORIES")
-            .hide(budgetFragment)
+            .add(R.id.fragmentContainer, budgetFragment, "BUDGET")  // Keep for future use
             .hide(transactionsFragment)
             .hide(categoriesFragment)
+            .hide(budgetFragment)
             .commit()
 
         // Ensure Home is selected by default
@@ -57,11 +56,10 @@ class HomeActivity : AppCompatActivity() {
                     showFragment(homeFragment)
                     true
                 }
-                R.id.budgetFragment -> {
-                    showFragment(budgetFragment)
+                R.id.transactionsFragment -> {
+                    showFragment(transactionsFragment)
                     true
                 }
-                // Transactions menu removed
                 R.id.insightsFragment -> {
                     // TODO: Create InsightsFragment
                     showFragment(homeFragment) // Temporary fallback
@@ -82,9 +80,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     fun showTransactionsFragment() {
-        // Show the existing transactions fragment
+        // Show the existing transactions fragment and update bottom nav
         showFragment(transactionsFragment)
-        // Do not change bottom navigation selection (no tab for transactions)
+        binding.bottomNavigation.selectedItemId = R.id.transactionsFragment
     }
 
     fun showCategoriesFragment() {
