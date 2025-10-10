@@ -108,4 +108,8 @@ interface TransactionDao {
     
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
     suspend fun getRecentTransactions(limit: Int = 10): List<Transaction>
+    
+    // Duplicate prevention: Check by amount and time window
+    @Query("SELECT * FROM transactions WHERE amount = :amount AND date BETWEEN :startTime AND :endTime LIMIT 1")
+    suspend fun getTransactionByAmountAndTime(amount: Double, startTime: Long, endTime: Long): Transaction?
 }

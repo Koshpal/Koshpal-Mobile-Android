@@ -16,6 +16,7 @@ import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
 import com.koshpal_android.koshpalapp.ui.auth.EmployeeLoginActivity
 import com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
+import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -71,6 +72,10 @@ class SplashActivity : AppCompatActivity() {
                             val email = userPreferences.getEmail() ?: ""
                             intent.putExtra("email", email)
                             startActivity(intent)
+                            finish()
+                        }
+                        SplashViewModel.NavigationDestination.SMS_PROCESSING -> {
+                            startActivity(Intent(this@SplashActivity, SmsProcessingActivity::class.java))
                             finish()
                         }
                     }

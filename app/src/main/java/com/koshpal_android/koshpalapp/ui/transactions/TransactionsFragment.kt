@@ -148,25 +148,43 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "📊 Found ${transactions.size} transactions")
                 
-                // Calculate summary
-                var totalIncome = 0.0
-                var totalExpense = 0.0
+                // Get current month boundaries
+                val calendar = java.util.Calendar.getInstance()
+                val currentMonth = calendar.get(java.util.Calendar.MONTH)
+                val currentYear = calendar.get(java.util.Calendar.YEAR)
+                
+                // Calculate THIS MONTH summary only
+                var currentMonthIncome = 0.0
+                var currentMonthExpense = 0.0
                 
                 transactions.forEach { transaction ->
-                    if (transaction.type == com.koshpal_android.koshpalapp.model.TransactionType.CREDIT) {
-                        totalIncome += transaction.amount
-                    } else {
-                        totalExpense += transaction.amount
+                    // Check if transaction is from current month
+                    calendar.timeInMillis = transaction.timestamp
+                    val transactionMonth = calendar.get(java.util.Calendar.MONTH)
+                    val transactionYear = calendar.get(java.util.Calendar.YEAR)
+                    
+                    if (transactionMonth == currentMonth && transactionYear == currentYear) {
+                        when (transaction.type) {
+                            com.koshpal_android.koshpalapp.model.TransactionType.CREDIT -> {
+                                currentMonthIncome += transaction.amount
+                            }
+                            com.koshpal_android.koshpalapp.model.TransactionType.DEBIT,
+                            com.koshpal_android.koshpalapp.model.TransactionType.TRANSFER -> {
+                                currentMonthExpense += transaction.amount
+                            }
+                        }
                     }
                 }
+                
+                android.util.Log.d("TransactionsFragment", "📊 Current Month - Income: ₹$currentMonthIncome, Expense: ₹$currentMonthExpense")
                 
                 // Update UI
                 transactionsAdapter.submitList(transactions)
                 updateEmptyState(transactions.isEmpty())
                 
-                // Update summary
-                binding.tvTotalIncome.text = "₹${String.format("%.2f", totalIncome)}"
-                binding.tvTotalExpense.text = "₹${String.format("%.2f", totalExpense)}"
+                // Update summary with CURRENT MONTH data
+                binding.tvTotalIncome.text = "₹${String.format("%.2f", currentMonthIncome)}"
+                binding.tvTotalExpense.text = "₹${String.format("%.2f", currentMonthExpense)}"
                 
                 // Hide loading
                 binding.progressBar.visibility = View.GONE
@@ -187,14 +205,25 @@ class TransactionsFragment : Fragment() {
     }
 
     private fun navigateBackToHome() {
-        // Navigate back to HomeFragment by replacing the current fragment
+        // FIXED: Use show/hide pattern instead of recreating fragments
         val homeActivity = requireActivity() as HomeActivity
-        homeActivity.supportFragmentManager.beginTransaction()
-            .replace(com.koshpal_android.koshpalapp.R.id.fragmentContainer, HomeFragment())
-            .commit()
         
-        // Also update the bottom navigation to show Home tab as selected
-        // We need to find the bottom navigation view and update it
+        // Find the existing HomeFragment by tag
+        val homeFragment = homeActivity.supportFragmentManager.findFragmentByTag("HOME")
+        
+        if (homeFragment != null) {
+            // Show the existing HomeFragment and hide this fragment
+            homeActivity.supportFragmentManager.beginTransaction()
+                .hide(this)
+                .show(homeFragment)
+                .commit()
+            
+            android.util.Log.d("TransactionsFragment", "✅ Navigating back to existing HomeFragment")
+        } else {
+            android.util.Log.e("TransactionsFragment", "❌ HomeFragment not found by tag!")
+        }
+        
+        // Update the bottom navigation to show Home tab as selected
         val bottomNavigation = homeActivity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
             com.koshpal_android.koshpalapp.R.id.bottomNavigation
         )

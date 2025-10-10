@@ -70,8 +70,9 @@ class HomeViewModel @Inject constructor(
                         android.util.Log.d("HomeViewModel", "   ➖ Expense: ${transaction.merchant} -₹${transaction.amount}")
                     }
                     TransactionType.TRANSFER -> {
-                        // Handle transfer transactions - could be either income or expense depending on context
-                        android.util.Log.d("HomeViewModel", "   🔄 Transfer: ${transaction.merchant} ₹${transaction.amount}")
+                        // FIXED: Treat transfers as expenses (money going out)
+                        totalExpenses += transaction.amount
+                        android.util.Log.d("HomeViewModel", "   🔄 Transfer (counted as expense): ${transaction.merchant} -₹${transaction.amount}")
                     }
                 }
             }
@@ -109,7 +110,9 @@ class HomeViewModel @Inject constructor(
                             android.util.Log.d("HomeViewModel", "   ✅ Current Month Expense: ${transaction.merchant} -₹${transaction.amount}")
                         }
                         TransactionType.TRANSFER -> {
-                            android.util.Log.d("HomeViewModel", "   ✅ Current Month Transfer: ${transaction.merchant} ₹${transaction.amount}")
+                            // FIXED: Treat transfers as expenses (money going out)
+                            currentMonthExpenses += transaction.amount
+                            android.util.Log.d("HomeViewModel", "   ✅ Current Month Transfer (counted as expense): ${transaction.merchant} -₹${transaction.amount}")
                         }
                     }
                 } else {

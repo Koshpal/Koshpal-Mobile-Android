@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.koshpal_android.koshpalapp.databinding.ActivityOtpverificationBinding
-import com.koshpal_android.koshpalapp.ui.home.HomeActivity
+import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import com.koshpal_android.koshpalapp.utils.Constants
 import com.koshpal_android.koshpalapp.utils.SMSReceiver
 import com.koshpal_android.koshpalapp.utils.showToast
@@ -78,7 +78,10 @@ class OTPVerificationActivity : AppCompatActivity() {
 
                 if (state.isVerified && state.user != null) {
                     showToast("Welcome! Account created successfully.")
-                    startActivity(Intent(this@OTPVerificationActivity, HomeActivity::class.java))
+                    // After OTP verification, go to SMS Processing to extract transaction data
+                    val intent = Intent(this@OTPVerificationActivity, SmsProcessingActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
                     finishAffinity()
                 }
             }

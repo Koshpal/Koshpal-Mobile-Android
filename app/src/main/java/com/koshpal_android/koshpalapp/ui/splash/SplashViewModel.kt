@@ -27,12 +27,29 @@ class SplashViewModel @Inject constructor(
         viewModelScope.launch {
             delay(1000) // 1 second delay for splash screen
             
+            // 🧪 TESTING MODE: Check if initial SMS processing is done
+            if (!userPreferences.isInitialSmsProcessed()) {
+                // First time - process all SMS
+                _navigationEvent.emit(NavigationDestination.SMS_PROCESSING)
+            } else {
+                // Already processed - go directly to HOME
+                // Background service will handle new SMS automatically
+                _navigationEvent.emit(NavigationDestination.HOME)
+            }
+            
+            /* PRODUCTION FLOW (Uncomment for production):
             // Check if user is already logged in
             if (userPreferences.isLoggedIn()) {
                 // Check if onboarding is completed
                 if (userPreferences.isOnboardingCompleted()) {
-                    // User is logged in and onboarding completed, go to HOME
-                    _navigationEvent.emit(NavigationDestination.HOME)
+                    // Check if initial SMS processing is done
+                    if (!userPreferences.isInitialSmsProcessed()) {
+                        // First time after onboarding - process SMS
+                        _navigationEvent.emit(NavigationDestination.SMS_PROCESSING)
+                    } else {
+                        // User is logged in, onboarded, and SMS processed - go to HOME
+                        _navigationEvent.emit(NavigationDestination.HOME)
+                    }
                 } else {
                     // User is logged in but onboarding not completed, go to ONBOARDING
                     val email = userPreferences.getEmail() ?: ""
@@ -47,6 +64,7 @@ class SplashViewModel @Inject constructor(
                 // User not logged in, go to Employee Login
                 _navigationEvent.emit(NavigationDestination.EMPLOYEE_LOGIN)
             }
+            */
         }
     }
 
@@ -55,6 +73,7 @@ class SplashViewModel @Inject constructor(
         LOGIN,
         HOME,
         EMPLOYEE_LOGIN,
-        ONBOARDING
+        ONBOARDING,
+        SMS_PROCESSING
     }
 }

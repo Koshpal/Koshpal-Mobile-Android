@@ -57,6 +57,11 @@
         <activity
             android:name=".ui.budget.BudgetActivity"
             android:exported="false" />
+        
+        <activity
+            android:name=".ui.sms.SmsProcessingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <receiver
             android:name=".utils.TransactionSMSReceiver"

@@ -21,6 +21,7 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_LOGIN_TYPE = "login_type" // "phone" or "email"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_INITIAL_SMS_PROCESSED = "initial_sms_processed"
         
         // Alert preferences
         private const val KEY_ALERTS_ENABLED = "alerts_enabled"
@@ -138,5 +139,14 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
     
     fun setWeeklySummaryEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_WEEKLY_SUMMARY_ENABLED, enabled).apply()
+    }
+    
+    // SMS Processing preference
+    fun isInitialSmsProcessed(): Boolean {
+        return sharedPreferences.getBoolean(KEY_INITIAL_SMS_PROCESSED, false)
+    }
+    
+    fun setInitialSmsProcessed(processed: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_INITIAL_SMS_PROCESSED, processed).apply()
     }
 }

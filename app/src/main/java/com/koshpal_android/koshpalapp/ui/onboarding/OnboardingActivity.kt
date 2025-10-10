@@ -11,7 +11,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.koshpal_android.koshpalapp.databinding.ActivityOnboardingBinding
 import com.koshpal_android.koshpalapp.model.OnboardingSection
-import com.koshpal_android.koshpalapp.ui.home.HomeActivity
+import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import com.koshpal_android.koshpalapp.utils.showToast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -89,7 +89,8 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun navigateToHome() {
-        val intent = Intent(this, HomeActivity::class.java)
+        // After onboarding, go to SMS Processing to extract transaction data
+        val intent = Intent(this, SmsProcessingActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

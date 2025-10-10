@@ -54,8 +54,16 @@ class TransactionCategorizationEngine {
         )
     )
     
-    private val amountPattern = Pattern.compile("(?:rs\\.?|inr|₹)\\s*(\\d+(?:,\\d{3})*(?:\\.\\d{2})?)", Pattern.CASE_INSENSITIVE)
-    private val merchantPattern = Pattern.compile("(?:at|from|to)\\s+([a-zA-Z0-9\\s&.-]+?)(?:\\s+on|\\s+dated|\\.|$)", Pattern.CASE_INSENSITIVE)
+    // Enhanced amount pattern - supports multiple formats
+    // Format 1: Rs.500, ₹500, INR 500
+    // Format 2: debited by 2000.0, credited by 5000.0 (SBI UPI format)
+    private val amountPattern = Pattern.compile("(?:(?:rs\\.?|inr|₹)\\s*|(?:debited|credited)\\s+by\\s+)(\\d+(?:,\\d{3})*(?:\\.\\d{1,2})?)", Pattern.CASE_INSENSITIVE)
+    
+    // Enhanced merchant pattern - supports multiple formats
+    // Format 1: at AMAZON, from ZOMATO, to SWIGGY
+    // Format 2: trf to NAME, transferred to NAME (UPI transfers)
+    // Format 3: towards GOOGLE (UPI mandate)
+    private val merchantPattern = Pattern.compile("(?:at|from|to|trf\\s+to|transferred\\s+to|towards)\\s+([a-zA-Z0-9\\s&.-]+?)(?:\\s+(?:on|from|refno|umn)|\\.|$)", Pattern.CASE_INSENSITIVE)
     
     fun categorizeTransaction(
         smsBody: String, 

@@ -110,10 +110,23 @@ class SMSManager(private val context: Context) {
                         val details = engine.extractTransactionDetails(sms.smsBody)
                         
                         if (details.amount > 0 && details.merchant.isNotBlank()) {
-                            // Enhanced duplicate prevention
-                            val existingTransaction = database.transactionDao().getTransactionsBySmsBody(sms.smsBody)
-                            if (existingTransaction != null) {
-                                Log.d("SMSManager", "⏭️ Transaction already exists for this SMS, skipping")
+                            // ROBUST DUPLICATE PREVENTION - Check multiple ways
+                            // 1. Check by exact SMS body
+                            val existingBySms = database.transactionDao().getTransactionsBySmsBody(sms.smsBody)
+                            if (existingBySms != null) {
+                                Log.d("SMSManager", "⏭️ Duplicate: Transaction exists with same SMS body, skipping")
+                                return@forEach
+                            }
+                            
+                            // 2. Check by amount + timestamp + merchant (within 1 minute tolerance)
+                            val timeWindow = 60000L // 1 minute in milliseconds
+                            val existingByDetails = database.transactionDao().getTransactionByAmountAndTime(
+                                details.amount,
+                                sms.timestamp - timeWindow,
+                                sms.timestamp + timeWindow
+                            )
+                            if (existingByDetails != null && existingByDetails.merchant == details.merchant) {
+                                Log.d("SMSManager", "⏭️ Duplicate: Similar transaction exists (amount + time + merchant), skipping")
                                 return@forEach
                             }
                             
@@ -229,39 +242,23 @@ class SMSManager(private val context: Context) {
         
         Log.d("SMSManager", "🔍 Checking SMS from $sender: ${body.take(50)}...")
         
-        // Known bank/payment service senders (more comprehensive list)
-        val bankSenders = listOf(
-            "SBIINB", "HDFCBK", "ICICIB", "AXISBK", "KOTAKB",
-            "PNBSMS", "BOBSMS", "CANBKS", "UNISBI", "IOBNET",
-            "PAYTM", "GPAY", "PHONEPE", "AMAZONP", "BHARTP",
-            "YESBNK", "IDFCFB", "RBLBNK", "SCBANK", "CITIBK",
-            "HSBCIN", "DEUTSC", "SBCARD", "HDFCCC", "ICICIC",
-            "AXISCC", "AMEXIN", "SBICARD", "YESCARD", "RBLCARD"
-        )
+        // Known bank/payment service senders (80+ banks)
+        val bankSenders = BankConstants.BANK_SENDERS
         
         // Transaction keywords (comprehensive list)
-        val transactionKeywords = listOf(
-            "debited", "credited", "debit", "credit", "withdrawn", "deposited",
-            "paid", "received", "spent", "transferred", "transaction", "txn",
-            "purchase", "refund", "cashback", "reward", "charges"
-        )
+        val transactionKeywords = BankConstants.TRANSACTION_KEYWORDS
         
         // Amount patterns (comprehensive list)
-        val amountPatterns = listOf(
-            "rs.", "rs ", "inr", "₹", "rupees", "amount", "amt"
-        )
+        val amountPatterns = BankConstants.AMOUNT_PATTERNS
         
         // Banking/Payment terms
-        val bankingTerms = listOf(
-            "account", "a/c", "ac", "available balance", "avbl bal", "bal", 
-            "upi", "imps", "neft", "rtgs", "atm", "pos", "card", "wallet"
-        )
+        val bankingTerms = BankConstants.BANKING_TERMS
         
         // Check conditions
         val isFromBank = bankSenders.any { senderUpper.contains(it) }
         val hasTransactionKeyword = transactionKeywords.any { lowerCaseBody.contains(it) }
         val hasAmountPattern = amountPatterns.any { lowerCaseBody.contains(it) } || 
-                              body.matches(Regex(".*(?:₹|rs\\.?|inr)\\s*[0-9,]+(?:\\.[0-9]{2})?.*", RegexOption.IGNORE_CASE))
+                              body.matches(Regex(".*(?:(?:₹|rs\\.?|inr)\\s*[0-9,]+(?:\\.[0-9]{1,2})?|(?:debited|credited)\\s+by\\s+[0-9,]+(?:\\.[0-9]{1,2})?).*", RegexOption.IGNORE_CASE))
         val hasBankingTerm = bankingTerms.any { lowerCaseBody.contains(it) }
         
         // More lenient logic: (bank sender OR transaction keyword) AND amount pattern

@@ -390,13 +390,7 @@ class HomeFragment : Fragment() {
 
             // Show real balance data or prompt to import SMS
             if (state.hasTransactions) {
-                // Show selected month data prominently
-                val currentBalance = state.currentMonthBalance
-
-                tvCurrentBalance.text = "₹${String.format("%.0f", currentBalance)}"
-                tvTotalBalance.text = "₹${String.format("%.0f", state.totalBalance)}"
-
-                // Show current month data prominently
+                // Show current month data prominently (removed balance display)
                 tvTotalIncome.text = "₹${String.format("%.0f", state.currentMonthIncome)}"
                 tvTotalExpenses.text = "₹${String.format("%.0f", state.currentMonthExpenses)}"
 
@@ -410,17 +404,13 @@ class HomeFragment : Fragment() {
                 // Debug logging
                 android.util.Log.d(
                     "HomeFragment",
-                    "📊 UI UPDATED - Income: ₹${state.totalIncome}, Expenses: ₹${state.totalExpenses}, Balance: ₹${currentBalance}"
+                    "📊 UI UPDATED - Month Income: ₹${state.currentMonthIncome}, Month Expenses: ₹${state.currentMonthExpenses}"
                 )
                 android.util.Log.d("HomeFragment", "📊 UI Elements Set:")
                 android.util.Log.d("HomeFragment", "   tvTotalIncome.text = ${tvTotalIncome.text}")
                 android.util.Log.d(
                     "HomeFragment",
                     "   tvTotalExpenses.text = ${tvTotalExpenses.text}"
-                )
-                android.util.Log.d(
-                    "HomeFragment",
-                    "   tvCurrentBalance.text = ${tvCurrentBalance.text}"
                 )
                 android.util.Log.d(
                     "HomeFragment",
@@ -442,9 +432,7 @@ class HomeFragment : Fragment() {
                 updateMonthlySpendingCard(state.last3MonthsData)
 
             } else {
-                // First time user - show import SMS prompt
-                tvCurrentBalance.text = "₹0.00"
-                tvTotalBalance.text = "₹0.00"
+                // First time user - show import SMS prompt (removed balance display)
                 tvTotalIncome.text = "₹0.00"
                 tvTotalExpenses.text = "₹0.00"
                 tvBudgetSpent.text = "₹0.00 spent"
