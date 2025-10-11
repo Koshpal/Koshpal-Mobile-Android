@@ -12,6 +12,7 @@ import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -89,16 +90,13 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                     return@launch
                                                 }
                                                 
-                                                // Get categories
-                                                val categoryDao = database.categoryDao()
-                                                val categories = try {
-                                                    categoryDao.getAllActiveCategoriesList()
-                                                } catch (e: Exception) {
-                                                    emptyList()
-                                                }
+                                                // Auto-categorize using MerchantCategorizer
+                                                val categoryId = MerchantCategorizer.categorizeTransaction(
+                                                    details.merchant, 
+                                                    messageBody
+                                                )
                                                 
-                                                // Determine category
-                                                val categoryId = determineCategoryId(details, categories, messageBody)
+                                                Log.d("TransactionSMS", "🤖 Auto-categorized '${details.merchant}' → $categoryId (${MerchantCategorizer.getCategoryDisplayName(categoryId)})")
                                                 
                                                 // Create transaction
                                                 val transaction = Transaction(
@@ -189,34 +187,4 @@ class TransactionSMSReceiver : BroadcastReceiver() {
         }
     }
     
-    private fun determineCategoryId(
-        details: com.koshpal_android.koshpalapp.engine.TransactionDetails,
-        categories: List<com.koshpal_android.koshpalapp.model.TransactionCategory>,
-        smsBody: String
-    ): String {
-        val merchant = details.merchant.lowercase()
-        val description = details.description.lowercase()
-        val combinedText = "$merchant $description $smsBody".lowercase()
-        
-        // Try to match with existing categories using their keywords
-        for (category in categories) {
-            for (keyword in category.keywords) {
-                if (combinedText.contains(keyword.lowercase())) {
-                    Log.d("TransactionSMS", "🏷️ Matched category '${category.name}' using keyword '$keyword'")
-                    return category.id
-                }
-            }
-        }
-        
-        // Fallback to simple mapping
-        return when {
-            combinedText.contains("amazon") || combinedText.contains("flipkart") -> "shopping"
-            combinedText.contains("zomato") || combinedText.contains("swiggy") -> "food"
-            combinedText.contains("uber") || combinedText.contains("ola") -> "transport"
-            combinedText.contains("salary") || details.type == TransactionType.CREDIT -> "salary"
-            combinedText.contains("grocery") || combinedText.contains("dmart") -> "grocery"
-            combinedText.contains("recharge") || combinedText.contains("mobile") -> "bills"
-            else -> "others"
-        }
-    }
 }

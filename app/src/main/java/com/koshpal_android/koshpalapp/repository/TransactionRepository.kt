@@ -7,6 +7,7 @@ import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
+import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.util.*
@@ -241,24 +242,39 @@ class TransactionRepository @Inject constructor(
         type: TransactionType,
         timestamp: Long
     ): Transaction {
-        val categories = categoryDao.getAllActiveCategories().first()
-        val (category, confidence) = categorizationEngine.categorizeTransaction(
-            smsBody, merchant, amount, type, categories
-        )
+        // Use MerchantCategorizer for automatic categorization based on keywords
+        val autoCategoryId = MerchantCategorizer.categorizeTransaction(merchant, smsBody)
+        
+        android.util.Log.d("TransactionRepository", "🤖 Auto-categorized '$merchant' → $autoCategoryId")
+        
+        // Extract bank name from SMS
+        val bankName = extractBankName(Transaction(
+            id = "",
+            merchant = merchant,
+            smsBody = smsBody,
+            amount = amount,
+            type = type,
+            date = timestamp
+        ))
         
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
             amount = amount,
             type = type,
             merchant = merchant,
-            categoryId = category.id,
-            confidence = confidence,
+            categoryId = autoCategoryId,
+            confidence = 0.9f, // High confidence for keyword-based categorization
             date = timestamp,
             description = categorizationEngine.extractTransactionDetails(smsBody).description,
-            smsBody = smsBody
+            smsBody = smsBody,
+            bankName = bankName,
+            isManuallySet = false
         )
         
         insertTransaction(transaction)
+        
+        android.util.Log.d("TransactionRepository", "✅ Transaction saved: $merchant → ${MerchantCategorizer.getCategoryDisplayName(autoCategoryId)} (Bank: $bankName)")
+        
         return transaction
     }
     
@@ -331,5 +347,150 @@ class TransactionRepository @Inject constructor(
     
     suspend fun getTransactionCount(): Int {
         return transactionDao.getTransactionCount()
+    }
+
+    suspend fun getBankWiseSpending(): List<com.koshpal_android.koshpalapp.model.BankSpending> {
+        // Get current month date range
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfMonth = calendar.timeInMillis
+        
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        val endOfMonth = calendar.timeInMillis
+        
+        android.util.Log.d("TransactionRepository", "📊 Getting bank spending for current month: ${java.util.Date(startOfMonth)} to ${java.util.Date(endOfMonth)}")
+        
+        // Get ONLY current month transactions
+        val allTransactions = transactionDao.getAllTransactionsOnce()
+        val currentMonthTransactions = allTransactions.filter { 
+            it.date >= startOfMonth && it.date <= endOfMonth 
+        }
+        
+        android.util.Log.d("TransactionRepository", "📊 Total transactions: ${allTransactions.size}, Current month: ${currentMonthTransactions.size}")
+        
+        // Extract bank name from SMS or merchant field - ONLY DEBIT transactions
+        val bankTransactions = currentMonthTransactions
+            .filter { it.type == TransactionType.DEBIT }
+            .groupBy { extractBankName(it) }
+            .map { (bankName, transactions) ->
+                val totalSpending = transactions.sumOf { it.amount }
+                android.util.Log.d("TransactionRepository", "💳 $bankName: ₹$totalSpending (${transactions.size} transactions)")
+                
+                com.koshpal_android.koshpalapp.model.BankSpending(
+                    bankName = bankName,
+                    totalSpending = totalSpending,
+                    transactionCount = transactions.size,
+                    isCash = bankName == "Cash"
+                )
+            }
+            .filter { it.totalSpending > 0 } // Only show banks with actual spending
+            .sortedByDescending { it.totalSpending }
+        
+        android.util.Log.d("TransactionRepository", "📊 Found ${bankTransactions.size} banks with spending in current month")
+        return bankTransactions
+    }
+
+    private fun extractBankName(transaction: Transaction): String {
+        // If bank name is already set, use it
+        if (!transaction.bankName.isNullOrBlank()) {
+            return transaction.bankName
+        }
+
+        // Extract from SMS body or merchant
+        val text = (transaction.smsBody ?: transaction.merchant).uppercase()
+        
+        return when {
+            text.contains("SBI") || text.contains("STATE BANK") -> "SBI"
+            text.contains("HDFC") -> "HDFC Bank"
+            text.contains("ICICI") -> "ICICI Bank"
+            text.contains("AXIS") -> "Axis Bank"
+            text.contains("KOTAK") -> "Kotak Mahindra"
+            text.contains("IPPB") || text.contains("INDIA POST") -> "IPPB"
+            text.contains("PAYTM") -> "Paytm"
+            text.contains("PHONEPE") -> "PhonePe"
+            text.contains("GPAY") || text.contains("GOOGLE PAY") -> "Google Pay"
+            text.contains("BOB") || text.contains("BANK OF BARODA") -> "Bank of Baroda"
+            text.contains("PNB") || text.contains("PUNJAB NATIONAL") -> "PNB"
+            text.contains("CANARA") -> "Canara Bank"
+            text.contains("UNION BANK") -> "Union Bank"
+            text.contains("IDBI") -> "IDBI Bank"
+            text.contains("YES BANK") -> "Yes Bank"
+            else -> "Other Banks"
+        }
+    }
+
+    /**
+     * Auto-categorize existing transactions based on merchant keywords
+     * Uses the same updateTransactionCategory method as manual categorization
+     */
+    suspend fun autoCategorizeExistingTransactions(): Int {
+        android.util.Log.d("TransactionRepository", "🤖 ===== STARTING AUTO-CATEGORIZATION =====")
+        
+        try {
+            // Get all transactions
+            val allTransactions = transactionDao.getAllTransactionsOnce()
+            android.util.Log.d("TransactionRepository", "📊 Found ${allTransactions.size} total transactions")
+            
+            if (allTransactions.isEmpty()) {
+                android.util.Log.w("TransactionRepository", "⚠️ No transactions found to categorize!")
+                return 0
+            }
+            
+            var categorizedCount = 0
+            var skippedCount = 0
+            var unchangedCount = 0
+            
+            // Process each transaction
+            for (transaction in allTransactions) {
+                android.util.Log.d("TransactionRepository", "📝 Processing: ${transaction.merchant} (Current: ${transaction.categoryId}, Manual: ${transaction.isManuallySet})")
+                
+                // Skip if already manually categorized
+                if (transaction.isManuallySet) {
+                    android.util.Log.d("TransactionRepository", "⏭️ Skipping ${transaction.merchant} - manually set")
+                    skippedCount++
+                    continue
+                }
+                
+                // Use MerchantCategorizer to determine category
+                val suggestedCategory = MerchantCategorizer.categorizeTransaction(
+                    transaction.merchant,
+                    transaction.smsBody
+                )
+                
+                android.util.Log.d("TransactionRepository", "💡 Suggested category for '${transaction.merchant}': $suggestedCategory")
+                
+                // Only update if category changed
+                if (suggestedCategory != transaction.categoryId) {
+                    android.util.Log.d("TransactionRepository", "🔄 UPDATING ${transaction.merchant}: ${transaction.categoryId} → $suggestedCategory")
+                    
+                    // Use the same method as manual categorization
+                    val result = updateTransactionCategory(transaction.id, suggestedCategory)
+                    
+                    if (result > 0) {
+                        categorizedCount++
+                        android.util.Log.d("TransactionRepository", "✅ Successfully categorized: ${transaction.merchant} → $suggestedCategory")
+                    } else {
+                        android.util.Log.e("TransactionRepository", "❌ Failed to update ${transaction.merchant}")
+                    }
+                } else {
+                    unchangedCount++
+                    android.util.Log.d("TransactionRepository", "➡️ ${transaction.merchant} already in correct category: $suggestedCategory")
+                }
+            }
+            
+            android.util.Log.d("TransactionRepository", "🎉 ===== AUTO-CATEGORIZATION COMPLETE =====")
+            android.util.Log.d("TransactionRepository", "📊 Total: ${allTransactions.size}, Updated: $categorizedCount, Skipped: $skippedCount, Unchanged: $unchangedCount")
+            return categorizedCount
+            
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Auto-categorization failed: ${e.message}", e)
+            e.printStackTrace()
+            return 0
+        }
     }
 }

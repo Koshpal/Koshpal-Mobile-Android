@@ -132,24 +132,42 @@ class SMSManager(private val context: Context) {
                             
                             // Validate merchant - skip if it's too generic or suspicious
                             if (isValidMerchant(details.merchant)) {
-                                val categoryId = determineCategoryId(details, categoryList)
+                                Log.d("SMSManager", "🔍 Processing merchant: '${details.merchant}'")
+                                Log.d("SMSManager", "📄 SMS body: ${sms.smsBody.take(100)}...")
+                                
+                                // Get category using MerchantCategorizer
+                                val suggestedCategory = determineCategoryId(details, categoryList)
+                                
+                                // Verify category exists in database, fallback to "others" if not
+                                val validCategory = if (categoryList.any { it.id == suggestedCategory }) {
+                                    suggestedCategory
+                                } else {
+                                    Log.w("SMSManager", "⚠️ Category '$suggestedCategory' not found in database, using 'others'")
+                                    "others"
+                                }
+                                
+                                Log.d("SMSManager", "🎯 Final category for '${details.merchant}': $validCategory")
                                 
                                 val transaction = Transaction(
                                     id = UUID.randomUUID().toString(),
                                     amount = details.amount,
                                     type = details.type,
                                     merchant = details.merchant,
-                                    categoryId = categoryId,
+                                    categoryId = validCategory,
                                     confidence = 85.0f, // High confidence for SMS-based transactions
                                     date = sms.timestamp,
                                     description = details.description,
-                                    smsBody = sms.smsBody
+                                    smsBody = sms.smsBody,
+                                    isManuallySet = false // Mark as auto-categorized
                                 )
                                 
+                                Log.d("SMSManager", "💾 Saving transaction with category: $validCategory")
                                 database.transactionDao().insertTransaction(transaction)
                                 result.transactionsCreated++
                                 
-                                Log.d("SMSManager", "✅ Created transaction: ₹${details.amount} at ${details.merchant}")
+                                // Verify it was saved correctly
+                                val savedTransaction = database.transactionDao().getTransactionById(transaction.id)
+                                Log.d("SMSManager", "✅ Created & Verified: ₹${details.amount} at ${details.merchant} → Category: ${savedTransaction?.categoryId}")
                             } else {
                                 Log.d("SMSManager", "⚠️ Skipping invalid merchant: ${details.merchant}")
                             }
@@ -274,33 +292,13 @@ class SMSManager(private val context: Context) {
     }
     
     private fun determineCategoryId(details: com.koshpal_android.koshpalapp.engine.TransactionDetails, categories: List<com.koshpal_android.koshpalapp.model.TransactionCategory>): String {
-        // Enhanced category mapping with keyword matching
-        val merchant = details.merchant.lowercase()
-        val description = details.description.lowercase()
-        val combinedText = "$merchant $description"
+        // Use MerchantCategorizer with 400+ keywords for accurate categorization
+        val categoryId = MerchantCategorizer.categorizeTransaction(
+            details.merchant,
+            details.description
+        )
         
-        // Try to match with existing categories using their keywords
-        for (category in categories) {
-            for (keyword in category.keywords) {
-                if (combinedText.contains(keyword.lowercase())) {
-                    Log.d("SMSManager", "🏷️ Matched category '${category.name}' for merchant '$merchant' using keyword '$keyword'")
-                    return category.id
-                }
-            }
-        }
-        
-        // Fallback to simple mapping
-        val categoryId = when {
-            merchant.contains("amazon") || merchant.contains("flipkart") -> "shopping"
-            merchant.contains("zomato") || merchant.contains("swiggy") -> "food"
-            merchant.contains("uber") || merchant.contains("ola") -> "transport"
-            merchant.contains("salary") || details.type == TransactionType.CREDIT -> "salary"
-            merchant.contains("grocery") || merchant.contains("dmart") -> "grocery"
-            merchant.contains("recharge") || merchant.contains("mobile") -> "bills"
-            else -> "others"
-        }
-        
-        Log.d("SMSManager", "🏷️ Assigned category '$categoryId' for merchant '$merchant'")
+        Log.d("SMSManager", "🏷️ Auto-categorized '${details.merchant}' → $categoryId (${MerchantCategorizer.getCategoryDisplayName(categoryId)})")
         return categoryId
     }
     

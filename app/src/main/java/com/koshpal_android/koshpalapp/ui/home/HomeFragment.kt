@@ -31,6 +31,7 @@ import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.FragmentHomeBinding
 import com.koshpal_android.koshpalapp.ui.home.adapter.FeatureAdapter
 import com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
+import com.koshpal_android.koshpalapp.ui.home.adapter.BankCardAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.model.FeatureItem
@@ -74,6 +75,7 @@ class HomeFragment : Fragment() {
     lateinit var transactionRepository: TransactionRepository
     
     private lateinit var recentTransactionsAdapter: RecentTransactionAdapter
+    private lateinit var bankCardAdapter: BankCardAdapter
     
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -153,6 +155,64 @@ class HomeFragment : Fragment() {
         }
 
         android.util.Log.d("HomeFragment", "📱 Recent transactions RecyclerView setup complete")
+        
+        // Setup bank cards
+        setupBankCards()
+    }
+
+    private fun setupBankCards() {
+        bankCardAdapter = BankCardAdapter {
+            // Handle add cash button click
+            showAddCashDialog()
+        }
+
+        binding.rvBankCards.apply {
+            adapter = bankCardAdapter
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        }
+
+        // Load bank spending data
+        loadBankSpending()
+    }
+
+    private fun loadBankSpending() {
+        lifecycleScope.launch {
+            try {
+                // Get ONLY real SMS transaction data for current month
+                val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
+                
+                android.util.Log.d("HomeFragment", "💳 Loaded ${bankSpending.size} bank cards with REAL data")
+                
+                // Log each bank's spending
+                bankSpending.forEach { bank ->
+                    android.util.Log.d("HomeFragment", "💳 ${bank.bankName}: ₹${bank.totalSpending} (${bank.transactionCount} transactions)")
+                }
+                
+                // Add Cash card at the end (always show for manual entry)
+                bankSpending.add(
+                    com.koshpal_android.koshpalapp.model.BankSpending(
+                        bankName = "Cash",
+                        totalSpending = 0.0,
+                        transactionCount = 0,
+                        isCash = true
+                    )
+                )
+                
+                bankCardAdapter.submitList(bankSpending)
+                
+                // Hide section if no banks found
+                if (bankSpending.size == 1) { // Only Cash card
+                    android.util.Log.d("HomeFragment", "⚠️ No bank transactions found for current month")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeFragment", "❌ Failed to load bank spending: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun showAddCashDialog() {
+        // TODO: Implement add cash transaction dialog
+        Toast.makeText(requireContext(), "Add Cash Transaction - Coming Soon!", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupClickListeners() {
@@ -195,13 +255,40 @@ class HomeFragment : Fragment() {
                 createSampleTransactions()
             }
 
-            // Long press for FORCED real SMS parsing (no sample fallback)
+            // LONG PRESS financial card to trigger auto-categorization + show debug info
             cardFinancialOverview.setOnLongClickListener {
-                android.util.Log.d(
-                    "HomeFragment",
-                    "📱 Financial overview long pressed - FORCING real SMS parsing only"
-                )
-                forceRealSmsParsingOnly()
+                android.util.Log.d("HomeFragment", "🤖 Long press detected - showing transaction debug info")
+                lifecycleScope.launch {
+                    try {
+                        // First show what transactions exist
+                        val allTransactions = transactionRepository.getAllTransactionsOnce()
+                        android.util.Log.d("HomeFragment", "📊 ===== TRANSACTION DEBUG =====")
+                        android.util.Log.d("HomeFragment", "📊 Total transactions: ${allTransactions.size}")
+                        
+                        allTransactions.take(10).forEach { txn ->
+                            android.util.Log.d("HomeFragment", "💳 Merchant: '${txn.merchant}' | Category: ${txn.categoryId} | Amount: ₹${txn.amount}")
+                        }
+                        
+                        // Now auto-categorize
+                        val count = transactionRepository.autoCategorizeExistingTransactions()
+                        
+                        Toast.makeText(
+                            requireContext(),
+                            "🤖 Auto-categorized $count transactions\nCheck logcat for details",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        
+                        viewModel.refreshData()
+                        loadBankSpending()
+                    } catch (e: Exception) {
+                        android.util.Log.e("HomeFragment", "❌ Error: ${e.message}", e)
+                        Toast.makeText(
+                            requireContext(),
+                            "❌ Error: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
                 true
             }
 
@@ -991,8 +1078,22 @@ class HomeFragment : Fragment() {
                 
                 showMessage(message)
                 
+                // Step 5: Auto-categorize all transactions based on keywords
+                if (smsResult.transactionsCreated > 0) {
+                    android.util.Log.d("HomeFragment", "🤖 Starting auto-categorization...")
+                    val categorizedCount = transactionRepository.autoCategorizeExistingTransactions()
+                    android.util.Log.d("HomeFragment", "✅ Auto-categorized $categorizedCount transactions")
+                    
+                    Toast.makeText(
+                        requireContext(),
+                        "✅ Imported ${smsResult.transactionsCreated} transactions\n🤖 Auto-categorized $categorizedCount transactions",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                
                 // Refresh UI
                 viewModel.refreshData()
+                loadBankSpending() // Refresh bank cards
                 
             } catch (e: Exception) {
                 showErrorMessage("❌ SMS parsing failed: ${e.message}")

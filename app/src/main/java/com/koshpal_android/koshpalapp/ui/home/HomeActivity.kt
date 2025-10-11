@@ -90,6 +90,13 @@ class HomeActivity : AppCompatActivity() {
         showFragment(categoriesFragment)
         // Do not change bottom navigation selection (no tab for categories)
     }
+
+    fun showHomeFragment() {
+        // Show the home fragment and update bottom nav
+        showFragment(homeFragment)
+        binding.bottomNavigation.selectedItemId = R.id.homeFragment
+        android.util.Log.d("HomeActivity", "🏠 Navigated back to Home fragment")
+    }
     
     fun refreshCategoriesData() {
         // Simple refresh - the fragment will auto-refresh when it becomes visible

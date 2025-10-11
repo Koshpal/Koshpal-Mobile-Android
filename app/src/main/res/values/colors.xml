@@ -67,4 +67,11 @@
     <!-- UI Colors -->
     <color name="divider">#E0E0E0</color>
     <color name="transparent">#00000000</color>
+    
+    <!-- Dark Theme Colors -->
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="primary_dark_card">#2C2C54</color>
+    <color name="success_dark">#1B4332</color>
+    <color name="accent_light">#B8E6B8</color>
 </resources>

@@ -47,7 +47,9 @@ data class Transaction(
     @ColumnInfo(name = "smsBody")
     val smsBody: String? = null,
     @ColumnInfo(name = "isManuallySet")
-    val isManuallySet: Boolean = false
+    val isManuallySet: Boolean = false,
+    @ColumnInfo(name = "bankName")
+    val bankName: String? = null
 ) {
     val timestamp: Long
         get() = date

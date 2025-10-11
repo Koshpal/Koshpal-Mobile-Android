@@ -17,6 +17,7 @@ import com.koshpal_android.koshpalapp.ui.home.HomeFragment
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
+import com.koshpal_android.koshpalapp.ui.trends.TrendsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -102,8 +103,8 @@ class TransactionsFragment : Fragment() {
                             (activity as? HomeActivity)?.showCategoriesFragment()
                         }
                         2 -> {
-                            // Merchants tab - placeholder
-                            android.widget.Toast.makeText(requireContext(), "Merchants view coming soon!", android.widget.Toast.LENGTH_SHORT).show()
+                            // Trends tab - show trends fragment
+                            showTrendsFragment()
                         }
                     }
                 }
@@ -287,6 +288,17 @@ class TransactionsFragment : Fragment() {
         }
         
         dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
+    }
+
+    private fun showTrendsFragment() {
+        android.util.Log.d("TransactionsFragment", "📈 Navigating to Trends fragment")
+        
+        // Replace current fragment with TrendsFragment
+        val trendsFragment = TrendsFragment()
+        parentFragmentManager.beginTransaction()
+            .replace(android.R.id.content, trendsFragment)
+            .addToBackStack("trends")
+            .commit()
     }
 
     override fun onDestroyView() {

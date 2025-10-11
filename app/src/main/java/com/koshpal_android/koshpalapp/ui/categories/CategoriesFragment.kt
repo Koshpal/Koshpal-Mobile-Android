@@ -24,7 +24,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.utils.MPPointF
+import com.koshpal_android.koshpalapp.ui.trends.TrendsFragment
 
 @AndroidEntryPoint
 class CategoriesFragment : Fragment() {
@@ -36,6 +38,10 @@ class CategoriesFragment : Fragment() {
     lateinit var transactionRepository: TransactionRepository
 
     private lateinit var categorySpendingAdapter: CategorySpendingAdapter
+    
+    // Month selection properties
+    private var selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
+    private var selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH) // 0-based (0=Jan, 11=Dec)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,8 +56,9 @@ class CategoriesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-        setupPieChart()
-        setupClickListeners()
+        setupTabLayout()
+        setupMonthPicker()
+        updateMonthDisplay()
         loadCategoryData()
     }
 
@@ -167,8 +174,10 @@ class CategoriesFragment : Fragment() {
                 // Only reset on first load, not every time Categories screen opens
                 // This prevents overriding user categorizations
 
-                // Calculate current month date range
+                // Calculate selected month date range
                 val calendar = Calendar.getInstance()
+                calendar.set(Calendar.YEAR, selectedYear)
+                calendar.set(Calendar.MONTH, selectedMonth)
                 calendar.set(Calendar.DAY_OF_MONTH, 1)
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
                 calendar.set(Calendar.MINUTE, 0)
@@ -180,25 +189,22 @@ class CategoriesFragment : Fragment() {
                 calendar.add(Calendar.MILLISECOND, -1)
                 val endOfMonth = calendar.timeInMillis
 
-                // Update month display
-                val monthFormat = SimpleDateFormat("MMM", Locale.getDefault())
-                binding.tvMonth.text = monthFormat.format(Date())
                 android.util.Log.d(
                     "CategoriesFragment",
-                    "📅 Querying current month category spending from ${Date(startOfMonth)} to ${Date(endOfMonth)}"
+                    "📅 Querying selected month ($selectedYear-${selectedMonth + 1}) category spending from ${Date(startOfMonth)} to ${Date(endOfMonth)}"
                 )
 
-                // Get CURRENT MONTH category spending only
-                val currentMonthCategorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
-                android.util.Log.d("CategoriesFragment", "📊 Current month category spending: ${currentMonthCategorySpending.size} categories")
+                // Get SELECTED MONTH category spending only
+                val selectedMonthCategorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
+                android.util.Log.d("CategoriesFragment", "📊 Selected month category spending: ${selectedMonthCategorySpending.size} categories")
                 
                 // Log the amounts for debugging
-                currentMonthCategorySpending.forEach { spending ->
+                selectedMonthCategorySpending.forEach { spending ->
                     val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
                     android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
                 }
                 
-                val categorySpending = currentMonthCategorySpending
+                val categorySpending = selectedMonthCategorySpending
 
                 // Show ALL categories including "others" - this gives users a complete view
                 android.util.Log.d("CategoriesFragment", "📊 Total categories: ${categorySpending.size}")
@@ -300,6 +306,124 @@ class CategoriesFragment : Fragment() {
             // Fragment became visible - refresh data
             loadCategoryData()
         }
+    }
+
+    private fun setupTabLayout() {
+        // Setup tab layout for Categories, Transactions, Merchants
+        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> {
+                        // Transactions tab - navigate to transactions
+                        (activity as? HomeActivity)?.showTransactionsFragment()
+                    }
+                    1 -> {
+                        // Categories tab - already here, do nothing
+                        android.util.Log.d("CategoriesFragment", "📊 Categories tab selected - already showing categories")
+                    }
+                    2 -> {
+                        // Trends tab - show trends fragment
+                        showTrendsFragment()
+                    }
+                }
+            }
+            
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+        })
+        
+        // Set Categories tab as selected by default
+        binding.tabLayout.getTabAt(1)?.select()
+    }
+
+    private fun setupMonthPicker() {
+        binding.tvMonth.setOnClickListener {
+            showMonthPickerDialog()
+        }
+    }
+
+    private fun updateMonthDisplay() {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.YEAR, selectedYear)
+        calendar.set(Calendar.MONTH, selectedMonth)
+        
+        val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+        binding.tvMonth.text = monthFormat.format(calendar.time)
+        
+        android.util.Log.d("CategoriesFragment", "📅 Month display updated: ${binding.tvMonth.text}")
+    }
+
+    private fun showMonthPickerDialog() {
+        val months = arrayOf(
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        )
+        
+        val years = (2020..2030).map { it.toString() }.toTypedArray()
+        
+        // Create month-year options
+        val monthYearOptions = mutableListOf<String>()
+        val currentCalendar = Calendar.getInstance()
+        val currentYear = currentCalendar.get(Calendar.YEAR)
+        val currentMonth = currentCalendar.get(Calendar.MONTH)
+        
+        // Add months from 2023 to current date
+        for (year in 2023..currentYear) {
+            val endMonth = if (year == currentYear) currentMonth else 11
+            for (month in 0..endMonth) {
+                val calendar = Calendar.getInstance()
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                val monthYearText = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+                monthYearOptions.add(monthYearText)
+            }
+        }
+        
+        // Find current selection index
+        val currentSelectionText = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(
+            Calendar.getInstance().apply {
+                set(Calendar.YEAR, selectedYear)
+                set(Calendar.MONTH, selectedMonth)
+            }.time
+        )
+        val selectedIndex = monthYearOptions.indexOf(currentSelectionText).takeIf { it >= 0 } ?: (monthYearOptions.size - 1)
+        
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select Month")
+            .setSingleChoiceItems(monthYearOptions.toTypedArray(), selectedIndex) { dialog, which ->
+                // Parse selected month and year
+                val selectedText = monthYearOptions[which]
+                val calendar = Calendar.getInstance()
+                val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+                try {
+                    val date = dateFormat.parse(selectedText)
+                    calendar.time = date!!
+                    selectedYear = calendar.get(Calendar.YEAR)
+                    selectedMonth = calendar.get(Calendar.MONTH)
+                    
+                    android.util.Log.d("CategoriesFragment", "📅 Selected: $selectedText (Year: $selectedYear, Month: $selectedMonth)")
+                    
+                    updateMonthDisplay()
+                    loadCategoryData() // Reload data for selected month
+                    
+                } catch (e: Exception) {
+                    android.util.Log.e("CategoriesFragment", "Failed to parse selected date: $selectedText", e)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showTrendsFragment() {
+        android.util.Log.d("CategoriesFragment", "📈 Navigating to Trends fragment")
+        
+        // Replace current fragment with TrendsFragment
+        val trendsFragment = TrendsFragment()
+        parentFragmentManager.beginTransaction()
+            .replace(android.R.id.content, trendsFragment)
+            .addToBackStack("trends")
+            .commit()
     }
 
     private suspend fun calculateCategorySpendingManually(): List<CategorySpending> {
