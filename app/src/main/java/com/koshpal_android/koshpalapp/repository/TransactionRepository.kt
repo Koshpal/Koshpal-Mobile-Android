@@ -2,10 +2,14 @@ package com.koshpal_android.koshpalapp.repository
 
 import com.koshpal_android.koshpalapp.data.local.dao.TransactionDao
 import com.koshpal_android.koshpalapp.data.local.dao.CategoryDao
+import com.koshpal_android.koshpalapp.data.local.dao.BudgetNewDao
+import com.koshpal_android.koshpalapp.data.local.dao.BudgetCategoryNewDao
 import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.model.Budget
+import com.koshpal_android.koshpalapp.model.BudgetCategory
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +22,8 @@ import javax.inject.Singleton
 class TransactionRepository @Inject constructor(
     private val transactionDao: TransactionDao,
     private val categoryDao: CategoryDao,
+    private val budgetDao: BudgetNewDao,
+    private val budgetCategoryDao: BudgetCategoryNewDao,
     private val categorizationEngine: TransactionCategorizationEngine
 ) {
     
@@ -507,5 +513,38 @@ class TransactionRepository @Inject constructor(
             e.printStackTrace()
             return 0
         }
+    }
+
+    // Budget methods
+    suspend fun getSingleBudget(): Budget? {
+        return budgetDao.getSingleBudget()
+    }
+
+    suspend fun insertBudget(budget: Budget): Long {
+        return budgetDao.insertBudget(budget)
+    }
+
+    suspend fun updateBudget(budget: Budget) {
+        budgetDao.updateBudget(budget)
+    }
+
+    suspend fun clearBudgets() {
+        budgetDao.clearBudgets()
+    }
+
+    suspend fun getCategoriesForBudget(budgetId: Int): List<BudgetCategory> {
+        return budgetCategoryDao.getCategoriesForBudget(budgetId)
+    }
+
+    suspend fun insertAllBudgetCategories(categories: List<BudgetCategory>) {
+        budgetCategoryDao.insertAll(categories)
+    }
+
+    suspend fun updateBudgetCategory(category: BudgetCategory) {
+        budgetCategoryDao.update(category)
+    }
+
+    suspend fun clearBudgetCategoriesForBudget(budgetId: Int) {
+        budgetCategoryDao.clearForBudget(budgetId)
     }
 }

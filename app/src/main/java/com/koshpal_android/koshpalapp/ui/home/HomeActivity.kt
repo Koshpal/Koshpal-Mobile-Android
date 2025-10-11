@@ -176,4 +176,32 @@ class HomeActivity : AppCompatActivity() {
         // Refresh categories data to show any updates
         refreshCategoriesData()
     }
+
+    fun showSetMonthlyBudgetFragment() {
+        android.util.Log.d("HomeActivity", "💰 Navigating to Set Monthly Budget")
+
+        // Create the SetMonthlyBudgetFragment
+        val setMonthlyBudgetFragment = com.koshpal_android.koshpalapp.ui.categories.SetMonthlyBudgetFragment()
+
+        // Hide bottom navigation when showing budget view
+        binding.bottomNavigation.visibility = android.view.View.GONE
+
+        // Add the fragment over the current view
+        supportFragmentManager.beginTransaction()
+            .hide(activeFragment)
+            .add(R.id.fragmentContainer, setMonthlyBudgetFragment, "SET_MONTHLY_BUDGET")
+            .addToBackStack("set_monthly_budget")
+            .commit()
+    }
+
+    override fun onBackPressed() {
+        // Check if we have fragments in the back stack
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            // Show bottom navigation again when going back
+            binding.bottomNavigation.visibility = android.view.View.VISIBLE
+            supportFragmentManager.popBackStack()
+        } else {
+            super.onBackPressed()
+        }
+    }
 }

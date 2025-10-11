@@ -59,6 +59,7 @@ class CategoriesFragment : Fragment() {
 
         setupRecyclerView()
         setupMonthPicker()
+        setupSetBudgetButton()
         updateMonthDisplay()
         
         // Check if refresh was requested before view was created
@@ -343,6 +344,12 @@ class CategoriesFragment : Fragment() {
     private fun setupMonthPicker() {
         binding.tvMonth.setOnClickListener {
             showMonthPickerDialog()
+        }
+    }
+
+    private fun setupSetBudgetButton() {
+        binding.btnSetBudget.setOnClickListener {
+            (activity as? HomeActivity)?.showSetMonthlyBudgetFragment()
         }
     }
 
