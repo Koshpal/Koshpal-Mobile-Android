@@ -358,11 +358,7 @@ class HomeFragment : Fragment() {
                     )
 
                     // Update the "View All" text to show transaction count
-                    binding.tvViewAllTransactions.text = if (transactions.isEmpty()) {
-                        "View All (0)"
-                    } else {
-                        "View All (${transactions.size})"
-                    }
+                    // Note: tvViewAllTransactions is now a LinearLayout, text updates handled in layout
 
                     // Show recent transactions (limit to 5)
                     val recentTransactions = transactions.take(5)
@@ -480,7 +476,7 @@ class HomeFragment : Fragment() {
         android.util.Log.d("HomeFragment", "   transactionCount: ${state.transactionCount}")
 
         binding.apply {
-            tvUserName.text = state.userName
+            // User name removed from UI - using logo with headline instead
 
             // Show real balance data or prompt to import SMS
             if (state.hasTransactions) {
@@ -607,7 +603,7 @@ class HomeFragment : Fragment() {
                 title = "Financial Insights",
                 description = "Smart recommendations",
                 icon = R.drawable.ic_lightbulb,
-                color = R.color.primary_dark
+                color = R.color.primary_darkest
             ),
             FeatureItem(
                 id = "categorization",
@@ -826,11 +822,7 @@ class HomeFragment : Fragment() {
                 // Let HomeViewModel compute and bind current month income/expenses/balance.
 
                 // Update transaction count
-                tvViewAllTransactions.text = if (debugResult.hasTransactions) {
-                    "View All (${debugResult.transactionCount})"
-                } else {
-                    "No transactions"
-                }
+                // Note: tvViewAllTransactions is now a LinearLayout, text updates handled in layout
 
                 // Show/hide appropriate cards
                 if (debugResult.hasTransactions) {

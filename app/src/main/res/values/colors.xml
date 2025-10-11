@@ -32,31 +32,62 @@
     <color name="md_theme_light_inverseOnSurface">#F4EFF4</color>
     <color name="md_theme_light_inversePrimary">#D0BCFF</color>
 
+    <!-- Brand Primary Colors (Blue Palette) -->
+    <color name="primary_darkest">#081F5C</color>
+    <color name="primary">#334EAC</color>
+    <color name="primary_mid">#99A6D6</color>
+    <color name="primary_light">#CCD3EA</color>
+    <color name="primary_lightest">#EFF1F8</color>
+    
+    <!-- Brand Secondary Colors (Teal Palette) -->
+    <color name="secondary_darkest">#1A4D4A</color>
+    <color name="secondary_dark">#2D6B68</color>
+    <color name="secondary">#4A9B96</color>
+    <color name="secondary_light">#7BC4BF</color>
+    <color name="secondary_lightest">#B8E6E3</color>
+    
     <!-- Custom Colors -->
     <color name="background_light">#F8F9FA</color>
     <color name="text_primary">#212529</color>
     <color name="text_secondary">#6C757D</color>
     <color name="text_tertiary">#ADB5BD</color>
-    <color name="accent_color">#6750A4</color>
+    <color name="accent_color">#334EAC</color>
     
-    <!-- App Theme Colors -->
-    <color name="primary">#6750A4</color>
-    <color name="primary_light">#EADDFF</color>
-    <color name="primary_dark">#4F378B</color>
-    <color name="secondary">#625B71</color>
-    <color name="secondary_light">#E8DEF8</color>
+    <!-- App Theme Colors (Updated with Brand Colors) -->
+    <color name="primary_old">#6750A4</color>
+    <color name="primary_light_old">#EADDFF</color>
+    <color name="primary_dark_old">#4F378B</color>
+    <color name="secondary_old">#625B71</color>
+    <color name="secondary_light_old">#E8DEF8</color>
     
     <!-- Status Colors -->
     <color name="success">#4CAF50</color>
     <color name="success_light">#E8F5E9</color>
+    <color name="success_dark">#2E7D32</color>
+    <color name="error">#F44336</color>
+    <color name="error_light">#FFEBEE</color>
+    <color name="error_dark">#C62828</color>
+    <color name="warning">#FF9800</color>
+    <color name="warning_light">#FFF3E0</color>
+    <color name="warning_dark">#E65100</color>
+    <color name="info">#2196F3</color>
+    <color name="info_light">#E3F2FD</color>
+    <color name="info_dark">#1565C0</color>
+    
+    <!-- Financial Status Colors -->
+    <color name="income">#4CAF50</color>
+    <color name="income_light">#E8F5E9</color>
+    <color name="expense">#F44336</color>
+    <color name="expense_light">#FFEBEE</color>
+    <color name="balance_positive">#4CAF50</color>
+    <color name="balance_negative">#F44336</color>
+    <color name="balance_neutral">#FF9800</color>
+    
+    <!-- Legacy Blue Colors -->
     <color name="light_blue_900">#FF01579B</color>
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
-    <color name="error">#F44336</color>
-    <color name="error_light">#FFEBEE</color>
-    <color name="warning">#FF9800</color>
-    <color name="warning_light">#FFF3E0</color>
     
     <!-- Budget Colors -->
     <color name="white_20">#33FFFFFF</color>
@@ -67,12 +98,31 @@
     
     <!-- UI Colors -->
     <color name="divider">#E0E0E0</color>
+    <color name="divider_light">#F5F5F5</color>
+    <color name="divider_dark">#BDBDBD</color>
     <color name="transparent">#00000000</color>
+    <color name="overlay_light">#80FFFFFF</color>
+    <color name="overlay_dark">#80000000</color>
+    <color name="shadow_light">#1A000000</color>
+    <color name="shadow_medium">#33000000</color>
+    <color name="shadow_dark">#4D000000</color>
+    
+    <!-- Surface Colors -->
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_medium">#F8F9FA</color>
+    <color name="surface_gray">#E9ECEF</color>
+    <color name="surface_variant">#F1F3F4</color>
+    
+    <!-- Border Colors -->
+    <color name="border_light">#E0E0E0</color>
+    <color name="border_medium">#BDBDBD</color>
+    <color name="border_dark">#757575</color>
+    <color name="border_focus">#334EAC</color>
     
     <!-- Dark Theme Colors -->
     <color name="background_dark">#121212</color>
     <color name="surface_dark">#1E1E1E</color>
     <color name="primary_dark_card">#2C2C54</color>
-    <color name="success_dark">#1B4332</color>
+    <color name="success_dark_theme">#1B4332</color>
     <color name="accent_light">#B8E6B8</color>
 </resources>

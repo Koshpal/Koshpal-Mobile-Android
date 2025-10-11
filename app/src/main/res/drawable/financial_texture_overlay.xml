@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="120dp"
+    android:viewportWidth="200"
+    android:viewportHeight="120">
+    
+    <!-- Advanced Fintech Texture Pattern -->
+    
+    <!-- Complex geometric grid system -->
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M0,0 L200,0 L200,0.5 L0,0.5 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M0,119.5 L200,119.5 L200,120 L0,120 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M0,0 L0.5,0 L0.5,120 L0,120 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M199.5,0 L200,0 L200,120 L199.5,120 Z"/>
+    
+    <!-- Advanced diagonal wave patterns (like data flow) -->
+    <path
+        android:fillColor="#18FFFFFF"
+        android:pathData="M0,15 Q25,10 50,15 T100,15 T150,15 T200,15 L200,17 Q175,12 150,17 T100,17 T50,17 T0,17 Z"/>
+    <path
+        android:fillColor="#15FFFFFF"
+        android:pathData="M0,35 Q30,30 60,35 T120,35 T180,35 T200,35 L200,37 Q170,32 180,37 T120,37 T60,37 T0,37 Z"/>
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M0,55 Q20,50 40,55 T80,55 T120,55 T160,55 T200,55 L200,57 Q180,52 160,57 T120,57 T80,57 T40,57 T0,57 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M0,75 Q35,70 70,75 T140,75 T200,75 L200,77 Q165,72 140,77 T70,77 T0,77 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M0,95 Q15,90 30,95 T60,95 T90,95 T120,95 T150,95 T180,95 T200,95 L200,97 Q185,92 180,97 T150,97 T120,97 T90,97 T60,97 T30,97 T0,97 Z"/>
+    
+    <!-- Complex circular patterns (like network nodes) -->
+    <path
+        android:fillColor="#20FFFFFF"
+        android:pathData="M40,20 A8,8 0 1,1 40,20 Z"/>
+    <path
+        android:fillColor="#15FFFFFF"
+        android:pathData="M160,25 A6,6 0 1,1 160,25 Z"/>
+    <path
+        android:fillColor="#18FFFFFF"
+        android:pathData="M80,45 A5,5 0 1,1 80,45 Z"/>
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M120,65 A7,7 0 1,1 120,65 Z"/>
+    <path
+        android:fillColor="#16FFFFFF"
+        android:pathData="M30,85 A4,4 0 1,1 30,85 Z"/>
+    <path
+        android:fillColor="#14FFFFFF"
+        android:pathData="M170,95 A6,6 0 1,1 170,95 Z"/>
+    
+    <!-- Advanced hexagonal patterns (like blockchain/tech) -->
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M60,30 L65,33 L65,38 L60,41 L55,38 L55,33 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M140,50 L145,53 L145,58 L140,61 L135,58 L135,53 Z"/>
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M100,80 L105,83 L105,88 L100,91 L95,88 L95,83 Z"/>
+    
+    <!-- Complex connection lines (like network topology) -->
+    <path
+        android:fillColor="#15FFFFFF"
+        android:pathData="M40,20 L80,45 L40,20 Z"/>
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M80,45 L120,65 L80,45 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M120,65 L160,25 L120,65 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M30,85 L100,80 L30,85 Z"/>
+    <path
+        android:fillColor="#14FFFFFF"
+        android:pathData="M100,80 L170,95 L100,80 Z"/>
+    
+    <!-- Advanced radial patterns (like signal waves) -->
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M50,60 A15,15 0 1,1 50,60 Z"/>
+    <path
+        android:fillColor="#04FFFFFF"
+        android:pathData="M50,60 A25,25 0 1,1 50,60 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M150,40 A12,12 0 1,1 150,40 Z"/>
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M150,40 A20,20 0 1,1 150,40 Z"/>
+    
+    <!-- Complex mesh patterns (like neural networks) -->
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M20,20 L25,25 L20,30 L15,25 Z"/>
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M25,25 L30,30 L25,35 L20,30 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M175,70 L180,75 L175,80 L170,75 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M180,75 L185,80 L180,85 L175,80 Z"/>
+    
+    <!-- Advanced curve intersections (like data visualization) -->
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M0,40 Q50,35 100,40 T200,40 L200,42 Q150,37 100,42 T0,42 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M0,60 Q75,55 150,60 T200,60 L200,62 Q125,57 150,62 T0,62 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M0,80 Q100,75 200,80 L200,82 Q100,77 0,82 Z"/>
+    
+    <!-- Complex geometric overlays (like circuit patterns) -->
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M30,10 L35,10 L35,15 L30,15 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M165,15 L170,15 L170,20 L165,20 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M90,100 L95,100 L95,105 L90,105 Z"/>
+    <path
+        android:fillColor="#12FFFFFF"
+        android:pathData="M110,105 L115,105 L115,110 L110,110 Z"/>
+    
+    <!-- Advanced wave interference patterns -->
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M0,25 Q33,20 66,25 T132,25 T200,25 L200,27 Q167,22 132,27 T66,27 T0,27 Z"/>
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M0,45 Q40,40 80,45 T160,45 T200,45 L200,47 Q160,42 160,47 T80,47 T0,47 Z"/>
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M0,65 Q50,60 100,65 T200,65 L200,67 Q150,62 100,67 T0,67 Z"/>
+    
+    <!-- Complex fractal-like patterns -->
+    <path
+        android:fillColor="#05FFFFFF"
+        android:pathData="M100,20 L105,25 L100,30 L95,25 Z"/>
+    <path
+        android:fillColor="#08FFFFFF"
+        android:pathData="M100,20 L110,30 L100,40 L90,30 Z"/>
+    <path
+        android:fillColor="#06FFFFFF"
+        android:pathData="M100,20 L115,35 L100,50 L85,35 Z"/>
+</vector>

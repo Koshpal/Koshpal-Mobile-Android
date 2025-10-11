@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ItemBankCardBinding
 import com.koshpal_android.koshpalapp.model.BankSpending
+import com.koshpal_android.koshpalapp.utils.BankThemeProvider
 
 class BankCardAdapter(
     private val onAddCashClick: () -> Unit
@@ -36,9 +37,7 @@ class BankCardAdapter(
 
         fun bind(bankSpending: BankSpending) {
             binding.apply {
-                tvBankName.text = bankSpending.bankName
-                tvSpending.text = "₹${String.format("%,.0f", bankSpending.totalSpending)}"
-                tvTransactionCount.text = "${bankSpending.transactionCount} transactions"
+                val context = binding.root.context
 
                 // Show add button only for Cash card
                 if (bankSpending.isCash) {
@@ -47,40 +46,131 @@ class BankCardAdapter(
                     
                     // Set cash card gradient
                     cardContent.setBackgroundResource(R.drawable.gradient_cash_card)
+                    
+                    // Ensure financial texture is visible for cash card
+                    binding.ivFinancialTexture.visibility = View.VISIBLE
+                    
+                    // Cash card UI
+                    tvBankName.text = "Cash"
+                    // Show text initials for cash
+                    binding.ivBankIcon.visibility = View.GONE
+                    binding.tvBankInitials.visibility = View.VISIBLE
+                    binding.tvBankInitials.text = "CA"
+                    tvSpending.text = "₹${String.format("%,.0f", bankSpending.totalSpending)}"
+                    tvTransactionCount.text = "${bankSpending.transactionCount} transactions"
+                    
                 } else {
                     btnAddCash.visibility = View.GONE
                     
-                    // Set bank-specific gradient colors
-                    val gradient = getBankGradient(bankSpending.bankName)
+                    // Get theme for bank/payment app
+                    val theme = BankThemeProvider.getThemeForBankConsistent(bankSpending.bankName)
+                    
+                    // Apply bank/payment app branding
+                    tvBankName.text = theme.displayName
+                    
+                    // Use actual drawable icon if available, otherwise fallback to text
+                    if (theme.iconDrawable != null) {
+                        // Show real icon
+                        binding.ivBankIcon.setImageResource(theme.iconDrawable)
+                        binding.ivBankIcon.visibility = View.VISIBLE
+                        binding.tvBankInitials.visibility = View.GONE
+                    } else {
+                        // Show text initials
+                        binding.ivBankIcon.visibility = View.GONE
+                        binding.tvBankInitials.visibility = View.VISIBLE
+                        binding.tvBankInitials.text = theme.iconInitials
+                        binding.tvBankInitials.textSize = if (theme.iconInitials.length == 1) 18f else 14f
+                    }
+                    
+                    tvSpending.text = "₹${String.format("%,.0f", bankSpending.totalSpending)}"
+                    tvTransactionCount.text = "${bankSpending.transactionCount} transactions"
+                    
+                    // Apply gradient background
+                    val gradient = createBrandedGradient(theme)
                     cardContent.background = gradient
+                    
+                    // Ensure financial texture is visible
+                    binding.ivFinancialTexture.visibility = View.VISIBLE
+                    
+                    // Style icon based on icon style
+                    styleIcon(theme)
+                    
+                    // Log for debugging
+                    android.util.Log.d("BankCard", "🏦 ${bankSpending.bankName} → ${theme.displayName} (${theme.iconInitials})")
                 }
             }
         }
 
-        private fun getBankGradient(bankName: String): GradientDrawable {
+        private fun createBrandedGradient(theme: BankThemeProvider.BankTheme): GradientDrawable {
             val context = binding.root.context
-            val (startColor, endColor) = when (bankName.uppercase()) {
-                "SBI", "STATE BANK" -> Pair("#1565C0", "#0D47A1") // Blue
-                "HDFC", "HDFC BANK" -> Pair("#D32F2F", "#B71C1C") // Red
-                "ICICI", "ICICI BANK" -> Pair("#F57C00", "#E65100") // Orange
-                "AXIS", "AXIS BANK" -> Pair("#7B1FA2", "#4A148C") // Purple
-                "KOTAK", "KOTAK MAHINDRA" -> Pair("#C62828", "#8E0000") // Dark Red
-                "IPPB", "INDIA POST" -> Pair("#00897B", "#00695C") // Teal
-                "PAYTM", "PAYTM PAYMENTS" -> Pair("#00B0FF", "#0091EA") // Light Blue
-                "PHONEPE" -> Pair("#5F259F", "#3C1361") // Purple
-                "GPAY", "GOOGLE PAY" -> Pair("#34A853", "#2D8E47") // Green
-                else -> Pair("#6750A4", "#4F378B") // Default Purple
+            
+            // Map gradient angle to orientation
+            val orientation = when (theme.gradientAngle) {
+                BankThemeProvider.GradientAngle.DIAGONAL -> GradientDrawable.Orientation.TL_BR
+                BankThemeProvider.GradientAngle.VERTICAL -> GradientDrawable.Orientation.TOP_BOTTOM
+                BankThemeProvider.GradientAngle.HORIZONTAL -> GradientDrawable.Orientation.LEFT_RIGHT
+                BankThemeProvider.GradientAngle.RADIAL -> GradientDrawable.Orientation.TL_BR // Default to diagonal for radial
             }
-
-            return GradientDrawable(
+            
+            // Create color array (2 or 3 colors)
+            val colors = if (theme.accentColor != null) {
+                intArrayOf(theme.primaryColor, theme.secondaryColor, theme.accentColor)
+            } else {
+                intArrayOf(theme.primaryColor, theme.secondaryColor)
+            }
+            
+            return GradientDrawable(orientation, colors).apply {
+                cornerRadius = 16 * context.resources.displayMetrics.density
+                
+                // For radial gradients, set gradient type
+                if (theme.gradientAngle == BankThemeProvider.GradientAngle.RADIAL) {
+                    gradientType = GradientDrawable.RADIAL_GRADIENT
+                    gradientRadius = 300f
+                }
+            }
+        }
+        
+        private fun styleIcon(theme: BankThemeProvider.BankTheme) {
+            val context = binding.root.context
+            
+            binding.cardBankIcon.apply {
+                when (theme.iconStyle) {
+                    BankThemeProvider.IconStyle.GRADIENT -> {
+                        // Gradient icon background
+                        val iconGradient = GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
                 intArrayOf(
-                    android.graphics.Color.parseColor(startColor),
-                    android.graphics.Color.parseColor(endColor)
+                                theme.primaryColor,
+                                theme.secondaryColor
                 )
             ).apply {
-                cornerRadius = 16 * context.resources.displayMetrics.density
+                            cornerRadius = 20 * context.resources.displayMetrics.density
+                        }
+                        setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        background = iconGradient
+                    }
+                    BankThemeProvider.IconStyle.CIRCLE_SOLID -> {
+                        // Solid color circle
+                        setCardBackgroundColor(adjustAlpha(theme.primaryColor, 0.3f))
+                    }
+                    BankThemeProvider.IconStyle.ROUNDED -> {
+                        // Rounded with semi-transparent background
+                        setCardBackgroundColor(android.graphics.Color.parseColor("#40FFFFFF"))
+                    }
+                    BankThemeProvider.IconStyle.TEXT -> {
+                        // Simple transparent background
+                        setCardBackgroundColor(android.graphics.Color.parseColor("#30FFFFFF"))
+                    }
+                }
             }
+        }
+        
+        private fun adjustAlpha(color: Int, factor: Float): Int {
+            val alpha = Math.round(android.graphics.Color.alpha(color) * factor)
+            val red = android.graphics.Color.red(color)
+            val green = android.graphics.Color.green(color)
+            val blue = android.graphics.Color.blue(color)
+            return android.graphics.Color.argb(alpha, red, green, blue)
         }
     }
 

@@ -2,30 +2,95 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="160dp"
-    android:layout_height="wrap_content"
+    android:layout_height="120dp"
     android:layout_marginEnd="12dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp"
     app:strokeWidth="0dp">
 
-    <LinearLayout
+        <FrameLayout
         android:id="@+id/cardContent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
+        android:layout_height="match_parent"
         android:background="@drawable/gradient_bank_card">
 
-        <!-- Bank Name -->
+            <!-- Financial texture overlay - fixed size to prevent layout influence -->
+            <ImageView
+                android:id="@+id/ivFinancialTexture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="fill"
+                android:src="@drawable/fintechtexture"
+                android:scaleType="centerCrop"
+                android:alpha="0.6"
+                android:adjustViewBounds="false"
+                android:maxHeight="120dp"
+                android:maxWidth="160dp" />
+
+            <!-- Main content -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+        <!-- Bank Icon/Logo Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Bank Icon/Initials -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBankIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardCornerRadius="20dp"
+                app:cardBackgroundColor="@color/white_20"
+                app:cardElevation="0dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!-- Real Icon ImageView -->
+                    <ImageView
+                        android:id="@+id/ivBankIcon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerInside"
+                        android:visibility="gone" />
+
+                    <!-- Fallback Text Initials -->
+                    <TextView
+                        android:id="@+id/tvBankInitials"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="SBI"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Bank Name (Top Right) -->
         <TextView
             android:id="@+id/tvBankName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="SBI"
             android:textColor="@color/white"
-            android:textSize="16sp"
+                android:textSize="14sp"
             android:textStyle="bold"
             android:alpha="0.9" />
+        </LinearLayout>
 
         <!-- Spending Amount -->
         <TextView
@@ -64,5 +129,7 @@
             android:paddingHorizontal="16dp" />
 
     </LinearLayout>
+            
+        </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>
