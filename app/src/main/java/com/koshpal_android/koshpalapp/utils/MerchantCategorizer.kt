@@ -18,183 +18,66 @@ object MerchantCategorizer {
     private const val CATEGORY_SALARY = "salary"
     private const val CATEGORY_OTHERS = "others"
 
-    // Merchant keyword mappings - 400+ keywords
+    // Merchant keyword mappings - Only 20-30 highly specific brand names per category
     private val categoryKeywords = mapOf(
         CATEGORY_FOOD to listOf(
-            // Food Delivery Apps
-            "zomato", "swiggy", "uber eats", "ubereats", "foodpanda", "box8", "faasos", 
-            "behrouz", "oven story", "lunch box", "the good bowl", "mandarin oak",
-            // Pizza Chains
-            "dominos", "domino's", "pizza hut", "pizzahut", "papa johns", "papajohns",
-            "chicago pizza", "smokin joes", "la pinoz", "pizza corner",
-            // Fast Food
-            "mcdonald", "mcdonalds", "kfc", "burger king", "burgerking", "subway",
-            "taco bell", "wendy's", "hardees", "popeyes", "five guys",
-            // Coffee Chains
-            "starbucks", "cafe coffee day", "ccd", "barista", "costa coffee", 
-            "blue tokai", "third wave", "sleepy owl", "chai point", "chaayos",
-            "tea post", "tea villa", "tea trails",
-            // Cloud Kitchens
-            "rebel foods", "eatfit", "fresh menu", "freshmenu", "innerchef",
-            // Restaurants & Cafes
-            "restaurant", "cafe", "bistro", "dine", "eatery", "dhaba", "mess",
-            "canteen", "food court", "food", "kitchen", "barbeque", "bbq", "grill",
-            // Indian Food
-            "biryani", "haldiram", "bikanervala", "sagar ratna", "saravana bhavan",
-            "moti mahal", "punjabi dhaba", "karim", "tunday kababi", "paradise biryani",
-            // Bakery & Sweets
-            "bakery", "cake", "monginis", "karachi bakery", "theobroma", "sweet",
-            "mithai", "haldirams", "bikaji", "bikanerwala"
+            // Major food delivery apps & restaurants only
+            "zomato", "swiggy", "ubereats", "foodpanda",
+            "dominos", "pizzahut", "mcdonalds", "kfc", "burgerking", "subway",
+            "starbucks", "ccd", "barista", "dunkin",
+            "barbeque nation", "haldiram", "bikanervala"
         ),
         
         CATEGORY_TRANSPORT to listOf(
-            // Ride Sharing & Taxi
-            "uber", "ola", "rapido", "namma yatri", "meru", "mega cabs", "savaari",
-            "auto", "taxi", "cab", "rideshare", "carpool", "quick ride",
-            "blu smart", "yulu", "bounce", "vogo", "mobycy", "bike rental",
-            // Fuel Stations
-            "petrol", "diesel", "fuel", "cng", "gas station",
-            "hp", "hindustan petroleum", "iocl", "indian oil", "bharat petroleum", "bpcl",
-            "shell", "essar", "reliance petroleum", "nayara energy",
-            // Parking & Tolls
-            "parking", "toll", "fastag", "paytm fastag", "parking lot",
-            // Vehicle Services
-            "car wash", "car service", "mechanic", "garage", "tyre", "battery",
-            // Travel & Transportation (merged from TRAVEL category)
-            "makemytrip", "mmt", "goibibo", "cleartrip", "yatra", "ixigo", "easemytrip",
-            "redbus", "abhibus", "irctc", "train", "flight", "airline", "bus",
-            "indigo", "spicejet", "air india", "vistara", "hotel", "oyo"
+            // Only major ride-sharing, fuel, and travel brands
+            "uber", "ola", "rapido", "nammayatri", "meru",
+            "iocl", "indianoil", "bpcl", "bharatpetroleum", "hpcl", "shell",
+            "fastag", "makemytrip", "goibibo", "cleartrip", "yatra",
+            "redbus", "irctc", "indigo", "spicejet", "airindia", "vistara", "oyo"
         ),
         
         CATEGORY_SHOPPING to listOf(
-            // E-commerce Giants
-            "amazon", "flipkart", "myntra", "ajio", "meesho", "snapdeal", "shopclues",
-            "paytm mall", "tata cliq", "jiomart", "reliance digital", "croma",
-            // Fashion & Apparel
-            "nykaa", "purplle", "bewakoof", "koovs", "limeroad", "shein", "urbanic",
-            "h&m", "zara", "uniqlo", "forever 21", "mango", "vero moda",
-            "allen solly", "van heusen", "peter england", "louis philippe",
-            "fabindia", "biba", "w for woman", "global desi",
-            // Footwear & Sports
-            "nike", "adidas", "puma", "reebok", "skechers", "woodland", "bata",
-            "liberty", "red tape", "hush puppies", "clarks", "crocs",
-            "decathlon", "sports station", "nike store", "adidas store",
-            // Electronics & Gadgets
-            "croma", "reliance digital", "vijay sales", "poorvika", "sangeetha",
-            "apple store", "samsung", "mi store", "oneplus", "realme",
-            // Jewelry & Accessories
-            "tanishq", "malabar gold", "kalyan jewellers", "joyalukkas", "pc jeweller",
-            "caratlane", "bluestone", "giva", "melorra",
-            // Retail Stores
-            "dmart", "more", "spencer", "reliance fresh", "reliance smart",
-            "lifestyle", "westside", "pantaloons", "max fashion", "brand factory",
-            "shoppers stop", "central", "big bazaar", "vishal mega mart",
-            // Books & Stationery
-            "amazon books", "flipkart books", "crossword", "landmark", "odyssey",
-            "stationery", "office depot"
+            // Only major e-commerce and retail brands
+            "amazon", "flipkart", "myntra", "ajio", "meesho", "snapdeal",
+            "nykaa", "croma", "reliancedigital", "tanishq", "lifestyle",
+            "westside", "pantaloons", "shoppersstop", "decathlon",
+            "nike", "adidas", "zara", "h&m", "uniqlo"
         ),
         
         CATEGORY_ENTERTAINMENT to listOf(
-            // Streaming Services
-            "netflix", "prime video", "amazon prime", "hotstar", "disney", "disney+",
-            "zee5", "sonyliv", "voot", "alt balaji", "mx player", "eros now",
-            "jiocinema", "youtube premium", "youtube", "apple tv",
-            // Music Streaming
-            "spotify", "apple music", "gaana", "wynk", "jiosaavn", "hungama",
-            "amazon music", "youtube music", "tidal", "soundcloud",
-            // Gaming Platforms
-            "steam", "epic games", "playstation", "xbox", "nintendo", "origin",
-            "google play", "app store", "pubg", "free fire", "cod", "valorant",
-            "roblox", "minecraft", "fortnite", "genshin impact",
-            // Movies & Theaters
-            "bookmyshow", "paytm insider", "pvr", "inox", "cinepolis", "carnival",
-            "movie", "cinema", "multiplex", "theater", "film",
-            // Events & Concerts
-            "insider", "townscript", "allevents", "meraevents", "concert",
-            "show", "event", "ticket", "live show"
+            // Only major streaming and entertainment brands
+            "netflix", "amazonprime", "hotstar", "disney", "zee5", "sonyliv",
+            "spotify", "gaana", "wynk", "jiosaavn",
+            "bookmyshow", "pvr", "inox", "cinepolis",
+            "steam", "playstation", "xbox", "googleplay", "appstore"
         ),
         
         CATEGORY_BILLS to listOf(
-            // Electricity & Utilities
-            "electricity", "electric bill", "power", "bescom", "msedcl", "tata power",
-            "adani electricity", "cesc", "dhbvn", "bses", "torrent power",
-            "water", "water bill", "municipal", "corporation",
-            "gas", "lpg", "cylinder", "indane", "hp gas", "bharat gas",
-            // Telecom & Mobile
-            "airtel", "jio", "reliance jio", "vi", "vodafone", "idea", "vodafone idea",
-            "bsnl", "mtnl", "mobile", "recharge", "prepaid", "postpaid",
-            "mobile bill", "phone bill", "sim", "data pack",
-            // Internet & Broadband
-            "broadband", "internet", "wifi", "fiber", "airtel xstream", "jio fiber",
-            "act fibernet", "hathway", "tikona", "spectranet", "you broadband",
-            // DTH & Cable
-            "tata sky", "tata play", "dish tv", "sun direct", "d2h", "airtel digital tv",
-            "dth", "cable", "cable tv", "den", "hathway cable",
-            // Insurance
-            "insurance", "premium", "policy", "lic", "life insurance",
-            "health insurance", "car insurance", "bike insurance",
-            // Loan EMI
-            "emi", "loan", "home loan", "car loan", "personal loan", "credit card bill",
-            // Municipal & Government
-            "property tax", "house tax", "municipal tax", "challan", "fine"
+            // Only major telecom, utilities, and bill payment brands
+            "airtel", "jio", "vi", "vodafone", "bsnl",
+            "tatasky", "tataplay", "dishtv", "actfibernet",
+            "bescom", "msedcl", "tatapower", "adanielectricity"
         ),
         
         CATEGORY_HEALTHCARE to listOf(
-            // Hospitals & Clinics
-            "hospital", "clinic", "nursing home", "medical center", "health center",
-            "apollo", "fortis", "max healthcare", "medanta", "manipal", "narayana",
-            "columbia asia", "cloudnine", "rainbow", "motherhood", "nova",
-            "aiims", "safdarjung", "pgimer", "government hospital",
-            // Doctors & Specialists
-            "doctor", "dr", "physician", "surgeon", "dentist", "dental",
-            "orthodontist", "dermatologist", "cardiologist", "neurologist",
-            "pediatrician", "gynecologist", "ophthalmologist", "ent",
-            // Pharmacy & Medicine
-            "pharmacy", "medicine", "medical store", "chemist", "drug store",
-            "netmeds", "1mg", "pharmeasy", "medlife", "apollo pharmacy",
-            "medplus", "wellness forever", "guardian pharmacy",
-            // Diagnostics & Labs
-            "lab", "laboratory", "pathology", "diagnostic", "test", "scan",
-            "thyrocare", "dr lal pathlabs", "metropolis", "srl diagnostics",
-            "vijaya diagnostics", "quest diagnostics",
-            // Health & Wellness
-            "gym", "fitness", "yoga", "cult fit", "cultfit", "gold's gym",
-            "anytime fitness", "fitness first", "talwalkars", "snap fitness"
+            // Only major hospitals, pharmacies, and fitness brands
+            "apollo", "fortis", "maxhealthcare", "medanta", "manipal", "narayana",
+            "netmeds", "1mg", "pharmeasy", "apollopharmacy", "medplus",
+            "thyrocare", "lalpathlabs", "metropolis", "cultfit", "goldsgym"
         ),
         
         CATEGORY_EDUCATION to listOf(
-            // Online Learning Platforms
-            "udemy", "coursera", "edx", "udacity", "pluralsight", "skillshare",
-            "linkedin learning", "masterclass", "domestika", "treehouse",
-            // Indian EdTech
-            "unacademy", "byju", "vedantu", "toppr", "white hat jr", "whitehatjr",
-            "upgrad", "great learning", "simplilearn", "scaler", "coding ninjas",
-            "physics wallah", "pw", "allen", "aakash", "fiitjee", "resonance",
-            // Schools & Colleges
-            "school", "college", "university", "institute", "academy",
-            "iit", "nit", "iim", "bits", "vit", "srm", "amity",
-            "dps", "ryan", "kendriya vidyalaya", "navodaya",
-            // Coaching & Tuition
-            "tuition", "coaching", "classes", "tutorial", "training center",
-            "ielts", "toefl", "gre", "gmat", "cat", "jee", "neet",
-            // Books & Study Material
-            "textbook", "study material", "notes", "question bank",
-            // Exam Fees
-            "exam fee", "application fee", "admission fee", "registration"
+            // Only major education platforms and institutions
+            "udemy", "coursera", "unacademy", "byjus", "vedantu",
+            "upgrad", "simplilearn", "scaler", "physicswallah",
+            "allen", "aakash", "fiitjee"
         ),
         
         CATEGORY_GROCERY to listOf(
-            // Online Grocery Delivery
-            "bigbasket", "grofers", "blinkit", "zepto", "dunzo", "swiggy instamart",
-            "jiomart", "amazon fresh", "amazon pantry", "flipkart grocery",
-            "milk basket", "country delight", "licious", "fresho",
-            // Supermarkets & Hypermarkets
-            "dmart", "reliance fresh", "reliance smart", "more", "spencer",
-            "big bazaar", "star bazaar", "hypercity", "easyday",
-            "nature's basket", "foodhall", "le marche",
-            // General Terms
-            "grocery", "supermarket", "kirana", "provision store",
-            "vegetables", "fruits", "dairy", "milk", "bread"
+            // Only major grocery delivery and supermarket brands
+            "bigbasket", "blinkit", "zepto", "dunzo", "swiggyinstamart",
+            "jiomart", "dmart", "reliancefresh", "more", "spencer",
+            "bigbazaar", "licious"
         ),
         
         CATEGORY_SALARY to listOf(
