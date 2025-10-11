@@ -56,6 +56,7 @@ class BankCardAdapter(
                     binding.ivBankIcon.visibility = View.GONE
                     binding.tvBankInitials.visibility = View.VISIBLE
                     binding.tvBankInitials.text = "CA"
+                    
                     tvSpending.text = "₹${String.format("%,.0f", bankSpending.totalSpending)}"
                     tvTransactionCount.text = "${bankSpending.transactionCount} transactions"
                     
@@ -172,6 +173,7 @@ class BankCardAdapter(
             val blue = android.graphics.Color.blue(color)
             return android.graphics.Color.argb(alpha, red, green, blue)
         }
+        
     }
 
     class BankSpendingDiffCallback : DiffUtil.ItemCallback<BankSpending>() {

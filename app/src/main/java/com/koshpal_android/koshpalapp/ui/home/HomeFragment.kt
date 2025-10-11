@@ -360,22 +360,17 @@ class HomeFragment : Fragment() {
                     // Update the "View All" text to show transaction count
                     // Note: tvViewAllTransactions is now a LinearLayout, text updates handled in layout
 
-                    // Show recent transactions (limit to 5)
-                    val recentTransactions = transactions.take(5)
+                    // Show recent transactions (limit to 4)
+                    val recentTransactions = transactions.take(4)
                     recentTransactionsAdapter.submitList(recentTransactions)
 
-                    // Show/hide recent transactions RecyclerView
-                    binding.rvRecentTransactions.visibility = if (recentTransactions.isNotEmpty()) {
-                        View.VISIBLE
+                    // Show/hide recent transactions card and no transactions card
+                    if (transactions.isNotEmpty()) {
+                        binding.cardRecentTransactions.visibility = View.VISIBLE
+                        binding.cardNoTransactions.visibility = View.GONE
                     } else {
-                        View.GONE
-                    }
-
-                    // Show/hide the no transactions card based on transaction count
-                    binding.cardNoTransactions.visibility = if (transactions.isEmpty()) {
-                        View.VISIBLE
-                    } else {
-                        View.GONE
+                        binding.cardRecentTransactions.visibility = View.GONE
+                        binding.cardNoTransactions.visibility = View.VISIBLE
                     }
 
                     android.util.Log.d(
@@ -826,10 +821,12 @@ class HomeFragment : Fragment() {
 
                 // Show/hide appropriate cards
                 if (debugResult.hasTransactions) {
+                    cardRecentTransactions.visibility = View.VISIBLE
                     cardNoTransactions.visibility = View.GONE
                     cardSmsParser.visibility = View.GONE
                     cardFinancialOverview.visibility = View.VISIBLE
                 } else {
+                    cardRecentTransactions.visibility = View.GONE
                     cardNoTransactions.visibility = View.VISIBLE
                     cardSmsParser.visibility = View.VISIBLE
                     cardFinancialOverview.visibility = View.VISIBLE

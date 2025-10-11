@@ -19,7 +19,7 @@ class RecentTransactionAdapter(
 ) : ListAdapter<Transaction, RecentTransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
     private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-    private val dateFormatter = SimpleDateFormat("MMM dd", Locale.getDefault())
+    private val dateFormatter = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
         val binding = ItemRecentTransactionBinding.inflate(
@@ -59,17 +59,17 @@ class RecentTransactionAdapter(
                 }
                 tvAmount.setTextColor(amountColor)
                 
-                // Set category icon (you can enhance this with proper category mapping)
-                ivTransactionIcon.setImageResource(getCategoryIcon(transaction.categoryId))
+                // Set category icon and background color
+                val categoryInfo = getCategoryInfo(transaction.categoryId)
+                ivTransactionIcon.setImageResource(categoryInfo.icon)
+                cardCategoryIcon.setCardBackgroundColor(ContextCompat.getColor(root.context, categoryInfo.backgroundColor))
                 
                 // Add visual indicator only for truly uncategorized transactions (empty categoryId)
                 if (transaction.categoryId.isEmpty()) {
                     tvMerchantName.text = "${transaction.merchant ?: "Unknown Merchant"} • Tap to categorize"
-                    root.setBackgroundColor(ContextCompat.getColor(root.context, R.color.warning_light))
                 } else {
                     // All transactions with any categoryId (including "others") are considered categorized
                     tvMerchantName.text = transaction.merchant ?: "Unknown Merchant"
-                    root.setBackgroundColor(ContextCompat.getColor(root.context, android.R.color.transparent))
                 }
                 
                 root.setOnClickListener {
@@ -78,22 +78,30 @@ class RecentTransactionAdapter(
             }
         }
         
-        private fun getCategoryIcon(categoryId: String?): Int {
+        private fun getCategoryInfo(categoryId: String?): CategoryInfo {
             return when (categoryId) {
-                "food" -> R.drawable.ic_menu_eat
-                "grocery" -> R.drawable.ic_menu_gallery
-                "transport" -> R.drawable.ic_menu_directions
-                "bills" -> R.drawable.ic_category_default
-                "education" -> R.drawable.ic_info
-                "entertainment" -> R.drawable.ic_category_default
-                "healthcare" -> R.drawable.ic_category_default
-                "shopping" -> R.drawable.ic_add
-                "salary" -> R.drawable.ic_trending_up
-                "others" -> R.drawable.ic_more_vert
-                else -> R.drawable.ic_more_vert
+                "food" -> CategoryInfo(R.drawable.ic_food_category, R.color.success)
+                "grocery" -> CategoryInfo(R.drawable.ic_food_category, R.color.primary)
+                "transport" -> CategoryInfo(R.drawable.ic_transport_category, R.color.warning)
+                "bills" -> CategoryInfo(R.drawable.ic_category_default, R.color.error)
+                "education" -> CategoryInfo(R.drawable.ic_info, R.color.secondary)
+                "entertainment" -> CategoryInfo(R.drawable.ic_category_default, R.color.secondary_light)
+                "healthcare" -> CategoryInfo(R.drawable.ic_category_default, R.color.success_light)
+                "shopping" -> CategoryInfo(R.drawable.ic_shopping_category, R.color.primary_light)
+                "salary" -> CategoryInfo(R.drawable.ic_trending_up, R.color.success)
+                "home" -> CategoryInfo(R.drawable.ic_home_category, R.color.success)
+                "trips" -> CategoryInfo(R.drawable.ic_trips_category, R.color.secondary)
+                "others" -> CategoryInfo(R.drawable.ic_more_vert, R.color.text_secondary)
+                else -> CategoryInfo(R.drawable.ic_more_vert, R.color.text_secondary)
             }
         }
+        
     }
+    
+    private data class CategoryInfo(
+        val icon: Int,
+        val backgroundColor: Int
+    )
 }
 
 private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {

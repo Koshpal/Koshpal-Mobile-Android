@@ -1,71 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical"
-    android:background="?attr/selectableItemBackground"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
-    <!-- Transaction Icon -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/primary_light">
-
-        <ImageView
-            android:id="@+id/ivTransactionIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_category_default"
-            android:tint="@color/primary" />
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Transaction Details -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="16dp">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
+        <!-- Category Icon with Colorful Background -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCategoryIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/primary_light">
+
+            <ImageView
+                android:id="@+id/ivTransactionIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_category_default"
+                android:tint="@color/white" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Transaction Details -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/tvMerchantName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Merchant Name"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvTransactionDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="05-02-2023 19:22"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Amount -->
         <TextView
-            android:id="@+id/tvMerchantName"
+            android:id="@+id/tvAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Merchant Name"
+            android:text="₹1,250.00"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end" />
-
-        <TextView
-            android:id="@+id/tvTransactionDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Dec 15"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:layout_marginTop="2dp" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- Amount -->
-    <TextView
-        android:id="@+id/tvAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="₹1,250"
-        android:textColor="@color/error"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
