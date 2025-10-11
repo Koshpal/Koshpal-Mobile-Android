@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
+import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.utils.SMSManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SmsProcessingViewModel @Inject constructor(
     application: Application,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val transactionRepository: TransactionRepository
 ) : AndroidViewModel(application) {
     
     private val _processingState = MutableStateFlow<SmsProcessingState>(SmsProcessingState.Idle)
@@ -70,7 +72,25 @@ class SmsProcessingViewModel @Inject constructor(
                         transactionsCreated = result.transactionsCreated
                     )
                     
-                    delay(1000)
+                    delay(500)
+                    
+                    // 🤖 AUTO-CATEGORIZE all transactions after SMS parsing
+                    Log.d("SmsProcessing", "🤖 ===== STARTING AUTO-CATEGORIZATION =====")
+                    Log.d("SmsProcessing", "📊 SMS Results: ${result.transactionsCreated} transactions created")
+                    _processingState.value = SmsProcessingState.Processing(
+                        message = "🤖 Categorizing transactions...",
+                        details = "Applying smart categorization based on merchants",
+                        smsFound = result.smsFound,
+                        transactionSms = result.transactionSmsFound,
+                        transactionsCreated = result.transactionsCreated
+                    )
+                    
+                    val categorizedCount = transactionRepository.autoCategorizeExistingTransactions()
+                    Log.d("SmsProcessing", "✅ ===== AUTO-CATEGORIZATION COMPLETE =====")
+                    Log.d("SmsProcessing", "✅ Successfully categorized $categorizedCount transactions")
+                    Log.d("SmsProcessing", "🎯 Transactions are now ready with proper categories")
+                    
+                    delay(500)
                     
                     _processingState.value = SmsProcessingState.Success(
                         summary = buildSuccessSummary(result),

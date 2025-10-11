@@ -135,8 +135,8 @@ class SMSManager(private val context: Context) {
                                 Log.d("SMSManager", "🔍 Processing merchant: '${details.merchant}'")
                                 Log.d("SMSManager", "📄 SMS body: ${sms.smsBody.take(100)}...")
                                 
-                                // Get category using MerchantCategorizer
-                                val suggestedCategory = determineCategoryId(details, categoryList)
+                                // Get category using MerchantCategorizer with FULL SMS body
+                                val suggestedCategory = determineCategoryId(details, sms.smsBody, categoryList)
                                 
                                 // Verify category exists in database, fallback to "others" if not
                                 val validCategory = if (categoryList.any { it.id == suggestedCategory }) {
@@ -291,11 +291,16 @@ class SMSManager(private val context: Context) {
         return isTransaction
     }
     
-    private fun determineCategoryId(details: com.koshpal_android.koshpalapp.engine.TransactionDetails, categories: List<com.koshpal_android.koshpalapp.model.TransactionCategory>): String {
+    private fun determineCategoryId(
+        details: com.koshpal_android.koshpalapp.engine.TransactionDetails,
+        smsBody: String,
+        categories: List<com.koshpal_android.koshpalapp.model.TransactionCategory>
+    ): String {
         // Use MerchantCategorizer with 400+ keywords for accurate categorization
+        // Pass the FULL SMS body (not just description) for better keyword matching
         val categoryId = MerchantCategorizer.categorizeTransaction(
             details.merchant,
-            details.description
+            smsBody  // ✅ Full SMS body with all keywords
         )
         
         Log.d("SMSManager", "🏷️ Auto-categorized '${details.merchant}' → $categoryId (${MerchantCategorizer.getCategoryDisplayName(categoryId)})")

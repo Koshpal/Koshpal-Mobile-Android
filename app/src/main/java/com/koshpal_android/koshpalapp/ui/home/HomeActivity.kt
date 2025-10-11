@@ -8,6 +8,7 @@ import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment
 import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
 import com.koshpal_android.koshpalapp.ui.categories.CategoriesFragment
+import com.koshpal_android.koshpalapp.ui.categories.CategoryDetailsFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,10 +32,27 @@ class HomeActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             setupFragments()
         }
+        
+        // Check if coming from SMS processing - refresh categories data
+        val smsProcessingCompleted = intent.getBooleanExtra("SMS_PROCESSING_COMPLETED", false)
+        if (smsProcessingCompleted) {
+            android.util.Log.d("HomeActivity", "✅ ===== SMS PROCESSING COMPLETED FLAG DETECTED =====")
+            android.util.Log.d("HomeActivity", "🕐 Scheduling categories refresh after 1.5 second delay")
+            // Post with delay to ensure fragments are ready and categorization is complete
+            binding.root.postDelayed({
+                android.util.Log.d("HomeActivity", "🔄 ===== NOW REFRESHING CATEGORIES DATA =====")
+                try {
+                    refreshCategoriesData()
+                    android.util.Log.d("HomeActivity", "✅ Categories refresh initiated successfully")
+                } catch (e: Exception) {
+                    android.util.Log.e("HomeActivity", "❌ Error refreshing categories: ${e.message}", e)
+                }
+            }, 1500)  // Increased delay to ensure categorization is complete and fragments are ready
+        }
     }
 
     private fun setupFragments() {
-        // Add all fragments but hide them initially
+        // Add all fragments but hide them initially - use commitNow for synchronous execution
         supportFragmentManager.beginTransaction()
             .add(R.id.fragmentContainer, homeFragment, "HOME")
             .add(R.id.fragmentContainer, transactionsFragment, "TRANSACTIONS")
@@ -43,8 +61,10 @@ class HomeActivity : AppCompatActivity() {
             .hide(transactionsFragment)
             .hide(categoriesFragment)
             .hide(budgetFragment)
-            .commit()
+            .commitNow()  // Use commitNow() to ensure fragments are added immediately
 
+        android.util.Log.d("HomeActivity", "✅ Fragments setup complete")
+        
         // Ensure Home is selected by default
         binding.bottomNavigation.selectedItemId = R.id.homeFragment
     }
@@ -60,9 +80,9 @@ class HomeActivity : AppCompatActivity() {
                     showFragment(transactionsFragment)
                     true
                 }
-                R.id.insightsFragment -> {
-                    // TODO: Create InsightsFragment
-                    showFragment(homeFragment) // Temporary fallback
+                R.id.budgetFragment -> {
+                    // Show Categories fragment when Budget is tapped
+                    showFragment(categoriesFragment)
                     true
                 }
                 else -> false
@@ -99,7 +119,61 @@ class HomeActivity : AppCompatActivity() {
     }
     
     fun refreshCategoriesData() {
-        // Simple refresh - the fragment will auto-refresh when it becomes visible
-        android.util.Log.d("HomeActivity", "🔄 Categories data refresh requested")
+        // Force refresh categories fragment data
+        android.util.Log.d("HomeActivity", "🔄 Categories data refresh requested - forcing reload")
+        android.util.Log.d("HomeActivity", "🔍 categoriesFragment reference: ${categoriesFragment}")
+        android.util.Log.d("HomeActivity", "🔍 categoriesFragment.isAdded: ${categoriesFragment.isAdded}")
+        
+        try {
+            categoriesFragment.refreshCategoryData()
+            android.util.Log.d("HomeActivity", "✅ Successfully called refreshCategoryData()")
+        } catch (e: Exception) {
+            android.util.Log.e("HomeActivity", "❌ Error calling refreshCategoryData(): ${e.message}", e)
+        }
+    }
+
+    fun showCategoryDetailsFragment(
+        categoryId: String,
+        categoryName: String,
+        categoryIcon: Int,
+        month: Int,
+        year: Int
+    ) {
+        android.util.Log.d(
+            "HomeActivity",
+            "📊 Navigating to category details: $categoryName (month: $month, year: $year)"
+        )
+
+        // Create the CategoryDetailsFragment with parameters
+        val categoryDetailsFragment = CategoryDetailsFragment.newInstance(
+            categoryId = categoryId,
+            categoryName = categoryName,
+            categoryIcon = categoryIcon,
+            month = month,
+            year = year
+        )
+
+        // Hide bottom navigation when showing detail view
+        binding.bottomNavigation.visibility = android.view.View.GONE
+
+        // Add the fragment over the current view
+        supportFragmentManager.beginTransaction()
+            .hide(activeFragment)
+            .add(R.id.fragmentContainer, categoryDetailsFragment, "CATEGORY_DETAILS")
+            .addToBackStack("category_details")
+            .commit()
+    }
+
+    fun navigateBackFromCategoryDetails() {
+        android.util.Log.d("HomeActivity", "🔙 Navigating back from category details")
+        
+        // Show bottom navigation again
+        binding.bottomNavigation.visibility = android.view.View.VISIBLE
+        
+        // Pop back stack to return to categories fragment
+        supportFragmentManager.popBackStack()
+        
+        // Refresh categories data to show any updates
+        refreshCategoriesData()
     }
 }

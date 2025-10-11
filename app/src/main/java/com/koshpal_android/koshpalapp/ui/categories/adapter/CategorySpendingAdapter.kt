@@ -11,7 +11,8 @@ import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 
 class CategorySpendingAdapter(
-    private val onSetBudgetClick: (CategorySpending) -> Unit
+    private val onSetBudgetClick: (CategorySpending) -> Unit,
+    private val onCategoryClick: (CategorySpending) -> Unit = {}
 ) : ListAdapter<CategorySpending, CategorySpendingAdapter.CategorySpendingViewHolder>(CategorySpendingDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategorySpendingViewHolder {
@@ -59,6 +60,12 @@ class CategorySpendingAdapter(
                     }
                 }
 
+                // Click listener for the entire category item - opens details
+                root.setOnClickListener {
+                    onCategoryClick(categorySpending)
+                }
+
+                // Click listener for set budget button
                 tvSetBudget.setOnClickListener {
                     onSetBudgetClick(categorySpending)
                 }

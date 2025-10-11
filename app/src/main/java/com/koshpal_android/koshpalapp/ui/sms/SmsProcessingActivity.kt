@@ -103,10 +103,8 @@ class SmsProcessingActivity : AppCompatActivity() {
                 binding.tvTransactionSms.text = "${state.transactionSms}"
                 binding.tvTransactionsCreated.text = "${state.transactionsCreated}"
                 
-                // Auto-navigate after 2 seconds
-                binding.root.postDelayed({
-                    navigateToHome()
-                }, 2000)
+                // REMOVED: Auto-navigate - User must press Continue button
+                // This prevents unwanted errors from automatic navigation
             }
             
             is SmsProcessingState.Error -> {
@@ -132,6 +130,8 @@ class SmsProcessingActivity : AppCompatActivity() {
     private fun navigateToHome() {
         val intent = Intent(this, HomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        // Pass flag to indicate SMS processing completed - triggers data refresh
+        intent.putExtra("SMS_PROCESSING_COMPLETED", true)
         startActivity(intent)
         finish()
     }

@@ -11,7 +11,7 @@
         android:title="Transactions" />
     
     <item
-        android:id="@+id/insightsFragment"
-        android:icon="@drawable/ic_info"
-        android:title="Insights" />
+        android:id="@+id/budgetFragment"
+        android:icon="@drawable/ic_chart"
+        android:title="Budget" />
 </menu>

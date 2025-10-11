@@ -17,7 +17,6 @@ import com.koshpal_android.koshpalapp.ui.home.HomeFragment
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
-import com.koshpal_android.koshpalapp.ui.trends.TrendsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -90,27 +89,6 @@ class TransactionsFragment : Fragment() {
             btnSearch.setOnClickListener {
                 toggleSearchVisibility()
             }
-
-            // Tab layout click handling
-            tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
-                    when (tab?.position) {
-                        0 -> {
-                            // Transactions tab - already showing
-                        }
-                        1 -> {
-                            // Categories tab - navigate to categories
-                            (activity as? HomeActivity)?.showCategoriesFragment()
-                        }
-                        2 -> {
-                            // Trends tab - show trends fragment
-                            showTrendsFragment()
-                        }
-                    }
-                }
-                override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-                override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-            })
 
             // Filter chips
             chipAll.setOnClickListener { viewModel.filterTransactions("all") }
@@ -288,17 +266,6 @@ class TransactionsFragment : Fragment() {
         }
         
         dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
-    }
-
-    private fun showTrendsFragment() {
-        android.util.Log.d("TransactionsFragment", "📈 Navigating to Trends fragment")
-        
-        // Replace current fragment with TrendsFragment
-        val trendsFragment = TrendsFragment()
-        parentFragmentManager.beginTransaction()
-            .replace(android.R.id.content, trendsFragment)
-            .addToBackStack("trends")
-            .commit()
     }
 
     override fun onDestroyView() {

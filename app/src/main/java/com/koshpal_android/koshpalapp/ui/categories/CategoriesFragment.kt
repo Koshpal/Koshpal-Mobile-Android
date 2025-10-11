@@ -26,7 +26,6 @@ import java.util.*
 import javax.inject.Inject
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.utils.MPPointF
-import com.koshpal_android.koshpalapp.ui.trends.TrendsFragment
 
 @AndroidEntryPoint
 class CategoriesFragment : Fragment() {
@@ -42,6 +41,9 @@ class CategoriesFragment : Fragment() {
     // Month selection properties
     private var selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
     private var selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH) // 0-based (0=Jan, 11=Dec)
+    
+    // Flag to track if refresh is pending (view not created yet)
+    private var pendingRefresh = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,24 +58,52 @@ class CategoriesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-        setupTabLayout()
         setupMonthPicker()
         updateMonthDisplay()
-        loadCategoryData()
+        
+        // Check if refresh was requested before view was created
+        if (pendingRefresh) {
+            android.util.Log.d("CategoriesFragment", "🔄 View created with pending refresh - loading data now")
+            pendingRefresh = false
+            loadCategoryData()
+        } else if (!isHidden) {
+            // Don't load data immediately if fragment is hidden - wait until it becomes visible
+            // This prevents loading stale data before refresh can happen
+            android.util.Log.d("CategoriesFragment", "🔄 Fragment visible on create - loading data")
+            loadCategoryData()
+        } else {
+            android.util.Log.d("CategoriesFragment", "⏸️ Fragment hidden on create - skipping initial load")
+        }
     }
 
     private fun setupRecyclerView() {
-        categorySpendingAdapter = CategorySpendingAdapter { categorySpending ->
-            // Handle set budget click
-            val category = TransactionCategory.getDefaultCategories()
-                .find { it.id == categorySpending.categoryId }
-            val categoryName = category?.name ?: "Unknown Category"
-            android.widget.Toast.makeText(
-                requireContext(),
-                "Set budget for $categoryName",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        }
+        categorySpendingAdapter = CategorySpendingAdapter(
+            onSetBudgetClick = { categorySpending ->
+                // Handle set budget click
+                val category = TransactionCategory.getDefaultCategories()
+                    .find { it.id == categorySpending.categoryId }
+                val categoryName = category?.name ?: "Unknown Category"
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Set budget for $categoryName",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            },
+            onCategoryClick = { categorySpending ->
+                // Navigate to category details
+                val category = TransactionCategory.getDefaultCategories()
+                    .find { it.id == categorySpending.categoryId }
+                if (category != null) {
+                    (activity as? HomeActivity)?.showCategoryDetailsFragment(
+                        categoryId = category.id,
+                        categoryName = category.name,
+                        categoryIcon = category.icon,
+                        month = selectedMonth,
+                        year = selectedYear
+                    )
+                }
+            }
+        )
 
         binding.rvCategories.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -102,60 +132,20 @@ class CategoriesFragment : Fragment() {
         }
     }
 
-    private fun setupClickListeners() {
-        // Tab layout click handling
-        binding.tabLayout.addOnTabSelectedListener(object :
-            com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> {
-                        // Transactions tab - navigate back to transactions
-                        (activity as? HomeActivity)?.showTransactionsFragment()
-                    }
-
-                    1 -> {
-                        // Categories tab - already showing
-                    }
-
-                    2 -> {
-                        // Merchants tab - placeholder
-                        android.widget.Toast.makeText(
-                            requireContext(),
-                            "Merchants view coming soon!",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-
-            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-        })
-
-        // Set Categories tab as selected by default
-        binding.tabLayout.selectTab(binding.tabLayout.getTabAt(1))
-
-        binding.btnSetBudget.setOnClickListener {
-            // For debugging - manually refresh data
-            android.util.Log.d(
-                "CategoriesFragment",
-                "🔄 Manual refresh triggered by Set Budget button"
-            )
-            loadCategoryData()
-        }
-
-        binding.tvMonth.setOnClickListener {
-            // Show month picker
-            android.widget.Toast.makeText(
-                requireContext(),
-                "Month picker coming soon!",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
     private fun loadCategoryData() {
+        android.util.Log.d("CategoriesFragment", "🚀 loadCategoryData() called")
+        android.util.Log.d("CategoriesFragment", "🔍 Context: context=${context != null}, view=${view != null}, lifecycle=${lifecycle.currentState}")
+        
+        // Critical check: Don't try to load if view isn't created yet
+        if (_binding == null) {
+            android.util.Log.w("CategoriesFragment", "⚠️ Binding is null! View not created yet. Skipping load.")
+            return
+        }
+        
+        // Use lifecycleScope but ensure it's actually running
         lifecycleScope.launch {
+            android.util.Log.d("CategoriesFragment", "🏃 Coroutine started in lifecycleScope")
             try {
                 android.util.Log.d("CategoriesFragment", "🔄 Loading category data...")
 
@@ -204,19 +194,35 @@ class CategoriesFragment : Fragment() {
                     android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
                 }
                 
-                val categorySpending = selectedMonthCategorySpending
+                var categorySpending = selectedMonthCategorySpending
+
+                // FALLBACK: If current month has no data, check all-time spending for debugging
+                if (categorySpending.isEmpty()) {
+                    android.util.Log.w("CategoriesFragment", "⚠️ No data for current month, checking all-time spending...")
+                    val allTimeSpending = transactionRepository.getAllTimeCategorySpending()
+                    android.util.Log.d("CategoriesFragment", "📊 All-time category spending: ${allTimeSpending.size} categories")
+                    
+                    if (allTimeSpending.isNotEmpty()) {
+                        android.util.Log.d("CategoriesFragment", "✅ Using all-time data instead")
+                        allTimeSpending.forEach { spending ->
+                            val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
+                            android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
+                        }
+                        categorySpending = allTimeSpending
+                    }
+                }
 
                 // Show ALL categories including "others" - this gives users a complete view
-                android.util.Log.d("CategoriesFragment", "📊 Total categories: ${categorySpending.size}")
+                android.util.Log.d("CategoriesFragment", "📊 Final categories to display: ${categorySpending.size}")
                 
                 if (categorySpending.isNotEmpty()) {
-                    android.util.Log.d("CategoriesFragment", "✅ Showing all category data including 'others'")
+                    android.util.Log.d("CategoriesFragment", "✅ Showing category data")
                     updatePieChart(categorySpending)
                     updateCategoryList(categorySpending)
                     updateTotalSpending(categorySpending)
                     showDataViews()
                 } else {
-                    android.util.Log.d("CategoriesFragment", "📊 No transactions found")
+                    android.util.Log.d("CategoriesFragment", "📊 No transactions found in database")
                     showEmptyState()
                 }
 
@@ -296,6 +302,7 @@ class CategoriesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        android.util.Log.d("CategoriesFragment", "🔄 onResume - refreshing category data")
         // Refresh data when fragment becomes visible
         loadCategoryData()
     }
@@ -303,37 +310,34 @@ class CategoriesFragment : Fragment() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
+            android.util.Log.d("CategoriesFragment", "👁️ Fragment became visible - refreshing data")
+            android.util.Log.d("CategoriesFragment", "🔍 Pending refresh flag: $pendingRefresh")
             // Fragment became visible - refresh data
+            if (pendingRefresh) {
+                android.util.Log.d("CategoriesFragment", "✅ Processing pending refresh")
+                pendingRefresh = false
+            }
             loadCategoryData()
         }
     }
-
-    private fun setupTabLayout() {
-        // Setup tab layout for Categories, Transactions, Merchants
-        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> {
-                        // Transactions tab - navigate to transactions
-                        (activity as? HomeActivity)?.showTransactionsFragment()
-                    }
-                    1 -> {
-                        // Categories tab - already here, do nothing
-                        android.util.Log.d("CategoriesFragment", "📊 Categories tab selected - already showing categories")
-                    }
-                    2 -> {
-                        // Trends tab - show trends fragment
-                        showTrendsFragment()
-                    }
-                }
-            }
-            
-            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
-        })
+    
+    /**
+     * Public method to force refresh category data
+     * Call this after transactions are categorized
+     */
+    fun refreshCategoryData() {
+        android.util.Log.d("CategoriesFragment", "🔄 Manual refresh requested - reloading category data")
+        android.util.Log.d("CategoriesFragment", "🔍 Fragment state: isAdded=${isAdded}, isVisible=${isVisible}, isHidden=${isHidden}, view=${view != null}, binding=${_binding != null}")
         
-        // Set Categories tab as selected by default
-        binding.tabLayout.getTabAt(1)?.select()
+        // If view isn't created yet, set pending flag
+        if (_binding == null) {
+            android.util.Log.w("CategoriesFragment", "⏸️ View not created yet - setting pending refresh flag")
+            pendingRefresh = true
+            return
+        }
+        
+        // Force reload
+        loadCategoryData()
     }
 
     private fun setupMonthPicker() {
@@ -413,17 +417,6 @@ class CategoriesFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun showTrendsFragment() {
-        android.util.Log.d("CategoriesFragment", "📈 Navigating to Trends fragment")
-        
-        // Replace current fragment with TrendsFragment
-        val trendsFragment = TrendsFragment()
-        parentFragmentManager.beginTransaction()
-            .replace(android.R.id.content, trendsFragment)
-            .addToBackStack("trends")
-            .commit()
     }
 
     private suspend fun calculateCategorySpendingManually(): List<CategorySpending> {

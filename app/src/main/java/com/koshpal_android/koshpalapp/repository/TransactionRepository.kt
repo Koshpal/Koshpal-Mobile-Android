@@ -38,6 +38,21 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getTransactionsByCategory(categoryId)
     }
     
+    suspend fun getTransactionsByCategory(categoryId: String, month: Int, year: Int): List<Transaction> {
+        // Calculate start and end timestamps for the given month
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(year, month, 1, 0, 0, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        val startDate = calendar.timeInMillis
+        
+        // Set to last day of month
+        calendar.set(year, month, calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH), 23, 59, 59)
+        calendar.set(java.util.Calendar.MILLISECOND, 999)
+        val endDate = calendar.timeInMillis
+        
+        return transactionDao.getTransactionsByCategoryAndDateRange(categoryId, startDate, endDate)
+    }
+    
     fun getTransactionsByType(type: TransactionType): Flow<List<Transaction>> {
         return transactionDao.getTransactionsByType(type)
     }
