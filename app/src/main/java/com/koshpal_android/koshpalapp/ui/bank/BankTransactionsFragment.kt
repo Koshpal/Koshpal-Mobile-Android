@@ -83,6 +83,9 @@ class BankTransactionsFragment : Fragment() {
         transactionAdapter = TransactionAdapter(
             onTransactionClick = { transaction ->
                 // Handle transaction click if needed
+            },
+            onTransactionDelete = { transaction, position ->
+                // Handle transaction delete if needed
             }
         )
 

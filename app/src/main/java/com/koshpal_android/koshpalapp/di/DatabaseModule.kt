@@ -22,7 +22,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             KoshpalDatabase::class.java,
-            "koshpal_database_v5"
+            "koshpal_database_v6"
         ).fallbackToDestructiveMigration()
          .fallbackToDestructiveMigrationOnDowngrade()
          .build()

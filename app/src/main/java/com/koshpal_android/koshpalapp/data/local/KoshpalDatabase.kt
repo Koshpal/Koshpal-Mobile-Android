@@ -17,7 +17,7 @@ import com.koshpal_android.koshpalapp.data.local.dao.*
         Budget::class,
         BudgetCategory::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,7 +39,7 @@ abstract class KoshpalDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     KoshpalDatabase::class.java,
-                    "koshpal_database_v5"
+                    "koshpal_database_v6"
                 )
                 .fallbackToDestructiveMigration() // Allow database recreation when schema changes
                 .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
