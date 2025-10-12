@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -134,8 +136,11 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 val dateFormat = SimpleDateFormat("EEE, d MMM, h:mm a", Locale.getDefault())
                 tvDate.text = dateFormat.format(Date(txn.timestamp))
                 
-                // Set cash flow toggle
-                switchCashFlow.isChecked = txn.isCashFlow
+                // Set cash flow toggle - check if transaction is in cash flow table
+                lifecycleScope.launch {
+                    val isCashFlow = transactionRepository.isCashFlowTransaction(txn.id)
+                    switchCashFlow.isChecked = isCashFlow
+                }
                 
                 // Set star status
                 updateStarButton(txn.isStarred)
@@ -193,10 +198,31 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 category?.let {
                     binding.tvCategory.text = it.name
                     binding.ivCategoryIcon.setImageResource(it.icon)
+                    
+                    // Set category icon background color
+                    try {
+                        val color = Color.parseColor(it.color)
+                        binding.cardCategoryIcon.setCardBackgroundColor(color)
+                        binding.ivCategoryIcon.setColorFilter(Color.WHITE)
+                    } catch (e: Exception) {
+                        // Fallback to default colors
+                        binding.cardCategoryIcon.setCardBackgroundColor(
+                            ContextCompat.getColor(requireContext(), R.color.primary_light)
+                        )
+                        binding.ivCategoryIcon.setColorFilter(
+                            ContextCompat.getColor(requireContext(), R.color.primary)
+                        )
+                    }
                 } ?: run {
                     // Default category if not found
                     binding.tvCategory.text = "Uncategorized"
-                    binding.ivCategoryIcon.setImageResource(R.drawable.ic_category)
+                    binding.ivCategoryIcon.setImageResource(R.drawable.ic_category_default)
+                    binding.cardCategoryIcon.setCardBackgroundColor(
+                        ContextCompat.getColor(requireContext(), R.color.surface_gray)
+                    )
+                    binding.ivCategoryIcon.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.text_secondary)
+                    )
                 }
             } catch (e: Exception) {
                 android.util.Log.e("TransactionDetails", "Failed to load category info: ${e.message}")
@@ -248,16 +274,43 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
             }
             
             // Make category section clickable in the blue card
-            layoutCategorySelection.setOnClickListener {
+            cardCategorySelection.setOnClickListener {
                 showCategorySelectionDialog()
             }
             
+            // Handle add tag button clicks
             btnAddTag.setOnClickListener {
                 showAddTagDialog()
             }
             
+            // Also handle clicks on the parent MaterialCardView
+            (btnAddTag.parent as? View)?.setOnClickListener {
+                showAddTagDialog()
+            }
+            
             switchCashFlow.setOnCheckedChangeListener { _, isChecked ->
-                transaction = transaction?.copy(isCashFlow = isChecked)
+                transaction?.let { txn ->
+                    lifecycleScope.launch {
+                        try {
+                            if (isChecked) {
+                                // Add to cash flow database
+                                transactionRepository.addToCashFlow(txn.id)
+                                android.util.Log.d("TransactionDetailsDialog", "💰 Added transaction ${txn.id} to cash flow")
+                                Toast.makeText(requireContext(), "Added to Cash Flow", Toast.LENGTH_SHORT).show()
+                            } else {
+                                // Remove from cash flow database
+                                transactionRepository.removeFromCashFlow(txn.id)
+                                android.util.Log.d("TransactionDetailsDialog", "💰 Removed transaction ${txn.id} from cash flow")
+                                Toast.makeText(requireContext(), "Removed from Cash Flow", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update cash flow status: ${e.message}")
+                            // Revert the switch state
+                            switchCashFlow.isChecked = !isChecked
+                            Toast.makeText(requireContext(), "Failed to update cash flow status", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             }
             
             btnSave.setOnClickListener {
@@ -273,9 +326,37 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 // Update the category in the blue card
                 binding.tvCategory.text = selectedCategory.name
                 binding.ivCategoryIcon.setImageResource(selectedCategory.icon)
+                
+                // Set category icon background color
+                try {
+                    val color = Color.parseColor(selectedCategory.color)
+                    binding.cardCategoryIcon.setCardBackgroundColor(color)
+                    binding.ivCategoryIcon.setColorFilter(Color.WHITE)
+                } catch (e: Exception) {
+                    // Fallback to default colors
+                    binding.cardCategoryIcon.setCardBackgroundColor(
+                        ContextCompat.getColor(requireContext(), R.color.primary_light)
+                    )
+                    binding.ivCategoryIcon.setColorFilter(
+                        ContextCompat.getColor(requireContext(), R.color.primary)
+                    )
+                }
+                
+                // Update local transaction
                 transaction = updatedTxn.copy(categoryId = selectedCategory.id)
                 
-                Toast.makeText(requireContext(), "Category updated to ${selectedCategory.name}", Toast.LENGTH_SHORT).show()
+                // Immediately save to database (like HomeFragment does)
+                lifecycleScope.launch {
+                    try {
+                        transactionRepository.updateTransactionCategory(txn.id, selectedCategory.id)
+                        android.util.Log.d("TransactionDetailsDialog", "✅ Category updated in database: ${txn.id} -> ${selectedCategory.name}")
+                        
+                        Toast.makeText(requireContext(), "Category updated to ${selectedCategory.name}", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update category in database: ${e.message}")
+                        Toast.makeText(requireContext(), "Failed to update category", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             categorizationDialog.show(parentFragmentManager, "CategorySelection")
         }

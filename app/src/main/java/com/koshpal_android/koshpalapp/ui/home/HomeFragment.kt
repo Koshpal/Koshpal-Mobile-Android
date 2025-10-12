@@ -33,6 +33,7 @@ import com.koshpal_android.koshpalapp.ui.home.adapter.FeatureAdapter
 import com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
 import com.koshpal_android.koshpalapp.ui.home.adapter.BankCardAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
+import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.model.FeatureItem
 import com.koshpal_android.koshpalapp.ui.home.model.HomeUiState
@@ -124,10 +125,10 @@ class HomeFragment : Fragment() {
 
     private fun setupRecentTransactionsRecyclerView() {
         recentTransactionsAdapter = RecentTransactionAdapter { transaction ->
-            // Handle transaction click - could navigate to transaction details
+            // Handle transaction click - show full transaction details dialog (like TransactionsFragment)
             android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
-            // Show categorization dialog when transaction is clicked
-            showTransactionCategorizationDialog(transaction)
+            // Show transaction details dialog when transaction is clicked
+            showTransactionDetailsDialog(transaction)
         }
 
         binding.rvRecentTransactions.apply {
@@ -959,6 +960,17 @@ class HomeFragment : Fragment() {
         }
 
         dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
+    }
+
+    private fun showTransactionDetailsDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {
+        val dialog = TransactionDetailsDialog.newInstance(transaction) { updatedTransaction ->
+            // Reload data to show updated transaction
+            android.util.Log.d("HomeFragment", "🔄 Refreshing data after transaction update...")
+            viewModel.refreshData()
+            loadBankSpending()
+        }
+        
+        dialog.show(parentFragmentManager, "TransactionDetailsDialog")
     }
 
     private fun forceRealSmsParsingOnly() {

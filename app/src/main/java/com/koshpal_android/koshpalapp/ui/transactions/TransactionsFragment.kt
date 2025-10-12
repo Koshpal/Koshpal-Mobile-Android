@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -182,10 +183,8 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions and filter cash flow ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val cashFlowTransactions = allTransactions.filter { it.isCashFlow }
+                // Get cash flow transactions from separate table
+                val cashFlowTransactions = transactionRepository.getCashFlowTransactions()
                 
                 android.util.Log.d("TransactionsFragment", "💰 Found ${cashFlowTransactions.size} cash flow transactions")
                 
@@ -565,61 +564,33 @@ class TransactionsFragment : Fragment() {
                 return@newInstance
             }
             
-            // Update transaction with selected category
+            // Update transaction with selected category (simplified like HomeFragment)
             lifecycleScope.launch {
                 isUpdatingTransaction = true
                 try {
-                    android.util.Log.d("TransactionsFragment", "🔄 BEFORE UPDATE: Transaction ${txn.id}, Current categoryId: '${txn.categoryId}'")
-                    android.util.Log.d("TransactionsFragment", "🔄 UPDATING: Setting categoryId to '${category.id}' for transaction ${txn.id}")
+                    transactionRepository.updateTransactionCategory(txn.id, category.id)
+                    android.util.Log.d("TransactionsFragment", "✅ Transaction ${txn.id} categorized as ${category.name}")
                     
-                    val rowsAffected = transactionRepository.updateTransactionCategory(txn.id, category.id)
-                    android.util.Log.d("TransactionsFragment", "✅ Database UPDATE result: $rowsAffected rows affected")
+                    // Refresh data to show updated transaction
+                    loadTransactionsDirectly()
                     
-                    // Small delay to ensure database transaction is committed
-                    kotlinx.coroutines.delay(50)
-                    
-                    if (rowsAffected > 0) {
-                        android.util.Log.d("TransactionsFragment", "✅ Transaction ${txn.id} categorized as ${category.name} (categoryId: ${category.id})")
-                        
-                        // Verify the update worked
-                        val updatedTransaction = transactionRepository.getTransactionById(txn.id)
-                        android.util.Log.d("TransactionsFragment", "✅ AFTER UPDATE: Transaction categoryId is now: '${updatedTransaction?.categoryId}'")
-                        
-                        if (updatedTransaction?.categoryId == category.id) {
-                            android.util.Log.d("TransactionsFragment", "✅ VERIFICATION SUCCESS: Category update confirmed in database")
-                        } else {
-                            android.util.Log.e("TransactionsFragment", "❌ VERIFICATION FAILED: Expected '${category.id}', got '${updatedTransaction?.categoryId}'")
-                        }
-                        
-                        // Reload transactions to show updated data
-                        loadTransactionsDirectly()
-                        
-                        // Show success message
-                        android.widget.Toast.makeText(
-                            requireContext(),
-                            "Transaction categorized as ${category.name}",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        android.util.Log.e("TransactionsFragment", "❌ DATABASE UPDATE FAILED: No rows affected for transaction ${txn.id}")
-                        android.widget.Toast.makeText(
-                            requireContext(),
-                            "Failed to categorize transaction",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    
+                    // Show success message
+                    Toast.makeText(
+                        requireContext(),
+                        "Transaction categorized as ${category.name}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
                 } catch (e: Exception) {
-                    android.util.Log.e("TransactionsFragment", "Failed to categorize transaction: ${e.message}")
-                    android.widget.Toast.makeText(
+                    android.util.Log.e("TransactionsFragment", "❌ Failed to categorize transaction: ${e.message}")
+                    Toast.makeText(
                         requireContext(),
                         "Failed to categorize transaction",
-                        android.widget.Toast.LENGTH_SHORT
+                        Toast.LENGTH_SHORT
                     ).show()
                 } finally {
-                    // Always reset the flag, even if there was an error
+                    // Always reset the flag
                     isUpdatingTransaction = false
-                    android.util.Log.d("TransactionsFragment", "🔓 Transaction update completed, ready for next update")
                 }
             }
         }
