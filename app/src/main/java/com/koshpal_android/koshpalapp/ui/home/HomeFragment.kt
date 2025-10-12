@@ -46,13 +46,13 @@ import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.service.TransactionProcessingService
 import dagger.hilt.android.AndroidEntryPoint
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.ValueFormatter
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
@@ -219,16 +219,6 @@ class HomeFragment : Fragment() {
                 clearAllDataAndParseRealSMS()
             }
 
-            // Add budget button click
-            btnAddBudget.setOnClickListener {
-                navigateToBudget()
-            }
-
-            // Budget card click (feature removed)
-            cardBudget.setOnClickListener {
-                Toast.makeText(requireContext(), "Budget feature coming soon!", Toast.LENGTH_SHORT)
-                    .show()
-            }
 
             tvViewAllTransactions.setOnClickListener {
                 // Navigate to transactions screen
@@ -351,7 +341,7 @@ class HomeFragment : Fragment() {
                 )
                 updateUI(uiState)
                 updateCurrentMonthDisplay()
-                renderLast4MonthsChart(uiState)
+                renderSpendingLineChart(uiState)
             }
         }
 
@@ -401,73 +391,122 @@ class HomeFragment : Fragment() {
         android.util.Log.d("HomeFragment", "📅 Updated month display: $currentMonth $currentYear")
     }
 
-    private fun renderLast4MonthsChart(state: HomeUiState) {
-        val chart: BarChart = binding.chartLast4Months
-        // Basic styling
+    private fun renderSpendingLineChart(state: HomeUiState) {
+        val chart: LineChart = binding.lineChartSpending
+        
+        // Modern chart styling
         chart.description.isEnabled = false
         chart.setPinchZoom(false)
         chart.setScaleEnabled(false)
-        chart.axisRight.isEnabled = false
-        chart.axisLeft.axisMinimum = 0f
-        chart.axisLeft.textColor = android.graphics.Color.parseColor("#6B7280")
-        chart.setNoDataText("No data yet")
-        chart.setExtraOffsets(8f, 8f, 8f, 8f)
-
-        val months = state.last4MonthsComparison.map { it.month }
-        if (months.isEmpty()) {
+        chart.setDrawGridBackground(false)
+        chart.setDrawBorders(false)
+        chart.setNoDataText("No spending data yet")
+        chart.setNoDataTextColor(android.graphics.Color.parseColor("#9CA3AF"))
+        chart.setExtraOffsets(16f, 16f, 16f, 16f)
+        
+        val dailyData = state.dailySpendingData
+        if (dailyData.isEmpty()) {
             chart.clear()
             return
         }
 
-        val incomeEntries = mutableListOf<BarEntry>()
-        val expenseEntries = mutableListOf<BarEntry>()
-        state.last4MonthsComparison.forEachIndexed { index, item ->
-            incomeEntries.add(BarEntry(index.toFloat(), item.totalIncome.toFloat()))
-            expenseEntries.add(BarEntry(index.toFloat(), item.totalSpent.toFloat()))
+        // Create line entries for daily spending and income
+        val spendingEntries = mutableListOf<Entry>()
+        val incomeEntries = mutableListOf<Entry>()
+        val dayLabels = mutableListOf<String>()
+        
+        dailyData.forEachIndexed { index, dayData ->
+            spendingEntries.add(Entry(index.toFloat(), dayData.totalSpent.toFloat()))
+            incomeEntries.add(Entry(index.toFloat(), dayData.totalIncome.toFloat()))
+            dayLabels.add(dayData.dayLabel)
         }
 
-        val incomeSet = BarDataSet(incomeEntries, "Income").apply {
-            color = android.graphics.Color.parseColor("#10B981")
-            valueTextColor = android.graphics.Color.parseColor("#374151")
-        }
-        val expenseSet = BarDataSet(expenseEntries, "Expenses").apply {
-            color = android.graphics.Color.parseColor("#EF4444")
-            valueTextColor = android.graphics.Color.parseColor("#374151")
+        val spendingDataSet = LineDataSet(spendingEntries, "Spending").apply {
+            color = android.graphics.Color.parseColor("#EF4444") // Red for spending
+            setCircleColor(android.graphics.Color.parseColor("#EF4444"))
+            lineWidth = 2f // Smaller line width
+            circleRadius = 3f
+            setDrawValues(false)
+            setDrawCircles(true)
+            setDrawCircleHole(false)
+            isHighlightEnabled = true
+            highLightColor = android.graphics.Color.parseColor("#B91C1C")
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+            cubicIntensity = 0.2f
+            setDrawFilled(false) // No fill for cleaner look
         }
 
-        val data = BarData(incomeSet, expenseSet).apply {
-            setValueTextSize(10f)
-            barWidth = 0.32f
+        val incomeDataSet = LineDataSet(incomeEntries, "Income").apply {
+            color = android.graphics.Color.parseColor("#10B981") // Green for income
+            setCircleColor(android.graphics.Color.parseColor("#10B981"))
+            lineWidth = 2f // Smaller line width
+            circleRadius = 3f
+            setDrawValues(false)
+            setDrawCircles(true)
+            setDrawCircleHole(false)
+            isHighlightEnabled = true
+            highLightColor = android.graphics.Color.parseColor("#059669")
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+            cubicIntensity = 0.2f
+            setDrawFilled(false) // No fill for cleaner look
         }
 
-        val groupSpace = 0.36f
-        val barSpace = 0.0f
+        val lineData = LineData(spendingDataSet, incomeDataSet)
 
-        chart.data = data
+        // Configure X-axis
         chart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
             setDrawGridLines(false)
-            valueFormatter = IndexAxisValueFormatter(months)
+            setDrawAxisLine(false)
+            valueFormatter = IndexAxisValueFormatter(dayLabels)
             granularity = 1f
             textColor = android.graphics.Color.parseColor("#6B7280")
+            textSize = 10f
+            setLabelCount(dayLabels.size, false)
         }
 
+        // Configure left Y-axis
+        chart.axisLeft.apply {
+            setDrawGridLines(true)
+            gridColor = android.graphics.Color.parseColor("#F3F4F6")
+            textColor = android.graphics.Color.parseColor("#6B7280")
+            textSize = 10f
+            axisMinimum = 0f
+            setDrawAxisLine(false)
+            setLabelCount(5, true)
+            valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    return when {
+                        value >= 100000 -> "₹${(value / 100000).toInt()}L"
+                        value >= 1000 -> "₹${(value / 1000).toInt()}K"
+                        else -> "₹${value.toInt()}"
+                    }
+                }
+            }
+        }
+
+        // Disable right Y-axis
+        chart.axisRight.isEnabled = false
+
+        // Configure legend to show both lines
         chart.legend.apply {
-            verticalAlignment = Legend.LegendVerticalAlignment.TOP
-            horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
-            orientation = Legend.LegendOrientation.HORIZONTAL
+            isEnabled = true
+            verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.TOP
+            horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER
+            orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL
             textColor = android.graphics.Color.parseColor("#374151")
+            textSize = 11f
             setDrawInside(false)
+            yOffset = -10f
         }
 
-        // Ensure proper grouping across x range [0, count)
-        chart.xAxis.axisMinimum = 0f
-        chart.xAxis.axisMaximum = 0f + data.getGroupWidth(groupSpace, barSpace) * months.size
-        chart.groupBars(0f, groupSpace, barSpace)
+        // Set data and refresh
+        chart.data = lineData
         chart.invalidate()
 
-        // Budget details navigation removed
+        android.util.Log.d("HomeFragment", "📊 Beautiful dual line chart (spending & income) rendered with ${dailyData.size} days of data")
     }
+
 
     private fun updateUI(state: HomeUiState) {
         android.util.Log.d("HomeFragment", "🎯 updateUI called with state:")
@@ -508,12 +547,6 @@ class HomeFragment : Fragment() {
                     "📊 Has transactions: ${state.hasTransactions}, Transaction count: ${state.transactionCount}"
                 )
 
-                // Update budget progress
-                val budgetProgress = if (state.budgetLimit > 0) {
-                    (state.budgetSpent / state.budgetLimit).toFloat()
-                } else 0f
-                progressBudget.progress = (budgetProgress * 100).toInt()
-                tvBudgetSpent.text = "₹${String.format("%.2f", state.budgetSpent)} spent"
 
                 // Hide no transactions card, show transaction data
                 cardNoTransactions.visibility = View.GONE
@@ -526,8 +559,6 @@ class HomeFragment : Fragment() {
                 // First time user - show import SMS prompt (removed balance display)
                 tvTotalIncome.text = "₹0.00"
                 tvTotalExpenses.text = "₹0.00"
-                tvBudgetSpent.text = "₹0.00 spent"
-                progressBudget.progress = 0
 
                 // Show SMS import card
                 cardSmsParser.visibility = View.VISIBLE

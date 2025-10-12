@@ -164,8 +164,12 @@ class HomeViewModel @Inject constructor(
                     transactionCount = 0
                 )
             }
+            
             val budgetSpent = 0.0
             val budgetLimit = 0.0
+            
+            // Generate daily spending data for current month
+            val dailySpendingData = generateDailySpendingForCurrentMonth(allTransactions)
             
             // Create new UI state
             val newState = _uiState.value.copy(
@@ -184,6 +188,7 @@ class HomeViewModel @Inject constructor(
                 currentMonthIncome = displayIncome,
                 currentMonthExpenses = displayExpenses,
                 currentMonthBalance = displayBalance,
+                dailySpendingData = dailySpendingData,
                 errorMessage = null
             )
             
@@ -421,4 +426,74 @@ class HomeViewModel @Inject constructor(
             0
         }
     }
+    
+    private fun generateDailySpendingForCurrentMonth(allTransactions: List<Transaction>): List<com.koshpal_android.koshpalapp.ui.home.model.DailySpendingData> {
+        val calendar = java.util.Calendar.getInstance()
+        val currentMonth = calendar.get(java.util.Calendar.MONTH)
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
+        
+        // Get first day of current month
+        calendar.set(currentYear, currentMonth, 1, 0, 0, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        val firstDayOfMonth = calendar.timeInMillis
+        
+        // Get last day of current month
+        calendar.add(java.util.Calendar.MONTH, 1)
+        calendar.add(java.util.Calendar.MILLISECOND, -1)
+        val lastDayOfMonth = calendar.timeInMillis
+        
+        // Filter transactions for current month (both expenses and income)
+        val currentMonthTransactions = allTransactions.filter { transaction ->
+            transaction.timestamp >= firstDayOfMonth && 
+            transaction.timestamp <= lastDayOfMonth
+        }
+        
+        // Get number of days in current month
+        calendar.set(currentYear, currentMonth, 1)
+        val daysInMonth = calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+        
+        val dailyData = mutableListOf<com.koshpal_android.koshpalapp.ui.home.model.DailySpendingData>()
+        
+        // Generate data for each day of the month
+        for (day in 1..daysInMonth) {
+            val dayStart = java.util.Calendar.getInstance().apply {
+                set(currentYear, currentMonth, day, 0, 0, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            
+            val dayEnd = java.util.Calendar.getInstance().apply {
+                set(currentYear, currentMonth, day, 23, 59, 59)
+                set(java.util.Calendar.MILLISECOND, 999)
+            }.timeInMillis
+            
+            val dayTransactions = currentMonthTransactions.filter { transaction ->
+                transaction.timestamp >= dayStart && transaction.timestamp <= dayEnd
+            }
+            
+            var totalSpent = 0.0
+            var totalIncome = 0.0
+            
+            dayTransactions.forEach { transaction ->
+                when (transaction.type) {
+                    TransactionType.CREDIT -> totalIncome += transaction.amount
+                    TransactionType.DEBIT, TransactionType.TRANSFER -> totalSpent += transaction.amount
+                }
+            }
+            
+            val dayLabel = if (day % 5 == 0 || day == 1 || day == daysInMonth) day.toString() else ""
+            
+            dailyData.add(
+                com.koshpal_android.koshpalapp.ui.home.model.DailySpendingData(
+                    day = day,
+                    dayLabel = dayLabel,
+                    totalSpent = totalSpent,
+                    totalIncome = totalIncome
+                )
+            )
+        }
+        
+        android.util.Log.d("HomeViewModel", "📊 Generated ${dailyData.size} days of spending data for current month")
+        return dailyData
+    }
+    
 }

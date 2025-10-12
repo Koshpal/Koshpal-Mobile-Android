@@ -21,7 +21,8 @@ data class HomeUiState(
     val availableMonths: List<MonthYearOption> = emptyList(),
     val currentMonthIncome: Double = 0.0,
     val currentMonthExpenses: Double = 0.0,
-    val currentMonthBalance: Double = 0.0
+    val currentMonthBalance: Double = 0.0,
+    val dailySpendingData: List<DailySpendingData> = emptyList()
 )
 
 data class MonthlySpendingData(
@@ -38,3 +39,11 @@ data class MonthYearOption(
     val displayName: String,
     val isCurrentMonth: Boolean = false
 )
+
+data class DailySpendingData(
+    val day: Int,
+    val dayLabel: String,
+    val totalSpent: Double,
+    val totalIncome: Double
+)
+
