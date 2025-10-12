@@ -1,5 +1,6 @@
 package com.koshpal_android.koshpalapp.ui.home.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ItemRecentTransactionBinding
 import com.koshpal_android.koshpalapp.model.Transaction
+import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -59,13 +61,11 @@ class RecentTransactionAdapter(
                 }
                 tvAmount.setTextColor(amountColor)
                 
-                // Set category icon and background color
-                val categoryInfo = getCategoryInfo(transaction.categoryId)
-                ivTransactionIcon.setImageResource(categoryInfo.icon)
-                cardCategoryIcon.setCardBackgroundColor(ContextCompat.getColor(root.context, categoryInfo.backgroundColor))
+                // Load and display category info using TransactionCategory system
+                loadCategoryInfo(transaction.categoryId)
                 
                 // Add visual indicator only for truly uncategorized transactions (empty categoryId)
-                if (transaction.categoryId.isEmpty()) {
+                if (transaction.categoryId.isNullOrEmpty()) {
                     tvMerchantName.text = "${transaction.merchant ?: "Unknown Merchant"} • Tap to categorize"
                 } else {
                     // All transactions with any categoryId (including "others") are considered categorized
@@ -78,30 +78,49 @@ class RecentTransactionAdapter(
             }
         }
         
-        private fun getCategoryInfo(categoryId: String?): CategoryInfo {
-            return when (categoryId) {
-                "food" -> CategoryInfo(R.drawable.ic_food_category, R.color.success)
-                "grocery" -> CategoryInfo(R.drawable.ic_food_category, R.color.primary)
-                "transport" -> CategoryInfo(R.drawable.ic_transport_category, R.color.warning)
-                "bills" -> CategoryInfo(R.drawable.ic_category_default, R.color.error)
-                "education" -> CategoryInfo(R.drawable.ic_info, R.color.secondary)
-                "entertainment" -> CategoryInfo(R.drawable.ic_category_default, R.color.secondary_light)
-                "healthcare" -> CategoryInfo(R.drawable.ic_category_default, R.color.success_light)
-                "shopping" -> CategoryInfo(R.drawable.ic_shopping_category, R.color.primary_light)
-                "salary" -> CategoryInfo(R.drawable.ic_trending_up, R.color.success)
-                "home" -> CategoryInfo(R.drawable.ic_home_category, R.color.success)
-                "trips" -> CategoryInfo(R.drawable.ic_trips_category, R.color.secondary)
-                "others" -> CategoryInfo(R.drawable.ic_more_vert, R.color.text_secondary)
-                else -> CategoryInfo(R.drawable.ic_more_vert, R.color.text_secondary)
+        private fun loadCategoryInfo(categoryId: String?) {
+            try {
+                val categories = TransactionCategory.getDefaultCategories()
+                val category = categories.find { it.id == categoryId }
+                
+                category?.let {
+                    // Set category icon
+                    binding.ivTransactionIcon.setImageResource(it.icon)
+                    
+                    // Set category icon background color
+                    try {
+                        val color = Color.parseColor(it.color)
+                        binding.cardCategoryIcon.setCardBackgroundColor(color)
+                        binding.ivTransactionIcon.setColorFilter(Color.WHITE)
+                    } catch (e: Exception) {
+                        // Fallback to default colors
+                        binding.cardCategoryIcon.setCardBackgroundColor(
+                            ContextCompat.getColor(binding.root.context, R.color.primary_light)
+                        )
+                        binding.ivTransactionIcon.setColorFilter(
+                            ContextCompat.getColor(binding.root.context, R.color.primary)
+                        )
+                    }
+                } ?: run {
+                    // Default category if not found
+                    binding.ivTransactionIcon.setImageResource(R.drawable.ic_category_default)
+                    binding.cardCategoryIcon.setCardBackgroundColor(
+                        ContextCompat.getColor(binding.root.context, R.color.surface_gray)
+                    )
+                    binding.ivTransactionIcon.setColorFilter(
+                        ContextCompat.getColor(binding.root.context, R.color.text_secondary)
+                    )
+                }
+            } catch (e: Exception) {
+                // Error handling
+                binding.ivTransactionIcon.setImageResource(R.drawable.ic_category_default)
+                binding.cardCategoryIcon.setCardBackgroundColor(
+                    ContextCompat.getColor(binding.root.context, R.color.surface_gray)
+                )
             }
         }
         
     }
-    
-    private data class CategoryInfo(
-        val icon: Int,
-        val backgroundColor: Int
-    )
 }
 
 private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {

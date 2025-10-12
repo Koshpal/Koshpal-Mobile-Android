@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/homeFragment"
-        android:icon="@drawable/ic_home"
-        android:title="Home" />
-    
+        android:id="@+id/home"
+        android:title="Home"
+        android:icon="@drawable/ic_home" />
+
     <item
-        android:id="@+id/transactionsFragment"
-        android:icon="@drawable/ic_payments"
-        android:title="Transactions" />
-    
+        android:id="@+id/shorts"
+        android:title="Shorts"
+        android:icon="@drawable/ic_shorts" />
+
     <item
-        android:id="@+id/budgetFragment"
-        android:icon="@drawable/ic_chart"
-        android:title="Budget" />
+        android:id="@+id/subscriptions"
+        android:title="Subscriptions"
+        android:icon="@drawable/ic_subscriptions" />
+
+    <item
+        android:id="@+id/library"
+        android:title="Library"
+        android:icon="@drawable/ic_library" />
 </menu>

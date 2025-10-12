@@ -30,63 +30,63 @@ data class TransactionCategory(
                 TransactionCategory(
                     id = "food",
                     name = "Food & Dining",
-                    icon = R.drawable.ic_menu_eat,
-                    color = "#FF6B35",
+                    icon = R.drawable.ic_food_dining,
+                    color = "#FF9800",
                     keywords = listOf("zomato", "swiggy", "restaurant", "cafe", "food", "dining", "pizza", "burger", "dominos", "kfc", "mcdonalds")
                 ),
                 TransactionCategory(
                     id = "grocery",
                     name = "Grocery",
-                    icon = R.drawable.ic_menu_gallery,
+                    icon = R.drawable.ic_grocery_cart,
                     color = "#4CAF50",
                     keywords = listOf("bigbasket", "grofers", "blinkit", "zepto", "dmart", "grocery", "supermarket", "vegetables", "fruits")
                 ),
                 TransactionCategory(
                     id = "transport",
                     name = "Transportation",
-                    icon = R.drawable.ic_menu_directions,
+                    icon = R.drawable.ic_transport_car,
                     color = "#2196F3",
                     keywords = listOf("uber", "ola", "metro", "bus", "petrol", "fuel", "taxi", "auto", "rapido", "namma yatri")
                 ),
                 TransactionCategory(
                     id = "bills",
                     name = "Bills & Utilities",
-                    icon = R.drawable.ic_category_default,
-                    color = "#FF9800",
+                    icon = R.drawable.ic_bills_receipt,
+                    color = "#FFC107",
                     keywords = listOf("electricity", "water", "gas", "internet", "mobile", "recharge", "broadband", "wifi", "postpaid")
                 ),
                 TransactionCategory(
                     id = "education",
                     name = "Education",
-                    icon = R.drawable.ic_info,
+                    icon = R.drawable.ic_education_book,
                     color = "#9C27B0",
                     keywords = listOf("fees", "course", "book", "education", "school", "college", "university", "tuition", "coaching")
                 ),
                 TransactionCategory(
                     id = "entertainment",
                     name = "Entertainment",
-                    icon = R.drawable.ic_category_default,
+                    icon = R.drawable.ic_entertainment_movie,
                     color = "#E91E63",
                     keywords = listOf("netflix", "amazon prime", "hotstar", "spotify", "movie", "cinema", "theatre", "gaming", "youtube premium")
                 ),
                 TransactionCategory(
                     id = "healthcare",
                     name = "Healthcare",
-                    icon = R.drawable.ic_category_default,
-                    color = "#F44336",
+                    icon = R.drawable.ic_healthcare_medical,
+                    color = "#00BCD4",
                     keywords = listOf("hospital", "doctor", "medicine", "pharmacy", "medical", "health", "clinic", "apollo", "fortis")
                 ),
                 TransactionCategory(
                     id = "shopping",
                     name = "Shopping",
-                    icon = R.drawable.ic_add,
+                    icon = R.drawable.ic_shopping_bag,
                     color = "#795548",
                     keywords = listOf("amazon", "flipkart", "myntra", "ajio", "shopping", "clothes", "fashion", "electronics", "gadgets")
                 ),
                 TransactionCategory(
                     id = "salary",
                     name = "Salary & Income",
-                    icon = R.drawable.ic_trending_up,
+                    icon = R.drawable.ic_salary_money,
                     color = "#4CAF50",
                     keywords = listOf("salary", "credited", "income", "bonus", "incentive", "refund", "cashback")
                 ),

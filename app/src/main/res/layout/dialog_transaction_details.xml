@@ -74,9 +74,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="12dp">
 
-                <!-- Merchant Name (Editable) -->
+                <!-- Merchant Name (Editable) - Compact -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilMerchant"
                     android:layout_width="match_parent"
@@ -91,20 +91,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@color/white"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
                         android:background="@android:color/transparent"
                         android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Amount (Editable) -->
+                <!-- Amount (Editable) - Compact -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="4dp">
 
                     <TextView
                         android:id="@+id/tvCurrency"
@@ -112,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:text="₹"
                         android:textColor="@color/white"
-                        android:textSize="24sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -121,14 +121,14 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         app:boxBackgroundMode="none"
-                        android:layout_marginStart="4dp">
+                        android:layout_marginStart="2dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etAmount"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="@color/white"
-                            android:textSize="24sp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             android:background="@android:color/transparent"
                             android:inputType="numberDecimal"
@@ -138,54 +138,75 @@
 
                 </LinearLayout>
 
-                <!-- Category Selection -->
-                <LinearLayout
-                    android:id="@+id/layoutCategorySelection"
+                <!-- Category Selection - Compact -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardCategorySelection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/rounded_background_white_20"
-                    android:padding="12dp"
+                    android:layout_marginTop="8dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="1dp"
+                    app:cardBackgroundColor="@color/white_20"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
 
-                    <ImageView
-                        android:id="@+id/ivCategoryIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_category"
-                        android:tint="@color/white" />
-
-                    <TextView
-                        android:id="@+id/tvCategory"
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:id="@+id/layoutCategorySelection"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Shopping"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:layout_marginStart="8dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="8dp">
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_arrow_right"
-                        android:tint="@color/white_70" />
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardCategoryIcon"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="@color/white">
 
-                </LinearLayout>
+                            <ImageView
+                                android:id="@+id/ivCategoryIcon"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_category_default"
+                                android:tint="@color/primary" />
 
-                <!-- Date -->
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:id="@+id/tvCategory"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Shopping"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp" />
+
+                        <ImageView
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            android:tint="@color/white_70" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Date - Compact -->
                 <TextView
                     android:id="@+id/tvDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Mon, 6th Oct, 11:00 pm"
                     android:textColor="@color/white_70"
-                    android:textSize="14sp"
-                    android:layout_marginTop="8dp" />
+                    android:textSize="11sp"
+                    android:layout_marginTop="6dp" />
 
             </LinearLayout>
 
@@ -397,14 +418,25 @@
                         android:textStyle="bold"
                         android:layout_marginStart="8dp" />
 
-                    <ImageView
-                        android:id="@+id/btnAddTag"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_add"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:padding="4dp"
-                        android:tint="@color/primary" />
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="@color/primary"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:id="@+id/btnAddTag"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_add"
+                            android:tint="@color/white" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 

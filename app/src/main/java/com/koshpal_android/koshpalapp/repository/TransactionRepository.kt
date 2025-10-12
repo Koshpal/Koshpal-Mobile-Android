@@ -4,12 +4,14 @@ import com.koshpal_android.koshpalapp.data.local.dao.TransactionDao
 import com.koshpal_android.koshpalapp.data.local.dao.CategoryDao
 import com.koshpal_android.koshpalapp.data.local.dao.BudgetNewDao
 import com.koshpal_android.koshpalapp.data.local.dao.BudgetCategoryNewDao
+import com.koshpal_android.koshpalapp.data.local.dao.CashFlowTransactionDao
 import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.model.Budget
 import com.koshpal_android.koshpalapp.model.BudgetCategory
+import com.koshpal_android.koshpalapp.model.CashFlowTransaction
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +26,7 @@ class TransactionRepository @Inject constructor(
     private val categoryDao: CategoryDao,
     private val budgetDao: BudgetNewDao,
     private val budgetCategoryDao: BudgetCategoryNewDao,
+    private val cashFlowTransactionDao: CashFlowTransactionDao,
     private val categorizationEngine: TransactionCategorizationEngine
 ) {
     
@@ -604,5 +607,26 @@ class TransactionRepository @Inject constructor(
 
     suspend fun clearBudgetCategoriesForBudget(budgetId: Int) {
         budgetCategoryDao.clearForBudget(budgetId)
+    }
+
+    // Cash Flow Transaction Methods
+    suspend fun addToCashFlow(transactionId: String) {
+        val cashFlowTransaction = CashFlowTransaction(
+            id = UUID.randomUUID().toString(),
+            transactionId = transactionId
+        )
+        cashFlowTransactionDao.insertCashFlowTransaction(cashFlowTransaction)
+    }
+
+    suspend fun removeFromCashFlow(transactionId: String) {
+        cashFlowTransactionDao.deleteCashFlowTransactionByTransactionId(transactionId)
+    }
+
+    suspend fun isCashFlowTransaction(transactionId: String): Boolean {
+        return cashFlowTransactionDao.isCashFlowTransaction(transactionId)
+    }
+
+    suspend fun getCashFlowTransactions(): List<Transaction> {
+        return cashFlowTransactionDao.getCashFlowTransactionsWithDetails()
     }
 }

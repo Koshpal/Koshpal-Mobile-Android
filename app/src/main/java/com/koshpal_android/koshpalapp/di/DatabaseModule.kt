@@ -22,7 +22,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             KoshpalDatabase::class.java,
-            "koshpal_database_v6"
+            "koshpal_database_v7"
         ).fallbackToDestructiveMigration()
          .fallbackToDestructiveMigrationOnDowngrade()
          .build()
@@ -57,6 +57,11 @@ object DatabaseModule {
     @Provides
     fun provideBudgetCategoryNewDao(database: KoshpalDatabase): BudgetCategoryNewDao {
         return database.budgetCategoryNewDao()
+    }
+    
+    @Provides
+    fun provideCashFlowTransactionDao(database: KoshpalDatabase): CashFlowTransactionDao {
+        return database.cashFlowTransactionDao()
     }
     
     @Provides
