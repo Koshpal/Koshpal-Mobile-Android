@@ -16,17 +16,25 @@
         android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- Transaction Icon -->
-        <ImageView
-            android:id="@+id/ivTransactionIcon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="12dp"
-            android:src="@drawable/ic_payments"
-            android:background="@drawable/circle_shape"
-            android:backgroundTint="@color/primary_light"
-            android:padding="8dp"
-            android:scaleType="centerInside" />
+        <!-- Category Icon with Background -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCategoryIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="16dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/primary_light">
+
+            <ImageView
+                android:id="@+id/ivCategoryIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_category_default"
+                android:tint="@color/primary" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Transaction Details -->
         <LinearLayout
@@ -35,24 +43,42 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvMerchant"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Amazon"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvMerchant"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Amazon"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <ImageView
+                    android:id="@+id/ivStarred"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_star_filled"
+                    android:tint="@color/warning"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tvDescription"
+                android:id="@+id/tvCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Online purchase"
+                android:text="Shopping"
                 android:textColor="@color/text_secondary"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:layout_marginTop="2dp"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -68,15 +94,32 @@
 
         </LinearLayout>
 
-        <!-- Amount -->
-        <TextView
-            android:id="@+id/tvAmount"
+        <!-- Amount and Type -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-₹1,250.00"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginStart="8dp" />
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-₹1,250.00"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTransactionType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expense"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

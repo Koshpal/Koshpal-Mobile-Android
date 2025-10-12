@@ -50,7 +50,6 @@ class SetMonthlyBudgetFragment : Fragment() {
 
         setupUI()
         setupRecyclerView()
-        loadExistingBudget()
     }
 
     private fun setupUI() {
@@ -68,8 +67,15 @@ class SetMonthlyBudgetFragment : Fragment() {
         }
     }
 
+    private fun setupMonthPicker() {
+        // Add month picker functionality if needed in future
+    }
+
     private fun setupRecyclerView() {
-        setBudgetCategoryAdapter = SetBudgetCategoryAdapter()
+        setBudgetCategoryAdapter = SetBudgetCategoryAdapter { 
+            // Callback when budget amounts change
+            updateTotalBudget()
+        }
         
         binding.rvCategories.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -87,6 +93,12 @@ class SetMonthlyBudgetFragment : Fragment() {
         
         val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
         binding.tvMonth.text = monthFormat.format(calendar.time)
+    }
+
+    private fun updateTotalBudget() {
+        val categoryBudgets = setBudgetCategoryAdapter.getCategoryBudgets()
+        val totalBudget = categoryBudgets.sumOf { it.budgetAmount }
+        binding.tvTotalBudget.text = "₹${String.format("%.0f", totalBudget)}"
     }
 
     private fun loadCategoriesWithSpending() {
@@ -129,6 +141,9 @@ class SetMonthlyBudgetFragment : Fragment() {
                 }
 
                 setBudgetCategoryAdapter.submitList(categoryBudgetItems)
+                
+                // Load existing budget after categories are loaded
+                loadExistingBudget()
 
             } catch (e: Exception) {
                 android.util.Log.e("SetMonthlyBudgetFragment", "Failed to load categories: ${e.message}")
@@ -142,14 +157,15 @@ class SetMonthlyBudgetFragment : Fragment() {
             try {
                 val existingBudget = transactionRepository.getSingleBudget()
                 existingBudget?.let { budget ->
-                    binding.etTotalBudget.setText(budget.totalBudget.toString())
-                    
                     // Load existing category budgets
                     val categoryBudgets = transactionRepository.getCategoriesForBudget(budget.id)
                     val budgetMap = categoryBudgets.associateBy { it.name }
                     
                     // Update adapter with existing budget amounts
                     setBudgetCategoryAdapter.updateBudgetAmounts(budgetMap)
+                    
+                    // Update total budget display
+                    updateTotalBudget()
                 }
             } catch (e: Exception) {
                 android.util.Log.e("SetMonthlyBudgetFragment", "Failed to load existing budget: ${e.message}")
@@ -160,38 +176,22 @@ class SetMonthlyBudgetFragment : Fragment() {
     private fun saveBudget() {
         lifecycleScope.launch {
             try {
-                val totalBudgetText = binding.etTotalBudget.text.toString()
-                if (totalBudgetText.isEmpty()) {
-                    Toast.makeText(requireContext(), "Please enter total budget", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                val totalBudget = totalBudgetText.toDoubleOrNull()
-                if (totalBudget == null || totalBudget <= 0) {
-                    Toast.makeText(requireContext(), "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
                 // Get category budget amounts from adapter
                 val categoryBudgets = setBudgetCategoryAdapter.getCategoryBudgets()
-                val totalCategoryBudgets = categoryBudgets.sumOf { it.budgetAmount }
+                val totalBudget = categoryBudgets.sumOf { it.budgetAmount }
 
-                if (totalCategoryBudgets > totalBudget) {
-                    Toast.makeText(
-                        requireContext(), 
-                        "Category budgets (₹${String.format("%.0f", totalCategoryBudgets)}) exceed total budget", 
-                        Toast.LENGTH_LONG
-                    ).show()
+                if (totalBudget <= 0) {
+                    Toast.makeText(requireContext(), "Please set budget for at least one category", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
                 // Clear existing budget
                 transactionRepository.clearBudgets()
 
-                // Create new budget
+                // Create new budget (savings will be 0 since total equals sum of categories)
                 val budget = Budget(
                     totalBudget = totalBudget,
-                    savings = totalBudget - totalCategoryBudgets
+                    savings = 0.0
                 )
                 val budgetId = transactionRepository.insertBudget(budget)
 

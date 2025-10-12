@@ -14,6 +14,7 @@ import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
+import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -116,10 +117,15 @@ class CategoryDetailsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        transactionsAdapter = TransactionAdapter { transaction ->
-            // Show categorization dialog when transaction is clicked
-            showTransactionCategorizationDialog(transaction)
-        }
+        transactionsAdapter = TransactionAdapter(
+            onTransactionClick = { transaction ->
+                // Show enhanced transaction details dialog when transaction is clicked
+                showTransactionDetailsDialog(transaction)
+            },
+            onTransactionDelete = { _, _ ->
+                // No delete functionality in category details view
+            }
+        )
 
         binding.rvTransactions.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -204,6 +210,40 @@ class CategoryDetailsFragment : Fragment() {
         binding.rvTransactions.visibility = View.VISIBLE
         binding.layoutEmpty.visibility = View.GONE
         transactionsAdapter.submitList(transactions)
+    }
+
+    private fun showTransactionDetailsDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {
+        val dialog = TransactionDetailsDialog.newInstance(transaction) { updatedTransaction ->
+            // Update transaction in database
+            lifecycleScope.launch {
+                try {
+                    transactionRepository.updateTransaction(updatedTransaction)
+                    android.util.Log.d("CategoryDetails", "✅ Transaction updated successfully")
+                    
+                    Toast.makeText(
+                        requireContext(),
+                        "Transaction updated successfully",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    
+                    // Refresh the list
+                    loadTransactions()
+                    
+                    // Refresh the categories fragment data
+                    (activity as? HomeActivity)?.refreshCategoriesData()
+                    
+                } catch (e: Exception) {
+                    android.util.Log.e("CategoryDetails", "❌ Failed to update transaction: ${e.message}")
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to update transaction",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+        
+        dialog.show(parentFragmentManager, "TransactionDetailsDialog")
     }
 
     private fun showTransactionCategorizationDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {

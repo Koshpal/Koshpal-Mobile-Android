@@ -49,7 +49,23 @@ data class Transaction(
     @ColumnInfo(name = "isManuallySet")
     val isManuallySet: Boolean = false,
     @ColumnInfo(name = "bankName")
-    val bankName: String? = null
+    val bankName: String? = null,
+    @ColumnInfo(name = "notes")
+    val notes: String? = null,
+    @ColumnInfo(name = "attachmentPath")
+    val attachmentPath: String? = null,
+    @ColumnInfo(name = "tags")
+    val tags: String? = null, // Comma-separated tags
+    @ColumnInfo(name = "isStarred")
+    val isStarred: Boolean = false,
+    @ColumnInfo(name = "isBankEnabled")
+    val isBankEnabled: Boolean = true,
+    @ColumnInfo(name = "originalAmount")
+    val originalAmount: Double? = null,
+    @ColumnInfo(name = "originalMerchant")
+    val originalMerchant: String? = null,
+    @ColumnInfo(name = "isCashFlow")
+    val isCashFlow: Boolean = false
 ) {
     val timestamp: Long
         get() = date

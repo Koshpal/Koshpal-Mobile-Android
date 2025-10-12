@@ -12,7 +12,9 @@ import com.koshpal_android.koshpalapp.databinding.ItemSetBudgetCategoryBinding
 import com.koshpal_android.koshpalapp.model.BudgetCategory
 import com.koshpal_android.koshpalapp.ui.categories.SetMonthlyBudgetFragment
 
-class SetBudgetCategoryAdapter : ListAdapter<SetMonthlyBudgetFragment.CategoryBudgetItem, SetBudgetCategoryAdapter.ViewHolder>(DiffCallback()) {
+class SetBudgetCategoryAdapter(
+    private val onBudgetChanged: () -> Unit = {}
+) : ListAdapter<SetMonthlyBudgetFragment.CategoryBudgetItem, SetBudgetCategoryAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemSetBudgetCategoryBinding.inflate(
@@ -40,7 +42,10 @@ class SetBudgetCategoryAdapter : ListAdapter<SetMonthlyBudgetFragment.CategoryBu
                 item
             }
         }
-        submitList(updatedList)
+        submitList(updatedList) {
+            // Notify budget changed after list is updated
+            onBudgetChanged()
+        }
     }
 
     inner class ViewHolder(private val binding: ItemSetBudgetCategoryBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -85,6 +90,8 @@ class SetBudgetCategoryAdapter : ListAdapter<SetMonthlyBudgetFragment.CategoryBu
                     val position = bindingAdapterPosition
                     if (position != RecyclerView.NO_POSITION && position < currentList.size) {
                         currentList[position].budgetAmount = budgetAmount
+                        // Notify that budget has changed
+                        onBudgetChanged()
                     }
                 }
             }
