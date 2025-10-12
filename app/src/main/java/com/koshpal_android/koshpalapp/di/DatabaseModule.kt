@@ -23,8 +23,9 @@ object DatabaseModule {
             context.applicationContext,
             KoshpalDatabase::class.java,
             "koshpal_database_v7"
-        ).fallbackToDestructiveMigration()
-         .fallbackToDestructiveMigrationOnDowngrade()
+        )// Remove destructive migration to preserve budget data
+         // .fallbackToDestructiveMigration()
+         // .fallbackToDestructiveMigrationOnDowngrade()
          .build()
     }
     

@@ -14,6 +14,9 @@ import com.koshpal_android.koshpalapp.model.BudgetCategory
 import com.koshpal_android.koshpalapp.model.CashFlowTransaction
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
+import com.koshpal_android.koshpalapp.utils.BudgetMonitor
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.util.*
@@ -27,7 +30,8 @@ class TransactionRepository @Inject constructor(
     private val budgetDao: BudgetNewDao,
     private val budgetCategoryDao: BudgetCategoryNewDao,
     private val cashFlowTransactionDao: CashFlowTransactionDao,
-    private val categorizationEngine: TransactionCategorizationEngine
+    private val categorizationEngine: TransactionCategorizationEngine,
+    @ApplicationContext private val context: Context
 ) {
     
     
@@ -120,6 +124,14 @@ class TransactionRepository @Inject constructor(
     
     suspend fun updateTransaction(transaction: Transaction) {
         transactionDao.updateTransaction(transaction)
+        
+        // Check budget status after transaction update
+        try {
+            val budgetMonitor = BudgetMonitor.getInstance(context)
+            budgetMonitor.checkBudgetStatus(transaction)
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Failed to check budget status after update", e)
+        }
     }
     
     suspend fun deleteTransaction(transaction: Transaction) {
@@ -201,6 +213,15 @@ class TransactionRepository @Inject constructor(
                 
                 if (updatedTransaction?.categoryId == categoryId) {
                     android.util.Log.d("TransactionRepository", "✅ VERIFICATION SUCCESS: Category update confirmed")
+                    
+                    // CRITICAL FIX: Trigger budget monitoring after category update
+                    try {
+                        val budgetMonitor = BudgetMonitor.getInstance(context)
+                        budgetMonitor.checkBudgetStatus(updatedTransaction)
+                        android.util.Log.d("TransactionRepository", "💰 Budget monitoring triggered after category update")
+                    } catch (e: Exception) {
+                        android.util.Log.e("TransactionRepository", "❌ Failed to trigger budget monitoring after category update", e)
+                    }
                 } else {
                     android.util.Log.e("TransactionRepository", "❌ VERIFICATION FAILED: Expected '$categoryId', got '${updatedTransaction?.categoryId}'")
                 }
@@ -628,5 +649,18 @@ class TransactionRepository @Inject constructor(
 
     suspend fun getCashFlowTransactions(): List<Transaction> {
         return cashFlowTransactionDao.getCashFlowTransactionsWithDetails()
+    }
+    
+    /**
+     * Manually trigger budget monitoring - useful for testing or manual checks
+     */
+    suspend fun triggerBudgetMonitoring() {
+        try {
+            val budgetMonitor = BudgetMonitor.getInstance(context)
+            budgetMonitor.checkBudgetStatus()
+            android.util.Log.d("TransactionRepository", "💰 Manual budget monitoring triggered")
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Failed to trigger manual budget monitoring", e)
+        }
     }
 }

@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".Application"
@@ -67,6 +68,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".ui.notification.NotificationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KoshpalApp.Notification"
+            android:screenOrientation="portrait" />
+
         <receiver
             android:name=".utils.TransactionSMSReceiver"
             android:enabled="true"
@@ -75,6 +82,11 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
+        
+        <receiver
+            android:name=".utils.NotificationDeleteReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Shadow/Elevation -->
+    <item android:top="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#20000000" />
+            <corners
+                android:topLeftRadius="28dp"
+                android:topRightRadius="28dp" />
+        </shape>
+    </item>
+    
+    <!-- Main background with curved cutout for center button -->
+    <item android:top="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/white" />
+            <corners
+                android:topLeftRadius="28dp"
+                android:topRightRadius="28dp" />
+        </shape>
+    </item>
+    
+    <!-- Center cutout area (transparent) -->
+    <item 
+        android:top="4dp"
+        android:left="0dp"
+        android:right="0dp"
+        android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    
+</layer-list>

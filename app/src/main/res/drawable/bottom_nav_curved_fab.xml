@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="400dp"
+    android:height="90dp"
+    android:viewportWidth="400"
+    android:viewportHeight="90">
+    
+    <!-- Shadow -->
+    <path
+        android:fillColor="#30000000"
+        android:pathData="M0,6 L0,90 L400,90 L400,6 Q200,-20 0,6 Z" />
+    
+    <!-- Main background with notch -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M0,36 Q0,0 36,0 L164,0 Q200,-32 236,0 L364,0 Q400,0 400,36 L400,90 L0,90 Z" />
+        
+</vector>

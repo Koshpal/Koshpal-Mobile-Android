@@ -646,6 +646,62 @@
                     app:cornerRadius="12dp"
                     app:backgroundTint="@color/secondary" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestBudget"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Test Budget"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="2dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="@color/primary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCheckBudget"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Check Budget"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:layout_marginHorizontal="2dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="@color/secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestNotification"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Test Alert"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:layout_marginStart="2dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#FF5722" />
+
+                </LinearLayout>
+
+                <!-- Comprehensive Test Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTestAllThresholds"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🧪 Test All Thresholds and Categories"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    app:cornerRadius="12dp"
+                    app:backgroundTint="#9C27B0" />
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

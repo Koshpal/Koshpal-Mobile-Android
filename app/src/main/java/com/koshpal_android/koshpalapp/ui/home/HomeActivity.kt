@@ -12,7 +12,13 @@ import com.koshpal_android.koshpalapp.ui.categories.CategoryDetailsFragment
 import com.koshpal_android.koshpalapp.ui.bank.BankTransactionsFragment
 import com.koshpal_android.koshpalapp.ui.insights.InsightsFragment
 import com.koshpal_android.koshpalapp.ui.profile.ProfileFragment
+import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
+import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
+import com.koshpal_android.koshpalapp.model.Transaction
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
@@ -34,22 +40,28 @@ class HomeActivity : AppCompatActivity() {
 
         replaceFragment(homeFragment)
 
+        // Set bottom navigation background to null (required for BottomAppBar)
+        binding.bottomNavigation.background = null
+        
+        // Disable the placeholder menu item (center position for FAB cradle)
+        binding.bottomNavigation.menu.getItem(2).isEnabled = false
+        
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home -> {
                     replaceFragment(homeFragment)
                     true
                 }
-                R.id.shorts -> {
-                    replaceFragment(insightsFragment) // Map to a fragment (e.g., Shorts)
+                R.id.transactions -> {
+                    replaceFragment(transactionsFragment)
                     true
                 }
-                R.id.subscriptions -> {
-                    replaceFragment(categoriesFragment) // Map to a fragment (e.g., Subscriptions)
+                R.id.budget -> {
+                    replaceFragment(categoriesFragment) // Budget shows categories
                     true
                 }
-                R.id.library -> {
-                    replaceFragment(profileFragment) // Map to a fragment (e.g., Library)
+                R.id.profile -> {
+                    replaceFragment(profileFragment)
                     true
                 }
                 else -> false
@@ -57,8 +69,8 @@ class HomeActivity : AppCompatActivity() {
         }
 
         binding.fabCenter.setOnClickListener {
-            // Handle FAB action (e.g., open a new fragment or dialog)
-            replaceFragment(transactionsFragment) // Example action
+            // Handle FAB action - Quick add transaction or navigate to transactions
+            replaceFragment(transactionsFragment)
         }
 
         // Check if coming from SMS processing - refresh categories data
@@ -75,6 +87,36 @@ class HomeActivity : AppCompatActivity() {
                     android.util.Log.e("HomeActivity", "❌ Error refreshing categories: ${e.message}", e)
                 }
             }, 1500)
+        }
+
+        // Check if coming from notification click - open transaction dialog
+        val openTransactionDialog = intent.getBooleanExtra("open_transaction_dialog", false)
+        val transactionId = intent.getStringExtra("transaction_id")
+        if (openTransactionDialog && transactionId != null) {
+            android.util.Log.d("HomeActivity", "🔔 ===== NOTIFICATION CLICK DETECTED =====")
+            android.util.Log.d("HomeActivity", "📱 Opening transaction dialog for ID: $transactionId")
+
+            // Navigate to transactions fragment first
+            replaceFragment(transactionsFragment)
+
+            // Then open the transaction dialog after a short delay
+            binding.root.postDelayed({
+                try {
+                    openTransactionDetailsDialog(transactionId)
+                } catch (e: Exception) {
+                    android.util.Log.e("HomeActivity", "❌ Error opening transaction dialog: ${e.message}", e)
+                }
+            }, 500)
+        }
+        
+        // Check if coming from budget notification click - open budget fragment
+        val openBudgetFragment = intent.getBooleanExtra("open_budget_fragment", false)
+        if (openBudgetFragment) {
+            android.util.Log.d("HomeActivity", "💰 ===== BUDGET NOTIFICATION CLICK DETECTED =====")
+            android.util.Log.d("HomeActivity", "📱 Opening budget fragment")
+
+            // Navigate to budget fragment
+            replaceFragment(budgetFragment)
         }
     }
 
@@ -131,7 +173,7 @@ class HomeActivity : AppCompatActivity() {
             year = year
         )
 
-        binding.bottomNavigationContainer.visibility = android.view.View.GONE
+        binding.bottomNavigation.visibility = android.view.View.GONE
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, categoryDetailsFragment)
@@ -142,7 +184,7 @@ class HomeActivity : AppCompatActivity() {
     fun navigateBackFromCategoryDetails() {
         android.util.Log.d("HomeActivity", "🔙 Navigating back from category details")
 
-        binding.bottomNavigationContainer.visibility = android.view.View.VISIBLE
+        binding.bottomNavigation.visibility = android.view.View.VISIBLE
         supportFragmentManager.popBackStack()
         refreshCategoriesData()
     }
@@ -157,7 +199,7 @@ class HomeActivity : AppCompatActivity() {
             .addToBackStack("bank_transactions")
             .commit()
 
-        binding.bottomNavigationContainer.visibility = android.view.View.GONE
+        binding.bottomNavigation.visibility = android.view.View.GONE
     }
 
     fun showSetMonthlyBudgetFragment() {
@@ -165,7 +207,7 @@ class HomeActivity : AppCompatActivity() {
 
         val setMonthlyBudgetFragment = com.koshpal_android.koshpalapp.ui.categories.SetMonthlyBudgetFragment()
 
-        binding.bottomNavigationContainer.visibility = android.view.View.GONE
+        binding.bottomNavigation.visibility = android.view.View.GONE
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, setMonthlyBudgetFragment)
@@ -173,9 +215,56 @@ class HomeActivity : AppCompatActivity() {
             .commit()
     }
 
+    private fun openTransactionDetailsDialog(transactionId: String) {
+        android.util.Log.d("HomeActivity", "🔍 Opening transaction dialog for ID: $transactionId")
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val database = KoshpalDatabase.getDatabase(this@HomeActivity)
+                val transactionDao = database.transactionDao()
+                val transaction = transactionDao.getTransactionById(transactionId)
+                
+                if (transaction != null) {
+                    android.util.Log.d("HomeActivity", "✅ Found transaction: ${transaction.merchant} - ₹${transaction.amount}")
+                    
+                    // Switch to main thread to show dialog
+                    runOnUiThread {
+                        val dialog = TransactionDetailsDialog.newInstance(transaction) { updatedTransaction ->
+                            android.util.Log.d("HomeActivity", "📝 Transaction updated from notification dialog")
+                            // Optionally refresh the transactions fragment
+                            if (transactionsFragment.isAdded) {
+                                // Refresh transactions fragment if needed
+                                android.util.Log.d("HomeActivity", "🔄 Transaction updated, fragment refresh may be needed")
+                            }
+                        }
+                        dialog.show(supportFragmentManager, "TransactionDetailsDialog")
+                    }
+                } else {
+                    android.util.Log.w("HomeActivity", "⚠️ Transaction not found with ID: $transactionId")
+                    runOnUiThread {
+                        android.widget.Toast.makeText(
+                            this@HomeActivity,
+                            "Transaction not found",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeActivity", "❌ Error opening transaction dialog", e)
+                runOnUiThread {
+                    android.widget.Toast.makeText(
+                        this@HomeActivity,
+                        "Error opening transaction details",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
-            binding.bottomNavigationContainer.visibility = android.view.View.VISIBLE
+            binding.bottomNavigation.visibility = android.view.View.VISIBLE
             supportFragmentManager.popBackStack()
         } else {
             super.onBackPressed()

@@ -120,6 +120,24 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 
                                                 Log.d("TransactionSMS", "🎉 NEW TRANSACTION CREATED: ₹${details.amount} at ${details.merchant}")
                                                 Log.d("TransactionSMS", "💾 Transaction saved to database successfully")
+                                                
+                                                // Send notification for new transaction
+                                                try {
+                                                    val notificationManager = KoshpalNotificationManager.getInstance(ctx)
+                                                    notificationManager.showTransactionNotification(transaction)
+                                                    Log.d("TransactionSMS", "🔔 Notification sent for new transaction")
+                                                } catch (e: Exception) {
+                                                    Log.e("TransactionSMS", "❌ Failed to send notification", e)
+                                                }
+                                                
+                                                // Check budget status after new transaction
+                                                try {
+                                                    val budgetMonitor = BudgetMonitor.getInstance(ctx)
+                                                    budgetMonitor.checkBudgetStatus(transaction)
+                                                    Log.d("TransactionSMS", "💰 Budget status checked for new transaction")
+                                                } catch (e: Exception) {
+                                                    Log.e("TransactionSMS", "❌ Failed to check budget status", e)
+                                                }
                                             } else {
                                                 Log.d("TransactionSMS", "⚠️ Could not extract valid transaction data")
                                                 paymentSmsDao.markAsProcessed(paymentSms.id)

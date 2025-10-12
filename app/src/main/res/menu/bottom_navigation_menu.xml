@@ -6,17 +6,21 @@
         android:icon="@drawable/ic_home" />
 
     <item
-        android:id="@+id/shorts"
-        android:title="Shorts"
-        android:icon="@drawable/ic_shorts" />
+        android:id="@+id/transactions"
+        android:title="Transactions"
+        android:icon="@drawable/ic_payments" />
 
     <item
-        android:id="@+id/subscriptions"
-        android:title="Subscriptions"
-        android:icon="@drawable/ic_subscriptions" />
+        android:id="@+id/placeholder"
+        android:title="" />
 
     <item
-        android:id="@+id/library"
-        android:title="Library"
-        android:icon="@drawable/ic_library" />
+        android:id="@+id/budget"
+        android:title="Budget"
+        android:icon="@drawable/ic_chart" />
+
+    <item
+        android:id="@+id/profile"
+        android:title="Profile"
+        android:icon="@drawable/ic_person" />
 </menu>

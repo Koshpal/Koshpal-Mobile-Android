@@ -233,6 +233,22 @@ class HomeFragment : Fragment() {
             btnParseSms.setOnClickListener {
                 createSampleTransactions()
             }
+            
+            btnTestBudget.setOnClickListener {
+                testBudgetNotifications()
+            }
+            
+            btnCheckBudget.setOnClickListener {
+                checkBudgetNow()
+            }
+            
+            btnTestNotification.setOnClickListener {
+                testBudgetNotification()
+            }
+            
+            btnTestAllThresholds.setOnClickListener {
+                testAllThresholdsAndCategories()
+            }
 
             // LONG PRESS financial card to trigger auto-categorization + show debug info
             cardFinancialOverview.setOnLongClickListener {
@@ -1002,6 +1018,147 @@ class HomeFragment : Fragment() {
         }
         
         dialog.show(parentFragmentManager, "TransactionDetailsDialog")
+    }
+
+    private fun checkBudgetNow() {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("HomeFragment", "💰 ===== MANUAL BUDGET CHECK =====")
+                
+                // First, let's check what's in the database directly
+                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                val budgetDao = database.budgetNewDao()
+                val budgetCategoryDao = database.budgetCategoryNewDao()
+                
+                val budget = budgetDao.getSingleBudget()
+                android.util.Log.d("HomeFragment", "🔍 Direct DB check - Budget: $budget")
+                
+                if (budget != null) {
+                    val categories = budgetCategoryDao.getCategoriesForBudget(budget.id)
+                    android.util.Log.d("HomeFragment", "🔍 Direct DB check - Categories: ${categories.size}")
+                    categories.forEach { category ->
+                        android.util.Log.d("HomeFragment", "   - ${category.name}: ₹${category.allocatedAmount}")
+                    }
+                } else {
+                    android.util.Log.d("HomeFragment", "🔍 Direct DB check - NO BUDGET FOUND!")
+                }
+                
+                // Get budget info first
+                val budgetMonitor = com.koshpal_android.koshpalapp.utils.BudgetMonitor.getInstance(requireContext())
+                val budgetInfo = budgetMonitor.getBudgetInfo()
+                
+                // Trigger budget monitoring manually
+                transactionRepository.triggerBudgetMonitoring()
+                
+                val message = buildString {
+                    append("💰 BUDGET CHECK COMPLETED:\n\n")
+                    append("📊 Current Budget Info:\n")
+                    append(budgetInfo)
+                    append("\n\n✅ Budget monitoring triggered!\n\n")
+                    append("🔍 Checking all budget categories:\n")
+                    append("• Calculating current spending\n")
+                    append("• Checking 50%, 90%, 100% thresholds\n")
+                    append("• Sending notifications if needed\n\n")
+                    append("Check your notifications for any budget alerts!")
+                }
+                
+                showMessage(message)
+                
+            } catch (e: Exception) {
+                showErrorMessage("Budget check failed: ${e.message}")
+                android.util.Log.e("HomeFragment", "Budget check error: ${e.message}", e)
+            }
+        }
+    }
+    
+    private fun testBudgetNotification() {
+        try {
+            android.util.Log.d("HomeFragment", "🧪 ===== TESTING BUDGET NOTIFICATION =====")
+            
+            val budgetMonitor = com.koshpal_android.koshpalapp.utils.BudgetMonitor.getInstance(requireContext())
+            budgetMonitor.sendTestBudgetNotification()
+            
+            val message = buildString {
+                append("🧪 TEST NOTIFICATION SENT:\n\n")
+                append("✅ Test budget notification triggered!\n\n")
+                append("📱 Check your notification panel\n")
+                append("🔔 You should see a test budget alert\n\n")
+                append("If you don't see the notification:\n")
+                append("• Check notification permissions\n")
+                append("• Check if notifications are enabled\n")
+                append("• Check notification settings")
+            }
+            
+            showMessage(message)
+            
+        } catch (e: Exception) {
+            showErrorMessage("Test notification failed: ${e.message}")
+            android.util.Log.e("HomeFragment", "Test notification error: ${e.message}", e)
+        }
+    }
+
+    private fun testAllThresholdsAndCategories() {
+        try {
+            android.util.Log.d("HomeFragment", "🧪 ===== TESTING ALL THRESHOLDS & CATEGORIES =====")
+            
+            val budgetMonitor = com.koshpal_android.koshpalapp.utils.BudgetMonitor.getInstance(requireContext())
+            budgetMonitor.testAllThresholdsAndCategories()
+            
+            val message = buildString {
+                append("🧪 COMPREHENSIVE TEST STARTED:\n\n")
+                append("✅ Testing all thresholds & categories!\n\n")
+                append("📊 Testing 9 categories × 3 thresholds = 27 notifications\n\n")
+                append("🔔 Check your notification panel for:\n")
+                append("• 40% warnings (9 notifications)\n")
+                append("• 90% alerts (9 notifications)\n")
+                append("• 100% exceeded (9 notifications)\n\n")
+                append("Categories tested:\n")
+                append("• Food & Dining, Grocery, Transportation\n")
+                append("• Entertainment, Bills & Utilities, Education\n")
+                append("• Healthcare, Shopping, Others")
+            }
+            
+            showMessage(message)
+            
+        } catch (e: Exception) {
+            showErrorMessage("Comprehensive test failed: ${e.message}")
+            android.util.Log.e("HomeFragment", "Comprehensive test error: ${e.message}", e)
+        }
+    }
+
+    private fun testBudgetNotifications() {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("HomeFragment", "💰 ===== TESTING BUDGET NOTIFICATIONS =====")
+                
+                val budgetTester = com.koshpal_android.koshpalapp.utils.BudgetNotificationTester.getInstance(requireContext())
+                budgetTester.createTestBudgetScenario()
+                
+                val message = buildString {
+                    append("💰 BUDGET NOTIFICATION TEST:\n\n")
+                    append("✅ Test budget scenario created!\n\n")
+                    append("📊 Test Data:\n")
+                    append("• Grocery: ₹3,000 budget\n")
+                    append("• Entertainment: ₹2,000 budget\n")
+                    append("• Transport: ₹1,500 budget\n")
+                    append("• Food: ₹2,500 budget\n\n")
+                    append("🔔 Expected Notifications:\n")
+                    append("• Grocery: 50% alert (₹1,500 spent)\n")
+                    append("• Entertainment: 90% alert (₹1,700 spent)\n")
+                    append("• Transport: 100% alert (₹1,600 spent)\n\n")
+                    append("Check your notifications!")
+                }
+                
+                showMessage(message)
+                
+                // Refresh UI to show new budget data
+                viewModel.refreshData()
+                
+            } catch (e: Exception) {
+                showErrorMessage("Budget notification test failed: ${e.message}")
+                android.util.Log.e("HomeFragment", "Budget notification test error: ${e.message}", e)
+            }
+        }
     }
 
     private fun forceRealSmsParsingOnly() {

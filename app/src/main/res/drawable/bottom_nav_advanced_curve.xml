@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Shadow layer -->
+    <item android:top="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#40000000" />
+            <corners
+                android:topLeftRadius="40dp"
+                android:topRightRadius="40dp" />
+        </shape>
+    </item>
+    
+    <!-- Main background with advanced curve -->
+    <item android:top="8dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/white" />
+            <corners
+                android:topLeftRadius="40dp"
+                android:topRightRadius="40dp" />
+        </shape>
+    </item>
+    
+    <!-- Center wave cutout for FAB -->
+    <item 
+        android:top="8dp"
+        android:left="0dp"
+        android:right="0dp"
+        android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    
+</layer-list>

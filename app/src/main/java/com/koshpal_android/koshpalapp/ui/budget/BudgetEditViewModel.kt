@@ -83,9 +83,10 @@ class BudgetEditViewModel @Inject constructor(
 
             val existing = budgetDao.getSingleBudget()
             val budgetId = if (existing == null) {
-                budgetDao.clearBudgets()
+                // Create new budget without clearing (no need to clear if none exists)
                 budgetDao.insertBudget(Budget(totalBudget = total, savings = savings)).toInt()
             } else {
+                // Update existing budget
                 val updatedBudget = existing.copy(totalBudget = total, savings = savings)
                 budgetDao.updateBudget(updatedBudget)
                 existing.id

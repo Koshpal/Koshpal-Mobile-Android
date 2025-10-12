@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/rounded_background_white_20">
+
+    <!-- Header with app logo and title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:id="@+id/iv_app_logo"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/app_logo"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tv_notification_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Budget Alert"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FF9800" />
+
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2:30 PM"
+            android:textSize="12sp"
+            android:textColor="#666666" />
+
+    </LinearLayout>
+
+    <!-- Budget status -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tv_category_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Grocery"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
+        <TextView
+            android:id="@+id/tv_percentage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="75%"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FF9800"
+            android:background="@drawable/bg_rounded_light"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp" />
+
+    </LinearLayout>
+
+    <!-- Amount details -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tv_spent_amount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="₹375"
+            android:textSize="16sp"
+            android:textColor="#333333" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="of"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginHorizontal="8dp" />
+
+        <TextView
+            android:id="@+id/tv_budget_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹500"
+            android:textSize="16sp"
+            android:textColor="#333333" />
+
+    </LinearLayout>
+
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/progress_budget"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginBottom="8dp"
+        android:progress="75"
+        android:max="100"
+        android:progressTint="#FF9800" />
+
+    <!-- Status message -->
+    <TextView
+        android:id="@+id/tv_status_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="You're approaching your budget limit"
+        android:textSize="12sp"
+        android:textColor="#666666"
+        android:gravity="center" />
+
+</LinearLayout>

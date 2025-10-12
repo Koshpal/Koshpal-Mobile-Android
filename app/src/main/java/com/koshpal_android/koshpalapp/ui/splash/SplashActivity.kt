@@ -17,6 +17,7 @@ import com.koshpal_android.koshpalapp.ui.auth.EmployeeLoginActivity
 import com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
+import com.koshpal_android.koshpalapp.utils.NotificationPermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,13 @@ class SplashActivity : AppCompatActivity() {
         startSplash()
     }
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Continue splash flow regardless of notification permission result
+        startSplash()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
@@ -41,6 +49,7 @@ class SplashActivity : AppCompatActivity() {
 
         observeNavigation()
         requestSmsPermissionsIfNeeded()
+        requestNotificationPermissionIfNeeded()
     }
 
     private fun observeNavigation() {
@@ -96,6 +105,19 @@ class SplashActivity : AppCompatActivity() {
         }
         if (toRequest.isNotEmpty()) {
             permissionLauncher.launch(toRequest.toTypedArray())
+        } else {
+            startSplash()
+        }
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                // For Android 12 and below, notifications are enabled by default
+                startSplash()
+            }
         } else {
             startSplash()
         }

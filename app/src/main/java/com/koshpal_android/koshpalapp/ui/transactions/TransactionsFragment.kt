@@ -108,17 +108,15 @@ class TransactionsFragment : Fragment() {
             }
 
             // Filter chips with single selection
-            chipGroupFilters.setOnCheckedStateChangeListener { group, checkedIds ->
-                if (checkedIds.isNotEmpty()) {
-                    when (checkedIds[0]) {
-                        R.id.chipAll -> filterAllTransactions()
-                        R.id.chipIncome -> filterIncomeTransactions()
-                        R.id.chipExpense -> filterExpenseTransactions()
-                        R.id.chipThisMonth -> filterThisMonthTransactions()
-                        R.id.chipLastMonth -> filterLastMonthTransactions()
-                        R.id.chipStarred -> filterStarredTransactions()
-                        R.id.chipCashFlow -> filterCashFlowTransactions()
-                    }
+            chipGroupFilters.setOnCheckedChangeListener { group, checkedId ->
+                when (checkedId) {
+                    R.id.chipAll -> filterAllTransactions()
+                    R.id.chipIncome -> filterIncomeTransactions()
+                    R.id.chipExpense -> filterExpenseTransactions()
+                    R.id.chipThisMonth -> filterThisMonthTransactions()
+                    R.id.chipLastMonth -> filterLastMonthTransactions()
+                    R.id.chipStarred -> filterStarredTransactions()
+                    R.id.chipCashFlow -> filterCashFlowTransactions()
                 }
             }
         }

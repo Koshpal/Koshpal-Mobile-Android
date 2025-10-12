@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern Bottom Navigation Style -->
+    <style name="ModernBottomNavigation" parent="Widget.Design.BottomNavigationView">
+        <item name="android:background">@drawable/bottom_nav_wave_background</item>
+        <item name="itemIconTint">@color/bottom_nav_modern_icon_color</item>
+        <item name="itemTextColor">@color/bottom_nav_modern_text_color</item>
+        <item name="itemIconSize">26dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+</resources>

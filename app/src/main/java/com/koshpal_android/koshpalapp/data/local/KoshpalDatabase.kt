@@ -43,8 +43,9 @@ abstract class KoshpalDatabase : RoomDatabase() {
                     KoshpalDatabase::class.java,
                     "koshpal_database_v7"
                 )
-                .fallbackToDestructiveMigration() // Allow database recreation when schema changes
-                .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
+                // Remove destructive migration to preserve budget data
+                // .fallbackToDestructiveMigration() // Allow database recreation when schema changes
+                // .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
                 .build()
                 INSTANCE = instance
                 instance

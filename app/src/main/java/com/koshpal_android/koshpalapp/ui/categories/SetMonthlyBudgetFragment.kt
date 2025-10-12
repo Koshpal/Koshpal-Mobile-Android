@@ -185,33 +185,68 @@ class SetMonthlyBudgetFragment : Fragment() {
                     return@launch
                 }
 
-                // Clear existing budget
-                transactionRepository.clearBudgets()
+                // Check if budget already exists
+                val existingBudget = transactionRepository.getSingleBudget()
+                val budgetId = if (existingBudget != null) {
+                    // Update existing budget
+                    android.util.Log.d("SetMonthlyBudget", "🔄 Updating existing budget: Total ₹$totalBudget")
+                    val updatedBudget = existingBudget.copy(
+                        totalBudget = totalBudget,
+                        savings = 0.0
+                    )
+                    transactionRepository.updateBudget(updatedBudget)
+                    android.util.Log.d("SetMonthlyBudget", "✅ Budget updated with ID: ${existingBudget.id}")
+                    existingBudget.id
+                } else {
+                    // Create new budget
+                    android.util.Log.d("SetMonthlyBudget", "💰 Creating new budget: Total ₹$totalBudget")
+                    val budget = Budget(
+                        totalBudget = totalBudget,
+                        savings = 0.0
+                    )
+                    val newBudgetId = transactionRepository.insertBudget(budget)
+                    android.util.Log.d("SetMonthlyBudget", "✅ Budget created with ID: $newBudgetId")
+                    newBudgetId.toInt()
+                }
 
-                // Create new budget (savings will be 0 since total equals sum of categories)
-                val budget = Budget(
-                    totalBudget = totalBudget,
-                    savings = 0.0
-                )
-                val budgetId = transactionRepository.insertBudget(budget)
+                // Clear existing budget categories for this budget
+                android.util.Log.d("SetMonthlyBudget", "🗑️ Clearing existing budget categories for budget ID: $budgetId")
+                transactionRepository.clearBudgetCategoriesForBudget(budgetId)
 
                 // Create budget categories
                 val budgetCategories = categoryBudgets
                     .filter { it.budgetAmount > 0 }
                     .map { categoryBudget ->
                         BudgetCategory(
-                            budgetId = budgetId.toInt(),
+                            budgetId = budgetId,
                             name = categoryBudget.categoryName,
                             allocatedAmount = categoryBudget.budgetAmount,
                             spentAmount = categoryBudget.currentSpending
                         )
                     }
 
+                android.util.Log.d("SetMonthlyBudget", "📊 Creating ${budgetCategories.size} budget categories:")
+                budgetCategories.forEach { category ->
+                    android.util.Log.d("SetMonthlyBudget", "   - ${category.name}: ₹${category.allocatedAmount}")
+                }
+
                 if (budgetCategories.isNotEmpty()) {
                     transactionRepository.insertAllBudgetCategories(budgetCategories)
+                    android.util.Log.d("SetMonthlyBudget", "✅ Budget categories saved successfully")
+                } else {
+                    android.util.Log.w("SetMonthlyBudget", "⚠️ No budget categories to save")
                 }
 
                 Toast.makeText(requireContext(), "Budget saved successfully!", Toast.LENGTH_SHORT).show()
+                
+                // Reset budget notification flags when budget is updated
+                try {
+                    val budgetMonitor = com.koshpal_android.koshpalapp.utils.BudgetMonitor.getInstance(requireContext())
+                    budgetMonitor.resetNotificationFlags()
+                    android.util.Log.d("SetMonthlyBudget", "🔄 Budget notification flags reset")
+                } catch (e: Exception) {
+                    android.util.Log.e("SetMonthlyBudget", "❌ Failed to reset budget notification flags", e)
+                }
                 
                 // Navigate back
                 (activity as? HomeActivity)?.onBackPressed()
