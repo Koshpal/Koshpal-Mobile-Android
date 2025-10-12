@@ -98,6 +98,9 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 
                                                 Log.d("TransactionSMS", "🤖 Auto-categorized '${details.merchant}' → $categoryId (${MerchantCategorizer.getCategoryDisplayName(categoryId)})")
                                                 
+                                                // Extract bank name from SMS
+                                                val bankName = extractBankNameFromSMS(messageBody, paymentSms.sender)
+                                                
                                                 // Create transaction
                                                 val transaction = Transaction(
                                                     id = UUID.randomUUID().toString(),
@@ -108,7 +111,8 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                     confidence = 85.0f,
                                                     date = currentTime,
                                                     description = details.description,
-                                                    smsBody = messageBody
+                                                    smsBody = messageBody,
+                                                    bankName = bankName
                                                 )
                                                 
                                                 transactionDao.insertTransaction(transaction)
@@ -184,6 +188,49 @@ class TransactionSMSReceiver : BroadcastReceiver() {
             } ?: false
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    private fun extractBankNameFromSMS(smsBody: String, sender: String): String {
+        val text = smsBody.uppercase()
+        val senderUpper = sender.uppercase()
+        
+        // First try to identify from sender
+        return when {
+            senderUpper.contains("SBI") || senderUpper.contains("STATE BANK") -> "SBI"
+            senderUpper.contains("HDFC") -> "HDFC Bank"
+            senderUpper.contains("ICICI") -> "ICICI Bank"
+            senderUpper.contains("AXIS") -> "Axis Bank"
+            senderUpper.contains("KOTAK") -> "Kotak Mahindra"
+            senderUpper.contains("IPPB") || senderUpper.contains("INDIA POST") -> "IPPB"
+            senderUpper.contains("PAYTM") -> "Paytm"
+            senderUpper.contains("PHONEPE") -> "PhonePe"
+            senderUpper.contains("GPAY") || senderUpper.contains("GOOGLE PAY") -> "Google Pay"
+            senderUpper.contains("BOB") || senderUpper.contains("BANK OF BARODA") -> "Bank of Baroda"
+            senderUpper.contains("PNB") || senderUpper.contains("PUNJAB NATIONAL") -> "PNB"
+            senderUpper.contains("CANARA") -> "Canara Bank"
+            senderUpper.contains("UNION BANK") -> "Union Bank"
+            senderUpper.contains("IDBI") -> "IDBI Bank"
+            senderUpper.contains("YES BANK") -> "Yes Bank"
+            
+            // Then try to identify from SMS body content
+            text.contains("SBI") || text.contains("STATE BANK") -> "SBI"
+            text.contains("HDFC") -> "HDFC Bank"
+            text.contains("ICICI") -> "ICICI Bank"
+            text.contains("AXIS") -> "Axis Bank"
+            text.contains("KOTAK") -> "Kotak Mahindra"
+            text.contains("IPPB") || text.contains("INDIA POST") -> "IPPB"
+            text.contains("PAYTM") -> "Paytm"
+            text.contains("PHONEPE") -> "PhonePe"
+            text.contains("GPAY") || text.contains("GOOGLE PAY") -> "Google Pay"
+            text.contains("BOB") || text.contains("BANK OF BARODA") -> "Bank of Baroda"
+            text.contains("PNB") || text.contains("PUNJAB NATIONAL") -> "PNB"
+            text.contains("CANARA") -> "Canara Bank"
+            text.contains("UNION BANK") -> "Union Bank"
+            text.contains("IDBI") -> "IDBI Bank"
+            text.contains("YES BANK") -> "Yes Bank"
+            
+            else -> "Other Banks"
         }
     }
     

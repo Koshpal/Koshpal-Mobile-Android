@@ -370,6 +370,64 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getTransactionCount()
     }
 
+    suspend fun getTransactionsByBank(bankName: String): List<Transaction> {
+        // Generate alternative patterns for bank name matching
+        val pattern1 = when (bankName) {
+            "SBI" -> "STATE BANK"
+            "HDFC Bank" -> "HDFC"
+            "ICICI Bank" -> "ICICI"
+            "Axis Bank" -> "AXIS"
+            "Kotak Mahindra" -> "KOTAK"
+            "IPPB" -> "INDIA POST"
+            "Paytm" -> "PAYTM"
+            "PhonePe" -> "PHONEPE"
+            "Google Pay" -> "GPAY"
+            "Bank of Baroda" -> "BOB"
+            "PNB" -> "PUNJAB NATIONAL"
+            "Canara Bank" -> "CANARA"
+            "Union Bank" -> "UNION BANK"
+            "IDBI Bank" -> "IDBI"
+            "Yes Bank" -> "YES BANK"
+            else -> bankName
+        }
+        
+        val pattern2 = when (bankName) {
+            "SBI" -> "SBI"
+            "HDFC Bank" -> "HDFC"
+            "ICICI Bank" -> "ICICI"
+            "Axis Bank" -> "AXIS"
+            "Kotak Mahindra" -> "KOTAK"
+            "IPPB" -> "IPPB"
+            "Paytm" -> "PAYTM"
+            "PhonePe" -> "PHONEPE"
+            "Google Pay" -> "GOOGLE PAY"
+            "Bank of Baroda" -> "BANK OF BARODA"
+            "PNB" -> "PNB"
+            "Canara Bank" -> "CANARA"
+            "Union Bank" -> "UNION BANK"
+            "IDBI Bank" -> "IDBI"
+            "Yes Bank" -> "YES BANK"
+            else -> bankName
+        }
+        
+        val transactions = transactionDao.getTransactionsByBank(bankName, pattern1, pattern2)
+        
+        // If no transactions found, try to get all transactions and filter manually
+        if (transactions.isEmpty()) {
+            val allTransactions = transactionDao.getAllTransactionsOnce()
+            
+            // Try manual filtering using the same logic as extractBankName
+            val manuallyFiltered = allTransactions.filter { transaction ->
+                val extractedBank = extractBankName(transaction)
+                extractedBank.equals(bankName, ignoreCase = true)
+            }
+            
+            return manuallyFiltered
+        }
+        
+        return transactions
+    }
+    
     suspend fun getBankWiseSpending(): List<com.koshpal_android.koshpalapp.model.BankSpending> {
         // Get current month date range
         val calendar = Calendar.getInstance()

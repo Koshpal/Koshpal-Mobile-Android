@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <!-- App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:titleTextColor="@color/text_primary"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="Bank Transactions" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Bank Info Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="20dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Bank Icon -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardBankIcon"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardCornerRadius="24dp"
+                        app:cardBackgroundColor="@color/primary_light"
+                        app:cardElevation="0dp">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <!-- Real Icon ImageView -->
+                            <ImageView
+                                android:id="@+id/ivBankIcon"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerInside"
+                                android:visibility="gone" />
+
+                            <!-- Fallback Text Initials -->
+                            <TextView
+                                android:id="@+id/tvBankInitials"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:text="SBI"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:gravity="center" />
+                        </FrameLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
+
+                        <TextView
+                            android:id="@+id/tvBankName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="State Bank of India"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvTransactionCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="25 transactions"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="end">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Spent"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/tvTotalSpent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="₹15,250"
+                            android:textColor="@color/expense"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Month Filter Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Period:"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_vertical" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:layout_marginStart="16dp">
+
+                    <!-- This Month Filter -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilterThisMonth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="This Month"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <!-- All Time Filter -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilterAllTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="All Time"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Transaction Type Filter Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Type:"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_vertical" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:layout_marginStart="16dp">
+
+                    <!-- All Transactions Filter -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilterAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="All"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/primary"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <!-- Credit Filter -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilterCredit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Credit"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/income"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <!-- Debit Filter -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFilterDebit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Debit"
+                        android:textSize="12sp"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="@color/expense"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Loading Indicator -->
+            <LinearLayout
+                android:id="@+id/layoutLoading"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="40dp"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:indeterminateTint="@color/primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Loading transactions..."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp" />
+
+            </LinearLayout>
+
+            <!-- Transactions List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTransactions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:visibility="gone" />
+
+            <!-- Empty State -->
+            <LinearLayout
+                android:id="@+id/layoutEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="40dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ic_receipt"
+                    android:tint="@color/text_secondary"
+                    android:alpha="0.5" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No transactions found"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Try adjusting your filters"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

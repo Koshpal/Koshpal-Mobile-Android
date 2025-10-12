@@ -9,6 +9,7 @@ import com.koshpal_android.koshpalapp.ui.transactions.TransactionsFragment
 import com.koshpal_android.koshpalapp.ui.budget.BudgetFragment
 import com.koshpal_android.koshpalapp.ui.categories.CategoriesFragment
 import com.koshpal_android.koshpalapp.ui.categories.CategoryDetailsFragment
+import com.koshpal_android.koshpalapp.ui.bank.BankTransactionsFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -175,6 +176,20 @@ class HomeActivity : AppCompatActivity() {
         
         // Refresh categories data to show any updates
         refreshCategoriesData()
+    }
+
+    fun showBankTransactionsFragment(bankName: String) {
+        android.util.Log.d("HomeActivity", "🏦 Navigating to bank transactions for: $bankName")
+        
+        val bankTransactionsFragment = BankTransactionsFragment.newInstance(bankName)
+        
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, bankTransactionsFragment)
+            .addToBackStack("bank_transactions")
+            .commit()
+        
+        // Hide bottom navigation
+        binding.bottomNavigation.visibility = android.view.View.GONE
     }
 
     fun showSetMonthlyBudgetFragment() {

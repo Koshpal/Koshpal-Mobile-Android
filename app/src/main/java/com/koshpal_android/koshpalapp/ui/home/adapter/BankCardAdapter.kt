@@ -14,7 +14,8 @@ import com.koshpal_android.koshpalapp.model.BankSpending
 import com.koshpal_android.koshpalapp.utils.BankThemeProvider
 
 class BankCardAdapter(
-    private val onAddCashClick: () -> Unit
+    private val onAddCashClick: () -> Unit,
+    private val onBankCardClick: (String) -> Unit
 ) : ListAdapter<BankSpending, BankCardAdapter.BankCardViewHolder>(BankSpendingDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BankCardViewHolder {
@@ -23,7 +24,7 @@ class BankCardAdapter(
             parent,
             false
         )
-        return BankCardViewHolder(binding, onAddCashClick)
+        return BankCardViewHolder(binding, onAddCashClick, onBankCardClick)
     }
 
     override fun onBindViewHolder(holder: BankCardViewHolder, position: Int) {
@@ -32,7 +33,8 @@ class BankCardAdapter(
 
     class BankCardViewHolder(
         private val binding: ItemBankCardBinding,
-        private val onAddCashClick: () -> Unit
+        private val onAddCashClick: () -> Unit,
+        private val onBankCardClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(bankSpending: BankSpending) {
@@ -98,6 +100,13 @@ class BankCardAdapter(
                     
                     // Log for debugging
                     android.util.Log.d("BankCard", "🏦 ${bankSpending.bankName} → ${theme.displayName} (${theme.iconInitials})")
+                }
+                
+                // Set click listener for the entire card (except for cash card)
+                if (!bankSpending.isCash) {
+                    root.setOnClickListener {
+                        onBankCardClick(bankSpending.bankName)
+                    }
                 }
             }
         }

@@ -143,10 +143,16 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupBankCards() {
-        bankCardAdapter = BankCardAdapter {
-            // Handle add cash button click
-            showAddCashDialog()
-        }
+        bankCardAdapter = BankCardAdapter(
+            onAddCashClick = {
+                // Handle add cash button click
+                showAddCashDialog()
+            },
+            onBankCardClick = { bankName ->
+                // Handle bank card click - navigate to bank transactions
+                (activity as? HomeActivity)?.showBankTransactionsFragment(bankName)
+            }
+        )
 
         binding.rvBankCards.apply {
             adapter = bankCardAdapter

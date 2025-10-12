@@ -33,6 +33,19 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE merchant LIKE '%' || :merchant || '%' ORDER BY date DESC")
     fun getTransactionsByMerchant(merchant: String): Flow<List<Transaction>>
     
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE bankName = :bankName 
+        OR (bankName IS NULL AND (
+            smsBody LIKE '%' || :bankName || '%' 
+            OR merchant LIKE '%' || :bankName || '%'
+            OR smsBody LIKE '%' || :bankNamePattern1 || '%'
+            OR smsBody LIKE '%' || :bankNamePattern2 || '%'
+        ))
+        ORDER BY date DESC
+    """)
+    suspend fun getTransactionsByBank(bankName: String, bankNamePattern1: String, bankNamePattern2: String): List<Transaction>
+    
     @Query("SELECT * FROM transactions WHERE smsId = :smsId")
     suspend fun getTransactionBySmsId(smsId: String): Transaction?
     
