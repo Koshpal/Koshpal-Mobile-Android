@@ -31,16 +31,18 @@ class SplashActivity : AppCompatActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        // Regardless of grant/deny, continue splash flow
-        startSplash()
+        // After SMS permissions result, proceed to notifications or splash
+        requestNotificationPermissionIfNeeded()
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
         // Continue splash flow regardless of notification permission result
-        startSplash()
+        startSplashOnce()
     }
+
+    private var hasStartedSplash = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +50,8 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         observeNavigation()
+        // Request permissions in sequence to avoid overlapping dialogs
         requestSmsPermissionsIfNeeded()
-        requestNotificationPermissionIfNeeded()
     }
 
     private fun observeNavigation() {
@@ -106,7 +108,8 @@ class SplashActivity : AppCompatActivity() {
         if (toRequest.isNotEmpty()) {
             permissionLauncher.launch(toRequest.toTypedArray())
         } else {
-            startSplash()
+            // No SMS permission needed, proceed to notifications
+            requestNotificationPermissionIfNeeded()
         }
     }
 
@@ -116,14 +119,16 @@ class SplashActivity : AppCompatActivity() {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             } else {
                 // For Android 12 and below, notifications are enabled by default
-                startSplash()
+                startSplashOnce()
             }
         } else {
-            startSplash()
+            startSplashOnce()
         }
     }
 
-    private fun startSplash() {
+    private fun startSplashOnce() {
+        if (hasStartedSplash) return
+        hasStartedSplash = true
         viewModel.startSplashTimer()
     }
 }

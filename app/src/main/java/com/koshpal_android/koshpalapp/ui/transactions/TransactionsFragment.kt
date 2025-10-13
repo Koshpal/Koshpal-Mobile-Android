@@ -479,10 +479,7 @@ class TransactionsFragment : Fragment() {
         val homeActivity = requireActivity() as HomeActivity
         
         // Update bottom navigation to Home (will trigger fragment change)
-        val bottomNavigation = homeActivity.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
-            com.koshpal_android.koshpalapp.R.id.bottomNavigation
-        )
-        bottomNavigation?.selectedItemId = com.koshpal_android.koshpalapp.R.id.homeFragment
+        homeActivity.showHomeFragment()
         
         android.util.Log.d("TransactionsFragment", "✅ Navigating back to Home via bottom nav")
     }

@@ -280,49 +280,49 @@
                 android:layout_height="wrap_content"
                 android:text="All"
                 android:checked="true"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipIncome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Income"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipExpense"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Expense"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipThisMonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="This Month"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipLastMonth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Last Month"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipStarred"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⭐ Starred"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipCashFlow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="💰 Cash Flow"
-                style="@style/Widget.Material3.Chip.Filter" />
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
 
         </com.google.android.material.chip.ChipGroup>
 

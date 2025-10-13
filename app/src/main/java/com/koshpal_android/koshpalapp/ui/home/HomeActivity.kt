@@ -38,30 +38,45 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        replaceFragment(homeFragment)
+        // Pre-add all primary fragments and show Home by default for faster nav
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragmentContainer, profileFragment, "profile").hide(profileFragment)
+            .add(R.id.fragmentContainer, categoriesFragment, "categories").hide(categoriesFragment)
+            .add(R.id.fragmentContainer, insightsFragment, "insights").hide(insightsFragment)
+            .add(R.id.fragmentContainer, transactionsFragment, "transactions").hide(transactionsFragment)
+            .add(R.id.fragmentContainer, homeFragment, "home")
+            .commit()
+        activeFragment = homeFragment
 
         // Set bottom navigation background to null (required for BottomAppBar)
         binding.bottomNavigation.background = null
         
         // Disable the placeholder menu item (center position for FAB cradle)
         binding.bottomNavigation.menu.getItem(2).isEnabled = false
+        // While Home is showing, make group not checkable and clear selection
+        binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
+        for (i in 0 until binding.bottomNavigation.menu.size()) {
+            binding.bottomNavigation.menu.getItem(i).isChecked = false
+        }
         
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            // Re-enable selection when user picks a tab
+            binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
             when (item.itemId) {
-                R.id.home -> {
-                    replaceFragment(homeFragment)
-                    true
-                }
                 R.id.transactions -> {
-                    replaceFragment(transactionsFragment)
+                    showFragment(transactionsFragment)
                     true
                 }
-                R.id.budget -> {
-                    replaceFragment(categoriesFragment) // Budget shows categories
+                R.id.insights -> {
+                    showFragment(insightsFragment)
+                    true
+                }
+                R.id.categories -> {
+                    showFragment(categoriesFragment)
                     true
                 }
                 R.id.profile -> {
-                    replaceFragment(profileFragment)
+                    showFragment(profileFragment)
                     true
                 }
                 else -> false
@@ -69,8 +84,13 @@ class HomeActivity : AppCompatActivity() {
         }
 
         binding.fabCenter.setOnClickListener {
-            // Handle FAB action - Quick add transaction or navigate to transactions
-            replaceFragment(transactionsFragment)
+            // Center FAB goes Home
+            showFragment(homeFragment)
+            // Clear selection highlight to reflect Home (not in bottom nav)
+            binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
+            for (i in 0 until binding.bottomNavigation.menu.size()) {
+                binding.bottomNavigation.menu.getItem(i).isChecked = false
+            }
         }
 
         // Check if coming from SMS processing - refresh categories data
@@ -97,7 +117,7 @@ class HomeActivity : AppCompatActivity() {
             android.util.Log.d("HomeActivity", "📱 Opening transaction dialog for ID: $transactionId")
 
             // Navigate to transactions fragment first
-            replaceFragment(transactionsFragment)
+            showFragment(transactionsFragment)
 
             // Then open the transaction dialog after a short delay
             binding.root.postDelayed({
@@ -116,27 +136,29 @@ class HomeActivity : AppCompatActivity() {
             android.util.Log.d("HomeActivity", "📱 Opening budget fragment")
 
             // Navigate to budget fragment
-            replaceFragment(budgetFragment)
+            showFragment(categoriesFragment)
         }
     }
 
-    private fun replaceFragment(fragment: Fragment) {
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.fragmentContainer, fragment)
-        fragmentTransaction.commit()
+    private fun showFragment(target: Fragment) {
+        if (target === activeFragment) return
+        supportFragmentManager.beginTransaction()
+            .hide(activeFragment)
+            .show(target)
+            .commit()
+        activeFragment = target
     }
 
     fun showTransactionsFragment() {
-        replaceFragment(transactionsFragment)
+        showFragment(transactionsFragment)
     }
 
     fun showCategoriesFragment() {
-        replaceFragment(categoriesFragment)
+        showFragment(categoriesFragment)
     }
 
     fun showHomeFragment() {
-        replaceFragment(homeFragment)
+        showFragment(homeFragment)
         android.util.Log.d("HomeActivity", "🏠 Navigated back to Home fragment")
     }
 

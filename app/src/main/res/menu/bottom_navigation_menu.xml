@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/home"
-        android:title="Home"
-        android:icon="@drawable/ic_home" />
-
-    <item
         android:id="@+id/transactions"
         android:title="Transactions"
         android:icon="@drawable/ic_payments" />
 
     <item
-        android:id="@+id/placeholder"
-        android:title="" />
+        android:id="@+id/insights"
+        android:title="Insights"
+        android:icon="@drawable/ic_chart" />
 
     <item
-        android:id="@+id/budget"
-        android:title="Budget"
-        android:icon="@drawable/ic_chart" />
+        android:id="@+id/placeholder"
+        android:title=""
+        android:checkable="false" />
+
+    <item
+        android:id="@+id/categories"
+        android:title="Categories"
+        android:icon="@drawable/ic_category" />
 
     <item
         android:id="@+id/profile"

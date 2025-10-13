@@ -6,40 +6,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
-    tools:context=".HomeActivity">
+    tools:context=".ui.home.HomeActivity">
 
     <!-- Main Content Container -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="80dp" />
+        android:layout_height="match_parent"/>
 
     <!-- Bottom App Bar with FAB Cradle -->
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:fabCradleMargin="20dp"
-        app:fabCradleVerticalOffset="10dp"
-        app:fabCradleRoundedCornerRadius="20dp"
+        android:layout_height="60dp"
+       app:fabAlignmentMode="center"
+        app:fabCradleRoundedCornerRadius="40dp"
+
+        android:backgroundTint="@color/white"
+        app:fabCradleMargin="10dp"
+
+
         android:layout_gravity="bottom">
 
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigation"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
-            android:background="@android:color/transparent"
-            app:menu="@menu/bottom_navigation_menu"
-            app:labelVisibilityMode="labeled"
-            app:itemIconTint="@color/bottom_nav_modern_icon_color"
-            app:itemTextColor="@color/bottom_nav_modern_text_color"
-            app:itemIconSize="26dp"
-            app:itemTextAppearanceActive="@style/BottomNavigationTextAppearance"
-            app:itemTextAppearanceInactive="@style/BottomNavigationTextAppearance" />
+
 
     </com.google.android.material.bottomappbar.BottomAppBar>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#00FFFFFF"
+        app:menu="@menu/bottom_navigation_menu"
+        app:labelVisibilityMode="labeled"
+        />
 
     <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -47,7 +47,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/primary"
-        android:src="@drawable/ic_add"
+        android:src="@drawable/ic_home"
+        app:layout_anchorGravity="center"
+        app:maxImageSize="20dp"
         app:layout_anchor="@id/bottomAppBar" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
