@@ -2,18 +2,27 @@ package com.koshpal_android.koshpalapp.ui.categories.adapter
 
 import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.koshpal_android.koshpalapp.databinding.ItemCategorySpendingBinding
+import com.koshpal_android.koshpalapp.model.BudgetCategory
 import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.TransactionCategory
+
+// Data class to combine spending and budget information
+data class CategorySpendingWithBudget(
+    val categorySpending: CategorySpending,
+    val budgetCategory: BudgetCategory? = null,
+    val transactionCount: Int = 0
+)
 
 class CategorySpendingAdapter(
     private val onSetBudgetClick: (CategorySpending) -> Unit,
     private val onCategoryClick: (CategorySpending) -> Unit = {}
-) : ListAdapter<CategorySpending, CategorySpendingAdapter.CategorySpendingViewHolder>(CategorySpendingDiffCallback()) {
+) : ListAdapter<CategorySpendingWithBudget, CategorySpendingAdapter.CategorySpendingViewHolder>(CategorySpendingDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategorySpendingViewHolder {
         val binding = ItemCategorySpendingBinding.inflate(
@@ -32,17 +41,22 @@ class CategorySpendingAdapter(
         private val binding: ItemCategorySpendingBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(categorySpending: CategorySpending) {
+        fun bind(data: CategorySpendingWithBudget) {
+            val categorySpending = data.categorySpending
+            val budgetCategory = data.budgetCategory
+            val transactionCount = data.transactionCount
+            
             binding.apply {
                 // Get category details from default categories
                 val category = getCategoryById(categorySpending.categoryId)
                 tvCategoryName.text = category?.name ?: "Unknown Category"
-                tvAmount.text = "₹${String.format("%.0f", categorySpending.totalAmount)}"
+                tvAmount.text = "₹${String.format("%,.0f", categorySpending.totalAmount)}"
                 
-                // For now, show "1 Spend" as placeholder - can be enhanced later
-                tvTransactionCount.text = "1 Spend"
+                // Show real transaction count
+                val countText = if (transactionCount == 1) "1 transaction" else "$transactionCount transactions"
+                tvTransactionCount.text = countText
 
-                // Set category icon and color based on category
+                // Set category icon and color
                 if (category != null) {
                     ivCategoryIcon.setImageResource(category.icon)
                     try {
@@ -50,9 +64,9 @@ class CategorySpendingAdapter(
                         cardIcon.setCardBackgroundColor(color)
                         ivCategoryIcon.setColorFilter(Color.WHITE)
                     } catch (e: Exception) {
-                        // Fallback to default colors
+                        // Fallback to light primary color
                         cardIcon.setCardBackgroundColor(
-                            binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.primary_light)
+                            binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.primary_lightest)
                         )
                         ivCategoryIcon.setColorFilter(
                             binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.primary)
@@ -60,14 +74,37 @@ class CategorySpendingAdapter(
                     }
                 }
 
+                // Handle budget progress
+                if (budgetCategory != null && budgetCategory.allocatedAmount > 0) {
+                    // Budget is set - show progress
+                    layoutProgress.visibility = View.VISIBLE
+                    
+                    val spentAmount = categorySpending.totalAmount
+                    val budgetAmount = budgetCategory.allocatedAmount
+                    val percentage = ((spentAmount / budgetAmount) * 100).toInt().coerceIn(0, 100)
+                    
+                    // Update progress bar
+                    progressBar.progress = percentage
+                    
+                    // Set progress bar color based on percentage
+                    val progressColor = when {
+                        percentage >= 100 -> binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.error)
+                        percentage >= 80 -> binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.warning)
+                        else -> binding.root.context.getColor(com.koshpal_android.koshpalapp.R.color.primary)
+                    }
+                    progressBar.setIndicatorColor(progressColor)
+                    
+                    // Update budget info text
+                    tvBudgetInfo.text = "$percentage% of ₹${String.format("%,.0f", budgetAmount)}"
+                    tvBudgetInfo.visibility = View.VISIBLE
+                } else {
+                    // No budget set - hide progress
+                    layoutProgress.visibility = View.GONE
+                }
+
                 // Click listener for the entire category item - opens details
                 root.setOnClickListener {
                     onCategoryClick(categorySpending)
-                }
-
-                // Click listener for set budget button
-                tvSetBudget.setOnClickListener {
-                    onSetBudgetClick(categorySpending)
                 }
             }
         }
@@ -77,12 +114,12 @@ class CategorySpendingAdapter(
         }
     }
 
-    private class CategorySpendingDiffCallback : DiffUtil.ItemCallback<CategorySpending>() {
-        override fun areItemsTheSame(oldItem: CategorySpending, newItem: CategorySpending): Boolean {
-            return oldItem.categoryId == newItem.categoryId
+    private class CategorySpendingDiffCallback : DiffUtil.ItemCallback<CategorySpendingWithBudget>() {
+        override fun areItemsTheSame(oldItem: CategorySpendingWithBudget, newItem: CategorySpendingWithBudget): Boolean {
+            return oldItem.categorySpending.categoryId == newItem.categorySpending.categoryId
         }
 
-        override fun areContentsTheSame(oldItem: CategorySpending, newItem: CategorySpending): Boolean {
+        override fun areContentsTheSame(oldItem: CategorySpendingWithBudget, newItem: CategorySpendingWithBudget): Boolean {
             return oldItem == newItem
         }
     }

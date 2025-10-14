@@ -544,13 +544,22 @@ class TransactionRepository @Inject constructor(
                 return 0
             }
             
+            // Debug: Check how many already have categories
+            val alreadyCategorized = allTransactions.count { 
+                !it.categoryId.isNullOrEmpty() && it.categoryId != "" && it.categoryId != "uncategorized" 
+            }
+            android.util.Log.d("TransactionRepository", "📊 Already categorized: $alreadyCategorized")
+            android.util.Log.d("TransactionRepository", "📊 Need categorization: ${allTransactions.size - alreadyCategorized}")
+            
             var categorizedCount = 0
             var skippedCount = 0
             var unchangedCount = 0
+            var alreadyHasCategoryCount = 0
             
             // Process each transaction
             for (transaction in allTransactions) {
-                android.util.Log.d("TransactionRepository", "📝 Processing: ${transaction.merchant} (Current: ${transaction.categoryId}, Manual: ${transaction.isManuallySet})")
+                val catInfo = "Current: '${transaction.categoryId}' (len: ${transaction.categoryId.length}, null: ${transaction.categoryId == null}, empty: ${transaction.categoryId.isEmpty()})"
+                android.util.Log.d("TransactionRepository", "📝 Processing: ${transaction.merchant} - $catInfo, Manual: ${transaction.isManuallySet}")
                 
                 // Skip if already manually categorized
                 if (transaction.isManuallySet) {
@@ -587,7 +596,19 @@ class TransactionRepository @Inject constructor(
             }
             
             android.util.Log.d("TransactionRepository", "🎉 ===== AUTO-CATEGORIZATION COMPLETE =====")
-            android.util.Log.d("TransactionRepository", "📊 Total: ${allTransactions.size}, Updated: $categorizedCount, Skipped: $skippedCount, Unchanged: $unchangedCount")
+            android.util.Log.d("TransactionRepository", "📊 Total: ${allTransactions.size}")
+            android.util.Log.d("TransactionRepository", "📊 Updated: $categorizedCount")
+            android.util.Log.d("TransactionRepository", "📊 Skipped (manual): $skippedCount")
+            android.util.Log.d("TransactionRepository", "📊 Unchanged (already correct): $unchangedCount")
+            android.util.Log.d("TransactionRepository", "📊 Already had category: $alreadyHasCategoryCount")
+            
+            // Final verification: Check how many are now categorized
+            val finalCheck = transactionDao.getAllTransactionsOnce()
+            val finalCategorized = finalCheck.count { 
+                !it.categoryId.isNullOrEmpty() && it.categoryId != "" && it.categoryId != "uncategorized" 
+            }
+            android.util.Log.d("TransactionRepository", "✅ Final: $finalCategorized out of ${finalCheck.size} transactions are categorized")
+            
             return categorizedCount
             
         } catch (e: Exception) {
@@ -617,6 +638,10 @@ class TransactionRepository @Inject constructor(
     suspend fun getCategoriesForBudget(budgetId: Int): List<BudgetCategory> {
         return budgetCategoryDao.getCategoriesForBudget(budgetId)
     }
+    
+    suspend fun getBudgetCategoriesForBudget(budgetId: Int): List<BudgetCategory> {
+        return budgetCategoryDao.getCategoriesForBudget(budgetId)
+    }
 
     suspend fun insertAllBudgetCategories(categories: List<BudgetCategory>) {
         budgetCategoryDao.insertAll(categories)
@@ -628,6 +653,10 @@ class TransactionRepository @Inject constructor(
 
     suspend fun clearBudgetCategoriesForBudget(budgetId: Int) {
         budgetCategoryDao.clearForBudget(budgetId)
+    }
+    
+    suspend fun getTransactionCountByCategory(categoryId: String, startDate: Long, endDate: Long): Int {
+        return transactionDao.getTransactionCountByCategory(categoryId, startDate, endDate)
     }
 
     // Cash Flow Transaction Methods

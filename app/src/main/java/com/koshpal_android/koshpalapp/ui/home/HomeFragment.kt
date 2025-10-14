@@ -987,6 +987,10 @@ class HomeFragment : Fragment() {
                     // Refresh data to show updated transaction
                     viewModel.refreshData()
                     
+                    // ✅ FIX: Refresh Categories fragment so categorized transactions appear there
+                    (activity as? HomeActivity)?.refreshCategoriesData()
+                    android.util.Log.d("HomeFragment", "🔄 Categories fragment refresh triggered")
+                    
                     // Show success message
                     Toast.makeText(
                         requireContext(),

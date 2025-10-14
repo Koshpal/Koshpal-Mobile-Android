@@ -24,6 +24,7 @@ import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsD
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -563,11 +564,34 @@ class TransactionsFragment : Fragment() {
             lifecycleScope.launch {
                 isUpdatingTransaction = true
                 try {
-                    transactionRepository.updateTransactionCategory(txn.id, category.id)
-                    android.util.Log.d("TransactionsFragment", "✅ Transaction ${txn.id} categorized as ${category.name}")
+                    android.util.Log.d("TransactionsFragment", "🔄 ===== STARTING CATEGORIZATION =====")
+                    android.util.Log.d("TransactionsFragment", "📝 Transaction ID: ${txn.id}")
+                    android.util.Log.d("TransactionsFragment", "📝 Merchant: ${txn.merchant}")
+                    android.util.Log.d("TransactionsFragment", "📝 Old Category: ${txn.categoryId}")
+                    android.util.Log.d("TransactionsFragment", "📝 New Category: ${category.id} (${category.name})")
+                    android.util.Log.d("TransactionsFragment", "📝 Amount: ₹${txn.amount}")
+                    android.util.Log.d("TransactionsFragment", "📝 Date: ${java.util.Date(txn.date)}")
+                    
+                    val rowsUpdated = transactionRepository.updateTransactionCategory(txn.id, category.id)
+                    android.util.Log.d("TransactionsFragment", "✅ Update completed - Rows affected: $rowsUpdated")
+                    
+                    if (rowsUpdated > 0) {
+                        android.util.Log.d("TransactionsFragment", "✅ Transaction ${txn.id} categorized as ${category.name}")
+                        
+                        // Verify the update by reading it back
+                        delay(100) // Small delay to ensure DB write completes
+                        val updatedTxn = transactionRepository.getTransactionById(txn.id)
+                        android.util.Log.d("TransactionsFragment", "🔍 Verification - categoryId after update: ${updatedTxn?.categoryId}")
+                    } else {
+                        android.util.Log.e("TransactionsFragment", "❌ NO ROWS UPDATED! Something went wrong!")
+                    }
                     
                     // Refresh data to show updated transaction
                     loadTransactionsDirectly()
+                    
+                    // ✅ FIX: Refresh Categories fragment so categorized transactions appear there
+                    (activity as? HomeActivity)?.refreshCategoriesData()
+                    android.util.Log.d("TransactionsFragment", "🔄 Categories fragment refresh triggered")
                     
                     // Show success message
                     Toast.makeText(

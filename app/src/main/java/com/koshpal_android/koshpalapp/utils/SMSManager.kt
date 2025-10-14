@@ -165,12 +165,23 @@ class SMSManager(private val context: Context) {
                                     isManuallySet = false // Mark as auto-categorized
                                 )
                                 
-                                Log.d("SMSManager", "💾 Saving transaction with category: $validCategory")
+                                Log.d("SMSManager", "💾 ===== SAVING TRANSACTION =====")
+                                Log.d("SMSManager", "📝 Merchant: ${details.merchant}")
+                                Log.d("SMSManager", "📝 Amount: ₹${details.amount}")
+                                Log.d("SMSManager", "📝 Type: ${details.type}")
+                                Log.d("SMSManager", "📝 CategoryId: '$validCategory' (length: ${validCategory.length})")
+                                Log.d("SMSManager", "📝 Date: ${java.util.Date(sms.timestamp)}")
+                                Log.d("SMSManager", "📝 isManuallySet: false")
+                                
                                 database.transactionDao().insertTransaction(transaction)
                                 result.transactionsCreated++
                                 
                                 // Verify it was saved correctly
                                 val savedTransaction = database.transactionDao().getTransactionById(transaction.id)
+                                Log.d("SMSManager", "✅ ===== VERIFICATION =====")
+                                Log.d("SMSManager", "✅ Saved categoryId: '${savedTransaction?.categoryId}' (length: ${savedTransaction?.categoryId?.length})")
+                                Log.d("SMSManager", "✅ Is null? ${savedTransaction?.categoryId == null}")
+                                Log.d("SMSManager", "✅ Is empty? ${savedTransaction?.categoryId?.isEmpty()}")
                                 Log.d("SMSManager", "✅ Created & Verified: ₹${details.amount} at ${details.merchant} → Category: ${savedTransaction?.categoryId}")
                             } else {
                                 Log.d("SMSManager", "⚠️ Skipping invalid merchant: ${details.merchant}")
