@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/background_light"
     tools:context=".ui.insights.InsightsFragment">
 
     <!-- Header -->
@@ -28,6 +28,14 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExport"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Export"
+            android:icon="@drawable/ic_more_vert"
+            app:cornerRadius="12dp" />
+
     </LinearLayout>
 
     <!-- Content -->
@@ -45,45 +53,312 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Coming Soon Card -->
+            <!-- 1. Budget Usage KPI Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBudgetUsage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/surface_light">
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/surface_light"
+                app:strokeColor="@color/primary_light"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="24dp"
-                    android:gravity="center">
+                    android:padding="16dp">
 
-                    <ImageView
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:src="@drawable/ic_insights"
-                        android:tint="@color/primary"
-                        android:layout_marginBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Insights Coming Soon!"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_budget_empty"
+                            android:tint="@color/primary"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:text="Budget Usage"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="20sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:text="This Month"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:background="@drawable/rounded_background_white_20"
+                            android:padding="6dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+                    <!-- KPI Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Get detailed analytics about your spending patterns, trends, and financial insights."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
-                        android:textAlignment="center"
-                        android:layout_marginBottom="16dp" />
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:text="Total Budget"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                            <TextView
+                                android:id="@+id/tvTotalBudget"
+                                android:text="₹0"
+                                android:textColor="@color/text_primary"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:text="Spent This Month"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                            <TextView
+                                android:id="@+id/tvSpentThisMonth"
+                                android:text="₹0"
+                                android:textColor="@color/error"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:text="Percent Used"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                            <TextView
+                                android:id="@+id/tvPercentUsed"
+                                android:text="0%"
+                                android:textColor="@color/warning"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Budget Category Progress Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="8dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chart"
+                            android:tint="@color/primary"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:text="Category-wise Budget Progress"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:text="This Month"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="10sp"
+                            android:background="@drawable/rounded_background_white_20"
+                            android:padding="4dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+                    <!-- Budget Category Progress List -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvBudgetCategories"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:minHeight="200dp" />
+
+                    <!-- Removed old donut/sparkline charts; replaced with per-category progress bars -->
+
+                    <!-- Warning badge removed per design -->
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Spending Trend & Forecast card removed -->
+
+            <!-- 3. Recurring Payments &amp; Subscriptions -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRecurringPayments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/surface_light"
+                app:strokeColor="@color/success_light"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_subscriptions"
+                            android:tint="@color/success"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Recurring Payments &amp; Subscriptions"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/tvRecurringCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 found"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecurringPayments"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        tools:listitem="@layout/item_recurring_payment" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. Top Merchant Hotspots &amp; Category Leaks -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMerchantHotspots"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/surface_light"
+                app:strokeColor="@color/warning_light"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_store"
+                            android:tint="@color/warning"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:text="Top Merchant Hotspots &amp; Category Leaks"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="20sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:text="Top 10"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:background="@drawable/rounded_background_white_20"
+                            android:padding="6dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+                    <!-- Top Merchants Progress List -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTopMerchants"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false"
+                        android:minHeight="400dp" />
+
+                    <!-- Category distribution removed per design -->
 
                 </LinearLayout>
 

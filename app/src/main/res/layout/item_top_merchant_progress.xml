@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/tvMerchantLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.35"
+        android:text="Object 1"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <FrameLayout
+        android:id="@+id/flTrack"
+        android:layout_width="0dp"
+        android:layout_height="28dp"
+        android:layout_weight="0.55"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_progress_track">
+
+        <View
+            android:id="@+id/viewFill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="left|center_vertical"
+            android:background="@drawable/grad_budget_primary" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="45%"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="12sp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_percent_pill" />
+
+</LinearLayout>

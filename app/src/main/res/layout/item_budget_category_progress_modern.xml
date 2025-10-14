@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvCategoryName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.35"
+            android:text="Food &amp; Dining"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+
+        <FrameLayout
+            android:id="@+id/flTrack"
+            android:layout_width="0dp"
+            android:layout_height="22dp"
+            android:layout_weight="0.5"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_progress_track"
+            android:clipToOutline="true">
+
+            <View
+                android:id="@+id/viewFill"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="left|center_vertical"
+                android:background="@drawable/grad_food_orange" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="75%"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_percent_pill" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvAmounts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="₹3,200 / ₹5,000"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>
