@@ -8,4 +8,11 @@
         <item name="itemIconSize">26dp</item>
         <item name="labelVisibilityMode">labeled</item>
     </style>
+    
+    <!-- NumberPicker Style for Month Picker -->
+    <style name="NumberPickerStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="colorControlNormal">@color/primary</item>
+    </style>
 </resources>

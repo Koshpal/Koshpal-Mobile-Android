@@ -42,7 +42,12 @@ class InsightsFragment : Fragment() {
 
     private lateinit var recurringPaymentAdapter: RecurringPaymentAdapter
     private lateinit var budgetCategoryProgressAdapterModern: BudgetCategoryProgressAdapterModern
-    private lateinit var topMerchantAdapter: TopMerchantProgressAdapter
+    private lateinit var topCreditMerchantAdapter: TopMerchantProgressAdapter
+    private lateinit var topDebitMerchantAdapter: TopMerchantProgressAdapter
+    
+    // Month selector
+    private var selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH)
+    private var selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
     
     // Performance optimization: Cache frequently used data
     private var cachedTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>? = null
@@ -96,19 +101,28 @@ class InsightsFragment : Fragment() {
             rvBudgetCategories.layoutManager = LinearLayoutManager(requireContext())
             rvBudgetCategories.adapter = budgetCategoryProgressAdapterModern
             
-            // Setup Top Merchants RecyclerView
-            topMerchantAdapter = TopMerchantProgressAdapter()
-            rvTopMerchants.layoutManager = LinearLayoutManager(requireContext())
-            rvTopMerchants.adapter = topMerchantAdapter
-            android.util.Log.d("InsightsFragment", "✅ Top Merchants RecyclerView setup complete")
-
-            // Export button
-            btnExport.setOnClickListener {
-                exportInsightsCsv()
-            }
+            // Setup Top Credit Merchants RecyclerView (Money IN)
+            topCreditMerchantAdapter = TopMerchantProgressAdapter()
+            rvTopCreditMerchants.layoutManager = LinearLayoutManager(requireContext())
+            rvTopCreditMerchants.adapter = topCreditMerchantAdapter
+            android.util.Log.d("InsightsFragment", "✅ Top Credit Merchants RecyclerView setup complete")
+            
+            // Setup Top Debit Merchants RecyclerView (Money OUT)
+            topDebitMerchantAdapter = TopMerchantProgressAdapter()
+            rvTopDebitMerchants.layoutManager = LinearLayoutManager(requireContext())
+            rvTopDebitMerchants.adapter = topDebitMerchantAdapter
+            android.util.Log.d("InsightsFragment", "✅ Top Debit Merchants RecyclerView setup complete")
             
             // Add pull-to-refresh functionality
             setupPullToRefresh()
+
+            // Setup month selector click listener
+            tvMonthSelector.setOnClickListener {
+                showMonthPickerDialog()
+            }
+            
+            // Update month selector text
+            updateMonthSelectorText()
 
             // Adjust button removed per design
         }
@@ -247,10 +261,10 @@ class InsightsFragment : Fragment() {
         recurringPaymentAdapter.submitList(recurringPayments)
     }
 
-    // 4. Merchant Hotspots Data Loading
+    // 4. Merchant Hotspots Data Loading (Split into Credit & Debit)
     private fun loadMerchantHotspotsData(allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
         android.util.Log.d("InsightsFragment", "\n\n═══════════════════════════════════════════")
-        android.util.Log.d("InsightsFragment", "🔍 MERCHANT HOTSPOTS DATA LOADING STARTED")
+        android.util.Log.d("InsightsFragment", "🔍 MERCHANT ANALYSIS STARTED (Credit & Debit)")
         android.util.Log.d("InsightsFragment", "═══════════════════════════════════════════")
         
         android.util.Log.d("InsightsFragment", "📊 Total transactions in DB: ${allTransactions.size}")
@@ -258,53 +272,72 @@ class InsightsFragment : Fragment() {
         val currentMonth = getCurrentMonthRange()
         android.util.Log.d("InsightsFragment", "📅 Current month range: ${java.util.Date(currentMonth.first)} to ${java.util.Date(currentMonth.second)}")
         
-        val currentMonthExpenses = allTransactions.filter { 
-            it.type == TransactionType.DEBIT && it.date in currentMonth.first..currentMonth.second 
-        }
-        android.util.Log.d("InsightsFragment", "💸 Current month DEBIT transactions: ${currentMonthExpenses.size}")
-        
-        if (currentMonthExpenses.isEmpty()) {
-            android.util.Log.w("InsightsFragment", "⚠️ NO TRANSACTIONS IN CURRENT MONTH!")
-            android.util.Log.w("InsightsFragment", "   This is why progress bars are empty!")
-            return
+        // Filter current month transactions
+        val currentMonthTransactions = allTransactions.filter { 
+            it.date in currentMonth.first..currentMonth.second 
         }
         
-        // Log first few transactions
-        currentMonthExpenses.take(3).forEach { txn ->
-            android.util.Log.d("InsightsFragment", "  📝 Sample: ${txn.merchant} = ₹${txn.amount}")
+        // Split by CREDIT (incoming) and DEBIT (outgoing)
+        val creditTransactions = currentMonthTransactions.filter { it.type == TransactionType.CREDIT }
+        val debitTransactions = currentMonthTransactions.filter { it.type == TransactionType.DEBIT }
+        
+        android.util.Log.d("InsightsFragment", "💰 Current month CREDIT transactions: ${creditTransactions.size}")
+        android.util.Log.d("InsightsFragment", "💸 Current month DEBIT transactions: ${debitTransactions.size}")
+        
+        // Process Credit Merchants (Money IN)
+        val topCreditMerchants = if (creditTransactions.isNotEmpty()) {
+            val grouped = creditTransactions.groupBy { normalizeMerchantName(it.merchant) }
+            android.util.Log.d("InsightsFragment", "🏦 Unique CREDIT merchants: ${grouped.size}")
+            
+            val top = grouped
+                .mapValues { it.value.sumOf { t -> t.amount } }
+                .toList()
+                .sortedByDescending { it.second }
+                .take(5)
+            
+            android.util.Log.d("InsightsFragment", "\n💰 TOP CREDIT MERCHANTS (Money IN):")
+            top.forEachIndexed { index, (merchant, amount) ->
+                android.util.Log.d("InsightsFragment", "  ${index + 1}. $merchant = ₹$amount")
+            }
+            top
+        } else {
+            android.util.Log.w("InsightsFragment", "⚠️ No credit transactions in current month")
+            emptyList()
         }
         
-        // Top merchants
-        val grouped = currentMonthExpenses.groupBy { normalizeMerchantName(it.merchant) }
-        android.util.Log.d("InsightsFragment", "🏪 Unique merchants: ${grouped.size}")
-        
-        val topMerchants = grouped
-            .mapValues { it.value.sumOf { t -> t.amount } }
-            .toList()
-            .sortedByDescending { it.second }
-            .take(10)
-        
-        android.util.Log.d("InsightsFragment", "\n🏆 TOP MERCHANTS (Top ${topMerchants.size}):")
-        topMerchants.forEachIndexed { index, (merchant, amount) ->
-            android.util.Log.d("InsightsFragment", "  ${index + 1}. $merchant = ₹$amount")
+        // Process Debit Merchants (Money OUT)
+        val topDebitMerchants = if (debitTransactions.isNotEmpty()) {
+            val grouped = debitTransactions.groupBy { normalizeMerchantName(it.merchant) }
+            android.util.Log.d("InsightsFragment", "🏪 Unique DEBIT merchants: ${grouped.size}")
+            
+            val top = grouped
+                .mapValues { it.value.sumOf { t -> t.amount } }
+                .toList()
+                .sortedByDescending { it.second }
+                .take(5)
+            
+            android.util.Log.d("InsightsFragment", "\n💸 TOP DEBIT MERCHANTS (Money OUT):")
+            top.forEachIndexed { index, (merchant, amount) ->
+                android.util.Log.d("InsightsFragment", "  ${index + 1}. $merchant = ₹$amount")
+            }
+            top
+        } else {
+            android.util.Log.w("InsightsFragment", "⚠️ No debit transactions in current month")
+            emptyList()
         }
-        android.util.Log.d("InsightsFragment", "\n🎨 Now calling renderTopMerchantsChart...\n")
         
-        renderTopMerchantsChart(topMerchants)
+        android.util.Log.d("InsightsFragment", "\n🎨 Rendering merchant charts...\n")
         
-        // Category distribution
-        // val categoryDistribution = currentMonthExpenses
-        //     .groupBy { it.categoryId }
-        //     .mapValues { it.value.sumOf { t -> t.amount } }
-        //     .toList()
-        //     .sortedByDescending { it.second }
-        
-        // renderCategoryDistributionChart(categoryDistribution) // Removed as per design
+        // Render both sections
+        renderTopCreditMerchantsChart(topCreditMerchants)
+        renderTopDebitMerchantsChart(topDebitMerchants)
     }
 
     // Helper Methods
     private fun getCurrentMonthRange(): Pair<Long, Long> {
         val cal = Calendar.getInstance()
+        cal.set(Calendar.YEAR, selectedYear)
+        cal.set(Calendar.MONTH, selectedMonth)
         cal.set(Calendar.DAY_OF_MONTH, 1)
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
@@ -519,23 +552,23 @@ class InsightsFragment : Fragment() {
     //     // Deprecated: sparkline removed from layout
     // }
 
-    private fun renderTopMerchantsChart(topMerchants: List<Pair<String, Double>>) {
-        android.util.Log.d("InsightsFragment", "🎨 TOP MERCHANTS (RecyclerView): Rendering ${topMerchants.size} items")
+    private fun renderTopCreditMerchantsChart(topMerchants: List<Pair<String, Double>>) {
+        android.util.Log.d("InsightsFragment", "💰 TOP CREDIT MERCHANTS: Rendering ${topMerchants.size} items")
         
         if (topMerchants.isEmpty()) {
-            android.util.Log.w("InsightsFragment", "   No merchants to display!")
+            android.util.Log.w("InsightsFragment", "   No credit merchants to display")
+            // Show empty view or hide section if needed
             return
         }
         
         val maxAmount = topMerchants.maxOfOrNull { it.second } ?: 1.0
         val total = topMerchants.sumOf { it.second }
         
-        // Convert to adapter data model
-        val progressItems = topMerchants.take(10).map { (merchant, amount) ->
+        val progressItems = topMerchants.map { (merchant, amount) ->
             val percentageOfMax = (amount / maxAmount).toFloat()
             val sharePercentage = (amount / total * 100).toFloat()
             
-            android.util.Log.d("InsightsFragment", "  💰 $merchant: ₹$amount = ${sharePercentage.toInt()}% (${(percentageOfMax * 100).toInt()}% of max)")
+            android.util.Log.d("InsightsFragment", "  💰 $merchant: ₹$amount = ${sharePercentage.toInt()}%")
             
             TopMerchantProgress(
                 merchantName = merchant,
@@ -545,8 +578,38 @@ class InsightsFragment : Fragment() {
             )
         }
         
-        android.util.Log.d("InsightsFragment", "✅ Submitting ${progressItems.size} items to RecyclerView adapter")
-        topMerchantAdapter.submitList(progressItems)
+        android.util.Log.d("InsightsFragment", "✅ Submitting ${progressItems.size} credit merchants")
+        topCreditMerchantAdapter.submitList(progressItems)
+    }
+    
+    private fun renderTopDebitMerchantsChart(topMerchants: List<Pair<String, Double>>) {
+        android.util.Log.d("InsightsFragment", "💸 TOP DEBIT MERCHANTS: Rendering ${topMerchants.size} items")
+        
+        if (topMerchants.isEmpty()) {
+            android.util.Log.w("InsightsFragment", "   No debit merchants to display")
+            // Show empty view or hide section if needed
+            return
+        }
+        
+        val maxAmount = topMerchants.maxOfOrNull { it.second } ?: 1.0
+        val total = topMerchants.sumOf { it.second }
+        
+        val progressItems = topMerchants.map { (merchant, amount) ->
+            val percentageOfMax = (amount / maxAmount).toFloat()
+            val sharePercentage = (amount / total * 100).toFloat()
+            
+            android.util.Log.d("InsightsFragment", "  💸 $merchant: ₹$amount = ${sharePercentage.toInt()}%")
+            
+            TopMerchantProgress(
+                merchantName = merchant,
+                amount = amount,
+                percentageOfMax = percentageOfMax,
+                sharePercentage = sharePercentage
+            )
+        }
+        
+        android.util.Log.d("InsightsFragment", "✅ Submitting ${progressItems.size} debit merchants")
+        topDebitMerchantAdapter.submitList(progressItems)
     }
 
     // Old helper methods removed - now using RecyclerView adapter like working Budget progress bars!
@@ -736,6 +799,63 @@ class InsightsFragment : Fragment() {
         lastDataLoadTime = 0
         loadInsightsData()
         Toast.makeText(requireContext(), "Refreshing insights...", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun showMonthPickerDialog() {
+        val calendar = Calendar.getInstance()
+        calendar.set(selectedYear, selectedMonth, 1)
+        
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_month_picker, null)
+        
+        val monthPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.monthPicker)
+        val yearPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.yearPicker)
+        
+        // Setup month picker
+        val months = arrayOf("January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December")
+        monthPicker.minValue = 0
+        monthPicker.maxValue = 11
+        monthPicker.displayedValues = months
+        monthPicker.value = selectedMonth
+        monthPicker.wrapSelectorWheel = false
+        
+        // Setup year picker (last 5 years to current year)
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        yearPicker.minValue = currentYear - 5
+        yearPicker.maxValue = currentYear
+        yearPicker.value = selectedYear
+        yearPicker.wrapSelectorWheel = false
+        
+        builder.setView(dialogView)
+            .setTitle("Select Month")
+            .setPositiveButton("OK") { _, _ ->
+                selectedMonth = monthPicker.value
+                selectedYear = yearPicker.value
+                
+                // Update UI and reload data
+                updateMonthSelectorText()
+                refreshData()
+            }
+            .setNegativeButton("Cancel", null)
+        
+        builder.create().show()
+    }
+    
+    private fun updateMonthSelectorText() {
+        val months = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        
+        val currentCal = Calendar.getInstance()
+        val isCurrentMonth = selectedMonth == currentCal.get(Calendar.MONTH) && 
+                             selectedYear == currentCal.get(Calendar.YEAR)
+        
+        binding.tvMonthSelector.text = if (isCurrentMonth) {
+            "This Month"
+        } else {
+            "${months[selectedMonth]} $selectedYear"
+        }
     }
 
     override fun onDestroyView() {
