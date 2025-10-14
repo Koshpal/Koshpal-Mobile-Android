@@ -90,7 +90,9 @@ interface TransactionDao {
     @Query("""
         SELECT categoryId, SUM(amount) as totalAmount 
         FROM transactions 
-        WHERE type = 'DEBIT' AND categoryId IS NOT NULL 
+        WHERE type = 'DEBIT' 
+        AND categoryId IS NOT NULL 
+        AND categoryId != ''
         GROUP BY categoryId 
         HAVING SUM(amount) > 0
         ORDER BY totalAmount DESC
@@ -103,6 +105,7 @@ interface TransactionDao {
         FROM transactions 
         WHERE type = 'DEBIT' 
         AND categoryId IS NOT NULL 
+        AND categoryId != ''
         AND date >= :startOfMonth 
         AND date <= :endOfMonth
         GROUP BY categoryId 
@@ -115,15 +118,32 @@ interface TransactionDao {
     @Query("""
         SELECT categoryId, SUM(amount) as totalAmount 
         FROM transactions 
-        WHERE type = 'DEBIT' AND categoryId IS NOT NULL 
+        WHERE type = 'DEBIT' 
+        AND categoryId IS NOT NULL 
+        AND categoryId != ''
         GROUP BY categoryId 
         HAVING SUM(amount) > 0
         ORDER BY totalAmount DESC
     """)
     suspend fun getSimpleCategorySpending(): List<CategorySpending>
     
-    @Query("SELECT * FROM transactions WHERE categoryId IS NOT NULL AND categoryId != ''")
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE categoryId IS NOT NULL 
+        AND categoryId != '' 
+        AND categoryId != 'uncategorized'
+        ORDER BY date DESC
+    """)
     suspend fun getAllCategorizedTransactions(): List<Transaction>
+    
+    @Query("""
+        SELECT COUNT(*) FROM transactions 
+        WHERE categoryId = :categoryId 
+        AND type = 'DEBIT'
+        AND date >= :startDate 
+        AND date <= :endDate
+    """)
+    suspend fun getTransactionCountByCategory(categoryId: String, startDate: Long, endDate: Long): Int
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: Transaction)

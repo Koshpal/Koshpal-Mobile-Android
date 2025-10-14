@@ -13,6 +13,7 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.koshpal_android.koshpalapp.ui.budget.BudgetDetailsChartHelper
 import com.koshpal_android.koshpalapp.databinding.FragmentCategoriesBinding
 import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.TransactionCategory
@@ -113,35 +114,38 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun setupPieChart() {
-        binding.pieChart.apply {
-            setUsePercentValues(true)
-            description.isEnabled = false
-            setExtraOffsets(5f, 10f, 5f, 5f)
-            dragDecelerationFrictionCoef = 0.95f
-            isDrawHoleEnabled = true
-            setHoleColor(Color.TRANSPARENT)
-            setTransparentCircleColor(Color.WHITE)
-            setTransparentCircleAlpha(110)
-            holeRadius = 58f
-            transparentCircleRadius = 61f
-            setDrawCenterText(false)
-            rotationAngle = 0f
-            isRotationEnabled = true
-            isHighlightPerTapEnabled = true
-            legend.isEnabled = false
-            setEntryLabelColor(Color.TRANSPARENT)
-        }
+        // Chart setup is now handled by BudgetDetailsChartHelper
+        // This method is kept for backward compatibility but does nothing
     }
 
 
     private fun loadCategoryData() {
-        android.util.Log.d("CategoriesFragment", "🚀 loadCategoryData() called")
+        android.util.Log.d("CategoriesFragment", "🚀 ===== loadCategoryData() STARTED =====")
         android.util.Log.d("CategoriesFragment", "🔍 Context: context=${context != null}, view=${view != null}, lifecycle=${lifecycle.currentState}")
         
         // Critical check: Don't try to load if view isn't created yet
         if (_binding == null) {
             android.util.Log.w("CategoriesFragment", "⚠️ Binding is null! View not created yet. Skipping load.")
             return
+        }
+        
+        // DEBUG: Check all transactions in database
+        lifecycleScope.launch {
+            try {
+                val allTransactions = transactionRepository.getAllTransactionsOnce()
+                android.util.Log.d("CategoriesFragment", "📊 DEBUG: Total transactions in DB: ${allTransactions.size}")
+                
+                val categorizedTxns = allTransactions.filter { !it.categoryId.isNullOrEmpty() && it.categoryId != "" }
+                android.util.Log.d("CategoriesFragment", "📊 DEBUG: Categorized transactions: ${categorizedTxns.size}")
+                
+                val byCategoryMap = categorizedTxns.groupBy { it.categoryId }
+                byCategoryMap.forEach { (catId, txns) ->
+                    val totalAmount = txns.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }.sumOf { it.amount }
+                    android.util.Log.d("CategoriesFragment", "   📌 Category '$catId': ${txns.size} txns, ₹$totalAmount")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CategoriesFragment", "❌ Debug check failed: ${e.message}")
+            }
         }
         
         // Use lifecycleScope but ensure it's actually running
@@ -186,8 +190,19 @@ class CategoriesFragment : Fragment() {
                 )
 
                 // Get SELECTED MONTH category spending only
+                android.util.Log.d("CategoriesFragment", "📊 ===== QUERYING CATEGORY SPENDING =====")
+                android.util.Log.d("CategoriesFragment", "📅 Date Range: $startOfMonth to $endOfMonth")
+                
                 val selectedMonthCategorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
                 android.util.Log.d("CategoriesFragment", "📊 Selected month category spending: ${selectedMonthCategorySpending.size} categories")
+                
+                if (selectedMonthCategorySpending.isEmpty()) {
+                    android.util.Log.w("CategoriesFragment", "⚠️ NO CATEGORY SPENDING DATA FOR SELECTED MONTH!")
+                    android.util.Log.w("CategoriesFragment", "⚠️ This could mean:")
+                    android.util.Log.w("CategoriesFragment", "   1. No transactions in this month")
+                    android.util.Log.w("CategoriesFragment", "   2. Transactions exist but categoryId is null/empty")
+                    android.util.Log.w("CategoriesFragment", "   3. Database query is not finding the data")
+                }
                 
                 // Log the amounts for debugging
                 selectedMonthCategorySpending.forEach { spending ->
@@ -235,48 +250,94 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun updatePieChart(categorySpending: List<CategorySpending>) {
-        val entries = mutableListOf<PieEntry>()
-        val colors = mutableListOf<Int>()
-
-        categorySpending.forEach { spending ->
-            // Get category name from default categories
-            val category =
-                TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }
+        // Convert to modern chart data format
+        val chartData = categorySpending.map { spending ->
+            // Get category from default categories
+            val category = TransactionCategory.getDefaultCategories()
+                .find { it.id == spending.categoryId }
             val categoryName = category?.name ?: "Unknown"
-            entries.add(PieEntry(spending.totalAmount.toFloat(), categoryName))
-
+            
             // Get category color
             val color = try {
                 Color.parseColor(category?.color ?: "#6750A4")
             } catch (e: Exception) {
                 Color.parseColor("#6750A4")
             }
-            colors.add(color)
+            
+            BudgetDetailsChartHelper.CategoryData(
+                label = categoryName,
+                amount = spending.totalAmount,
+                color = color
+            )
         }
-
-        val dataSet = PieDataSet(entries, "Categories").apply {
-            setDrawIcons(false)
-            sliceSpace = 3f
-            iconsOffset = MPPointF.getInstance(0f, 40f)
-            selectionShift = 5f
-            setColors(colors)
-            valueTextColor = Color.TRANSPARENT
-            valueTextSize = 0f
-        }
-
-        val data = PieData(dataSet).apply {
-            setValueFormatter(PercentFormatter())
-            setValueTextSize(0f)
-            setValueTextColor(Color.TRANSPARENT)
-        }
-
-        binding.pieChart.data = data
-        binding.pieChart.highlightValues(null)
-        binding.pieChart.invalidate()
+        
+        // Use modern donut chart with outside labels
+        BudgetDetailsChartHelper.setupModernDonutChart(
+            chart = binding.pieChart,
+            data = chartData
+        )
     }
 
     private fun updateCategoryList(categorySpending: List<CategorySpending>) {
-        categorySpendingAdapter.submitList(categorySpending)
+        lifecycleScope.launch {
+            try {
+                // Get budget categories if budget exists
+                val budget = transactionRepository.getSingleBudget()
+                val budgetCategories = if (budget != null) {
+                    transactionRepository.getBudgetCategoriesForBudget(budget.id)
+                } else {
+                    emptyList()
+                }
+                
+                // Get transaction counts for each category
+                val calendar = Calendar.getInstance()
+                calendar.set(selectedYear, selectedMonth, 1, 0, 0, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startOfMonth = calendar.timeInMillis
+                
+                calendar.add(Calendar.MONTH, 1)
+                calendar.add(Calendar.MILLISECOND, -1)
+                val endOfMonth = calendar.timeInMillis
+                
+                // Combine spending with budget info and transaction counts
+                val combinedData = categorySpending.map { spending ->
+                    // Find matching budget category
+                    val budgetCat = budgetCategories.find { 
+                        it.name.equals(
+                            TransactionCategory.getDefaultCategories()
+                                .find { cat -> cat.id == spending.categoryId }?.name,
+                            ignoreCase = true
+                        )
+                    }
+                    
+                    // Get transaction count for this category
+                    val transactionCount = transactionRepository.getTransactionCountByCategory(
+                        categoryId = spending.categoryId,
+                        startDate = startOfMonth,
+                        endDate = endOfMonth
+                    )
+                    
+                    com.koshpal_android.koshpalapp.ui.categories.adapter.CategorySpendingWithBudget(
+                        categorySpending = spending,
+                        budgetCategory = budgetCat,
+                        transactionCount = transactionCount
+                    )
+                }
+                
+                categorySpendingAdapter.submitList(combinedData)
+            } catch (e: Exception) {
+                android.util.Log.e("CategoriesFragment", "Error updating category list: ${e.message}", e)
+                // Fallback to showing spending without budget data
+                val fallbackData = categorySpending.map {
+                    com.koshpal_android.koshpalapp.ui.categories.adapter.CategorySpendingWithBudget(
+                        categorySpending = it,
+                        budgetCategory = null,
+                        transactionCount = 1
+                    )
+                }
+                categorySpendingAdapter.submitList(fallbackData)
+            }
+        }
     }
 
     private fun updateTotalSpending(categorySpending: List<CategorySpending>) {
@@ -285,16 +346,14 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun showDataViews() {
-        binding.pieChart.visibility = View.VISIBLE
-        binding.layoutTotalSpending.visibility = View.VISIBLE
+        binding.chartContainer.visibility = View.VISIBLE
         binding.btnSetBudget.visibility = View.VISIBLE
         binding.rvCategories.visibility = View.VISIBLE
         binding.layoutEmptyState.visibility = View.GONE
     }
 
     private fun showEmptyState() {
-        binding.pieChart.visibility = View.GONE
-        binding.layoutTotalSpending.visibility = View.GONE
+        binding.chartContainer.visibility = View.GONE
         binding.btnSetBudget.visibility = View.GONE
         binding.rvCategories.visibility = View.GONE
         binding.layoutEmptyState.visibility = View.VISIBLE

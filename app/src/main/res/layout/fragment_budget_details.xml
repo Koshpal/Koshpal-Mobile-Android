@@ -10,16 +10,68 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Last 4 Months"
+        android:text="Budget Overview"
         android:textColor="#1F2937"
         android:textStyle="bold"
-        android:textSize="18sp"
-        android:layout_marginBottom="12dp" />
+        android:textSize="20sp"
+        android:layout_marginBottom="24dp" />
 
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/chartDetails"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="280dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@android:color/white">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <!-- Donut Chart -->
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/chartDetails"
+                android:layout_width="320dp"
+                android:layout_height="250dp"
+                android:layout_centerHorizontal="true" />
+
+            <!-- Center Total Display -->
+            <LinearLayout
+                android:id="@+id/centerTotalLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Total"
+                    android:textColor="#6B7280"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvTotalAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹94,475"
+                    android:textColor="#1F2937"
+                    android:textStyle="bold"
+                    android:textSize="32sp" />
+            </LinearLayout>
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Legend Section -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCategoryLegend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false" />
 
     <TextView
         android:id="@+id/tvSummary"
@@ -27,7 +79,8 @@
         android:layout_height="wrap_content"
         android:textColor="#6B7280"
         android:textSize="14sp"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="16dp"
+        android:gravity="center" />
 
 </LinearLayout>
 

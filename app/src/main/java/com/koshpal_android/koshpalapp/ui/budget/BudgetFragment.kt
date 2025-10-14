@@ -14,6 +14,7 @@ import com.koshpal_android.koshpalapp.ui.budget.adapter.BudgetCategoryListAdapte
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import android.graphics.Color
 
 @AndroidEntryPoint
 class BudgetFragment : Fragment() {
@@ -93,65 +94,42 @@ class BudgetFragment : Fragment() {
             chart.clear()
             return
         }
-        val entries = categories.map { com.github.mikephil.charting.data.PieEntry(it.allocatedAmount.toFloat(), it.name) }
-        val colors = listOf(
-                android.graphics.Color.parseColor("#8B5CF6"),
-                android.graphics.Color.parseColor("#10B981"),
-                android.graphics.Color.parseColor("#F59E0B"),
-                android.graphics.Color.parseColor("#EF4444"),
-                android.graphics.Color.parseColor("#6366F1"),
-                android.graphics.Color.parseColor("#06B6D4")
-            )
-        val set = com.github.mikephil.charting.data.PieDataSet(entries, "").apply {
-            setDrawValues(false)
-            this.colors = colors
-            sliceSpace = 2f
-        }
-        val data = com.github.mikephil.charting.data.PieData(set)
-        chart.data = data
-        chart.description.isEnabled = false
-        chart.setUsePercentValues(true)
-        chart.setDrawEntryLabels(false)
-        chart.legend.isEnabled = false
-        chart.setHoleColor(android.graphics.Color.TRANSPARENT)
-        chart.transparentCircleRadius = 52f
-        chart.holeRadius = 45f
-        chart.invalidate()
-
-        val legendItems = state.categories.mapIndexed { idx, c ->
-            com.koshpal_android.koshpalapp.ui.budget.adapter.LegendItem(
-                label = c.name,
-                amount = c.allocatedAmount,
+        
+        // Use modern colors
+        val colors = BudgetDetailsChartHelper.getModernColors()
+        
+        // Convert to chart data
+        val categoryData = categories.mapIndexed { idx, cat ->
+            BudgetDetailsChartHelper.CategoryData(
+                label = cat.name,
+                amount = cat.allocatedAmount,
                 color = colors[idx % colors.size]
             )
         }
+        
+        // Setup modern donut chart with outside labels
+        val legendItems = BudgetDetailsChartHelper.setupModernDonutChart(
+            chart = chart,
+            data = categoryData
+        )
+        
+        // Update legend
         legendAdapter.submitList(legendItems)
     }
 
     private fun renderDonut(spent: Float, remaining: Float) {
         val chart = binding.donutUsage
-        val entries = listOf(
-            com.github.mikephil.charting.data.PieEntry(spent, "Spent"),
-            com.github.mikephil.charting.data.PieEntry(remaining, "Remaining")
+        
+        // Use modern chart helper for consistent styling
+        val categoryData = listOf(
+            BudgetDetailsChartHelper.CategoryData("Spent", spent.toDouble(), Color.parseColor("#EF4444")),
+            BudgetDetailsChartHelper.CategoryData("Remaining", remaining.toDouble(), Color.parseColor("#10B981"))
         )
-        val set = com.github.mikephil.charting.data.PieDataSet(entries, "").apply {
-            colors = listOf(
-                android.graphics.Color.parseColor("#EF4444"),
-                android.graphics.Color.parseColor("#10B981")
-            )
-            setDrawValues(false)
-            sliceSpace = 2f
-        }
-        val data = com.github.mikephil.charting.data.PieData(set)
-        chart.data = data
-        chart.description.isEnabled = false
-        chart.setUsePercentValues(true)
-        chart.setDrawEntryLabels(false)
-        chart.legend.isEnabled = false
-        chart.setHoleColor(android.graphics.Color.TRANSPARENT)
-        chart.transparentCircleRadius = 58f
-        chart.holeRadius = 52f
-        chart.invalidate()
+        
+        BudgetDetailsChartHelper.setupModernDonutChart(
+            chart = chart,
+            data = categoryData
+        )
     }
 
     override fun onResume() {

@@ -351,6 +351,10 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                         transactionRepository.updateTransactionCategory(txn.id, selectedCategory.id)
                         android.util.Log.d("TransactionDetailsDialog", "✅ Category updated in database: ${txn.id} -> ${selectedCategory.name}")
                         
+                        // ✅ FIX: Refresh Categories fragment so categorized transactions appear there
+                        (activity as? com.koshpal_android.koshpalapp.ui.home.HomeActivity)?.refreshCategoriesData()
+                        android.util.Log.d("TransactionDetailsDialog", "🔄 Categories fragment refresh triggered")
+                        
                         Toast.makeText(requireContext(), "Category updated to ${selectedCategory.name}", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update category in database: ${e.message}")
