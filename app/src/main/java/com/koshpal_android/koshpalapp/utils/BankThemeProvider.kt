@@ -45,7 +45,7 @@ object BankThemeProvider {
             accentColor = null,
             gradientAngle = GradientAngle.VERTICAL,
             iconInitials = "S",
-            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_sbi,
+            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_google_pay,
             iconStyle = IconStyle.ROUNDED
         ),
         "STATE BANK" to BankTheme(
@@ -55,7 +55,7 @@ object BankThemeProvider {
             accentColor = null,
             gradientAngle = GradientAngle.VERTICAL,
             iconInitials = "S",
-            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_sbi,
+            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_google_pay,
             iconStyle = IconStyle.ROUNDED
         ),
         
@@ -103,7 +103,7 @@ object BankThemeProvider {
             accentColor = null,
             gradientAngle = GradientAngle.VERTICAL,
             iconInitials = "I",
-            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_ippb,
+            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_google_pay,
             iconStyle = IconStyle.ROUNDED
         ),
         "INDIA POST" to BankTheme(
@@ -113,7 +113,7 @@ object BankThemeProvider {
             accentColor = null,
             gradientAngle = GradientAngle.VERTICAL,
             iconInitials = "I",
-            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_ippb,
+            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_google_pay,
             iconStyle = IconStyle.ROUNDED
         ),
     )
@@ -128,7 +128,7 @@ object BankThemeProvider {
             accentColor = Color.parseColor("#3C1361"),
             gradientAngle = GradientAngle.DIAGONAL,
             iconInitials = "P",
-            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_phonepay,
+            iconDrawable = com.koshpal_android.koshpalapp.R.drawable.ic_google_pay,
             iconStyle = IconStyle.GRADIENT
         ),
         

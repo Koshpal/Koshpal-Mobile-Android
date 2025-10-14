@@ -226,6 +226,11 @@ class HomeFragment : Fragment() {
                 (activity as? HomeActivity)?.showTransactionsFragment()
             }
 
+            // Add Transaction button
+            btnAddTransaction.setOnClickListener {
+                showAddTransactionDialog()
+            }
+
             btnEnablePermissions.setOnClickListener {
                 requestSmsPermissions()
             }
@@ -1283,5 +1288,24 @@ class HomeFragment : Fragment() {
                 android.util.Log.e("HomeFragment", "SMS parsing error: ${e.message}", e)
             }
         }
+    }
+
+    private fun showAddTransactionDialog() {
+        val dialog = com.koshpal_android.koshpalapp.ui.home.dialog.AddTransactionDialog()
+        dialog.setOnTransactionAddedListener {
+            // Refresh data after transaction is added
+            viewModel.refreshData()
+            loadBankSpending() // Refresh bank cards to show updated amounts
+            
+            // Refresh categories fragment data
+            (activity as? HomeActivity)?.refreshCategoriesData()
+            
+            Toast.makeText(
+                requireContext(),
+                "Transaction added successfully!",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        dialog.show(childFragmentManager, com.koshpal_android.koshpalapp.ui.home.dialog.AddTransactionDialog.TAG)
     }
 }

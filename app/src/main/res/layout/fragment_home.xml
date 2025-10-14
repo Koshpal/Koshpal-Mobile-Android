@@ -305,6 +305,22 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Add Transaction Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="+ Add Transaction"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="16dp"
+            app:backgroundTint="@color/primary"
+            android:elevation="4dp" />
+
         <!-- Recent Transactions Section - Single Card with Header and List -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardRecentTransactions"
