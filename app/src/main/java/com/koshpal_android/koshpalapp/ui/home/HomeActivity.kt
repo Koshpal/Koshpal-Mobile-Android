@@ -1,7 +1,10 @@
 package com.koshpal_android.koshpalapp.ui.home
 
+import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivityHomeBinding
@@ -15,6 +18,7 @@ import com.koshpal_android.koshpalapp.ui.profile.ProfileFragment
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.model.Transaction
+import com.koshpal_android.koshpalapp.ui.reminders.RemindersListFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +34,7 @@ class HomeActivity : AppCompatActivity() {
     private val profileFragment = ProfileFragment()
     private val transactionsFragment = TransactionsFragment()
     private val budgetFragment = BudgetFragment()
+    private val fregmentReminders = RemindersListFragment()
 
     private var activeFragment: Fragment = homeFragment
 
@@ -38,11 +43,17 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val window = window
+        window.statusBarColor = ContextCompat.getColor(this, android.R.color.white)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
         // Pre-add all primary fragments and show Home by default for faster nav
         supportFragmentManager.beginTransaction()
             .add(R.id.fragmentContainer, profileFragment, "profile").hide(profileFragment)
             .add(R.id.fragmentContainer, categoriesFragment, "categories").hide(categoriesFragment)
-            .add(R.id.fragmentContainer, insightsFragment, "insights").hide(insightsFragment)
+            .add(R.id.fragmentContainer, fregmentReminders, "insights").hide(fregmentReminders)
             .add(R.id.fragmentContainer, transactionsFragment, "transactions").hide(transactionsFragment)
             .add(R.id.fragmentContainer, homeFragment, "home")
             .commit()
@@ -68,7 +79,7 @@ class HomeActivity : AppCompatActivity() {
                     true
                 }
                 R.id.insights -> {
-                    showFragment(insightsFragment)
+                    showFragment(fregmentReminders)
                     true
                 }
                 R.id.categories -> {
