@@ -2,6 +2,7 @@
 
     <!-- Base application theme. -->
     <style name="Base.Theme.KoshpalApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
@@ -30,10 +31,11 @@
     </style>
 
     <style name="Theme.KoshpalApp" parent="Theme.MaterialComponents.Light.NoActionBar">
-
+        <item name="colorPrimary">@color/primary</item>
     </style>
 
     <style name="Theme.KoshpalApp.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
         <item name="windowActionBar">false</item>
         <item name="colorPrimary">@color/white</item>
         <item name="windowNoTitle">true</item>
@@ -42,18 +44,21 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
     </style>
     <style name="NotificationActivityAnimation">
+        <item name="colorPrimary">@color/primary</item>
         <item name="android:activityOpenEnterAnimation">@android:anim/fade_in</item>
         <item name="android:activityOpenExitAnimation">@android:anim/fade_out</item>
         <item name="android:activityCloseEnterAnimation">@android:anim/fade_in</item>
         <item name="android:activityCloseExitAnimation">@android:anim/fade_out</item>
     </style>
     <style name="BottomNavigationTextAppearance" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
         <item name="android:textSize">12sp</item>
         <item name="android:textStyle">normal</item>
     </style>
 
     <!-- Fullscreen Splash Theme -->
     <style name="Theme.Splash" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@color/primary</item>
