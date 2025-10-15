@@ -1,394 +1,405 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    android:orientation="vertical">
+    android:layout_marginBottom="70dp"
+    android:background="@color/white">
 
-        <!-- Blue Header Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="32dp"
-            android:background="@drawable/bg_primary_rounded_bottom"
-            android:clipToPadding="false">
-
-        <!-- Header Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="20dp">
-
-            <!-- Profile Image -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="52dp"
-                android:layout_height="52dp"
-                app:cardCornerRadius="26dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/white">
-
-                <ImageView
-                    android:id="@+id/ivUserProfile"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_person"
-                    android:scaleType="centerCrop"
-                    android:tint="@color/primary"
-                    android:padding="11dp" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Title -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Payment Reminders"
-                    android:textColor="@color/white"
-                    android:alpha="0.85"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/tvReminderCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="5 Active"
-                    android:textColor="@color/white"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginTop="2dp" />
-            </LinearLayout>
-
-            <!-- Add Button -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/fabAddReminder"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                app:cardCornerRadius="21dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#33FFFFFF"
-                android:foreground="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_add"
-                    android:tint="@color/white"
-                    android:padding="10dp" />
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-
-        <!-- Divider Line -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="20dp"
-            android:background="#33FFFFFF"
-            android:alpha="0.5" />
-
-        <!-- Statistics Cards - Inside Blue Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="3"
-            android:layout_marginHorizontal="16dp">
-
-            <!-- Pending Count -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFF8E1"
-                app:strokeColor="#FFB300"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/tvPendingCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="5"
-                        android:textColor="#FF8F00"
-                        android:textSize="24sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        tools:text="5" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pending"
-                        android:textColor="#FF8F00"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Amount to Pay -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginHorizontal="3dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFEBEE"
-                app:strokeColor="#EF5350"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/tvToGive"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₹2.5K"
-                        android:textColor="#D32F2F"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        tools:text="₹2.5K" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="To Pay"
-                        android:textColor="#D32F2F"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Amount to Receive -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="#E8F5E9"
-                app:strokeColor="#66BB6A"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/tvToReceive"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₹1.2K"
-                        android:textColor="#388E3C"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        tools:text="₹1.2K" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="To Receive"
-                        android:textColor="#388E3C"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Next Payment Due Card - Modern Design -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardNextReminder"
+    <!-- Main Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="@color/white">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Blue Header Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="32dp"
+                android:background="@drawable/bg_primary_rounded_bottom"
+                android:clipToPadding="false">
+
+                <!-- Header Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@drawable/gradient_financial_overview">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="20dp">
 
-                    <!-- Content Container -->
+                    <!-- Profile Image -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        app:cardCornerRadius="26dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/white">
+
+                        <ImageView
+                            android:id="@+id/ivUserProfile"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_person"
+                            android:scaleType="centerCrop"
+                            android:tint="@color/primary"
+                            android:padding="11dp" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Title -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:layout_marginStart="14dp">
 
-                        <!-- Header with Badge -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Payment Reminders"
+                            android:textColor="@color/white"
+                            android:alpha="0.85"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvReminderCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="5 Active"
+                            android:textColor="@color/white"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <!-- Add Button -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/fabAddReminder"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        app:cardCornerRadius="21dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#33FFFFFF"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_add"
+                            android:tint="@color/white"
+                            android:padding="10dp" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+                <!-- Divider Line -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="20dp"
+                    android:background="#33FFFFFF"
+                    android:alpha="0.5" />
+
+                <!-- Statistics Cards - Inside Blue Section -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:layout_marginHorizontal="16dp">
+
+                    <!-- Pending Count -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#FFF8E1"
+                        app:strokeColor="#FFB300"
+                        app:strokeWidth="1dp">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="20dp">
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
 
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="28dp"
-                                    android:layout_height="28dp"
-                                    android:src="@drawable/ic_notifications"
-                                    android:tint="@color/white"
-                                    android:alpha="0.95" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Next Payment"
-                                    android:textAppearance="@style/TextAppearance.Koshpal.Subtitle"
-                                    android:textColor="@color/white"
-                                    android:alpha="0.95"
-                                    android:layout_marginStart="10dp" />
-
-                            </LinearLayout>
-
-                            <!-- Type Badge -->
-                            <com.google.android.material.card.MaterialCardView
+                            <TextView
+                                android:id="@+id/tvPendingCount"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="@color/white">
+                                android:text="5"
+                                android:textColor="#FF8F00"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-medium"
+                                tools:text="5" />
 
-                                <TextView
-                                    android:id="@+id/chipNextType"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="💸 To Pay"
-                                    android:textColor="@color/expense"
-                                    android:textAppearance="@style/TextAppearance.Koshpal.Caption"
-                                    android:textStyle="bold"
-                                    android:paddingHorizontal="16dp"
-                                    android:paddingVertical="6dp"
-                                    tools:text="💸 To Pay" />
-
-                            </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pending"
+                                android:textColor="#FF8F00"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
 
                         </LinearLayout>
 
-                        <!-- Person Name -->
-                        <TextView
-                            android:id="@+id/tvNextPersonName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Rahul Kumar"
-                            android:textColor="@color/white"
-                            android:textSize="26sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
-                            android:letterSpacing="-0.01"
-                            android:layout_marginBottom="8dp"
-                            tools:text="Rahul Kumar" />
+                    </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Amount - Large and Bold -->
-                        <TextView
-                            android:id="@+id/tvNextAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="₹500"
-                            android:textColor="@color/white"
-                            android:textSize="42sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold"
-                            android:letterSpacing="-0.02"
-                            android:layout_marginBottom="12dp"
-                            tools:text="₹500" />
+                    <!-- Amount to Pay -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="3dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#FFEBEE"
+                        app:strokeColor="#EF5350"
+                        app:strokeWidth="1dp">
 
-                        <!-- Purpose -->
-                        <TextView
-                            android:id="@+id/tvNextPurpose"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Dinner bill payment"
-                            android:textColor="@color/white"
-                            android:textAppearance="@style/TextAppearance.Koshpal.Body"
-                            android:alpha="0.92"
-                            android:maxLines="2"
-                            android:ellipsize="end"
-                            android:layout_marginBottom="20dp"
-                            tools:text="Dinner bill payment" />
-
-                        <!-- Date/Time and Action Button -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
 
-                            <!-- Date/Time Container -->
-                            <LinearLayout
-                                android:layout_width="0dp"
+                            <TextView
+                                android:id="@+id/tvToGive"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
+                                android:text="₹2.5K"
+                                android:textColor="#D32F2F"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-medium"
+                                tools:text="₹2.5K" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="To Pay"
+                                android:textColor="#D32F2F"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Amount to Receive -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#E8F5E9"
+                        app:strokeColor="#66BB6A"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/tvToReceive"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="₹1.2K"
+                                android:textColor="#388E3C"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-medium"
+                                tools:text="₹1.2K" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="To Receive"
+                                android:textColor="#388E3C"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Next Payment Due Card - Modern Design -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNextReminder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/primary"
+                app:strokeWidth="0dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="18dp">
+
+                    <!-- Header Label -->
+                    <TextView
+                        android:id="@+id/tvHeaderLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="UPCOMING PAYMENT"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:alpha="0.75"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <!-- Type Badge -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/chipNextType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#FFFFFF"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent">
+
+                        <TextView
+                            android:id="@+id/tvNextTypeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="To Pay"
+                            android:textColor="@color/primary"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="4dp"
+                            tools:text="To Pay" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Main Content Container -->
+                    <LinearLayout
+                        android:id="@+id/contentContainer"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintTop_toBottomOf="@id/tvHeaderLabel"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/actionContainer">
+
+                        <!-- Left Section: Details -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <!-- Person Name -->
+                            <TextView
+                                android:id="@+id/tvNextPersonName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Rahul Kumar"
+                                android:textColor="@color/white"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                android:fontFamily="sans-serif-medium"
+                                android:letterSpacing="-0.01"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                tools:text="Rahul Kumar" />
+
+                            <!-- Amount -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:orientation="horizontal"
-                                android:gravity="center_vertical">
+                                android:gravity="center_vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:id="@+id/tvNextAmount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="500"
+                                    android:textColor="@color/white"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="sans-serif"
+                                    android:letterSpacing="-0.02"
+                                    android:layout_marginStart="2dp"
+                                    tools:text="500" />
+
+                            </LinearLayout>
+
+                            <!-- Purpose -->
+                            <TextView
+                                android:id="@+id/tvNextPurpose"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Dinner bill payment"
+                                android:textColor="@color/white"
+                                android:textSize="13sp"
+                                android:alpha="0.8"
+                                android:layout_marginTop="6dp"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                tools:text="Dinner bill payment" />
+
+                            <!-- Date/Time -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginTop="8dp">
 
                                 <ImageView
-                                    android:layout_width="20dp"
-                                    android:layout_height="20dp"
+                                    android:layout_width="14dp"
+                                    android:layout_height="14dp"
                                     android:src="@drawable/ic_calendar"
                                     android:tint="@color/white"
-                                    android:alpha="0.9" />
+                                    android:alpha="0.8" />
 
                                 <TextView
                                     android:id="@+id/tvNextDueDateTime"
@@ -396,32 +407,54 @@
                                     android:layout_height="wrap_content"
                                     android:text="Today at 6:00 PM"
                                     android:textColor="@color/white"
-                                    android:textAppearance="@style/TextAppearance.Koshpal.Body"
+                                    android:textSize="12sp"
                                     android:textStyle="bold"
-                                    android:alpha="0.95"
-                                    android:layout_marginStart="8dp"
-                                    tools:text="Today • 6:00 PM" />
+                                    android:fontFamily="sans-serif-medium"
+                                    android:alpha="0.9"
+                                    android:layout_marginStart="6dp"
+                                    tools:text="Today at 6:00 PM" />
 
                             </LinearLayout>
-
-                            <!-- Mark Paid Button -->
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnMarkNextComplete"
-                                style="@style/Button.Koshpal.Primary"
-                                android:layout_width="wrap_content"
-                                android:layout_height="44dp"
-                                android:text="Mark Paid"
-                                android:textColor="@color/primary"
-                                app:backgroundTint="@color/white"
-                                app:cornerRadius="22dp"
-                                android:paddingHorizontal="20dp"
-                                app:elevation="4dp" />
 
                         </LinearLayout>
 
                     </LinearLayout>
 
-                </LinearLayout>
+                    <!-- Right Section: Action Button -->
+                    <LinearLayout
+                        android:id="@+id/actionContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginStart="16dp"
+                        app:layout_constraintTop_toTopOf="@id/contentContainer"
+                        app:layout_constraintBottom_toBottomOf="@id/contentContainer"
+                        app:layout_constraintEnd_toEndOf="parent">
+
+                        <!-- Mark Paid Button -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMarkNextComplete"
+                            android:layout_width="wrap_content"
+                            android:layout_height="42dp"
+                            android:text="Mark Paid"
+                            android:textColor="@color/primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            app:backgroundTint="@color/white"
+                            app:cornerRadius="21dp"
+                            android:paddingHorizontal="20dp"
+                            app:icon="@drawable/ic_check_circle"
+                            app:iconTint="@color/primary"
+                            app:iconSize="16dp"
+                            app:iconPadding="6dp"
+                            app:elevation="0dp"
+                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+                    </LinearLayout>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -430,13 +463,15 @@
                 android:id="@+id/cardNoNextReminder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
                 android:visibility="gone"
-                app:cardCornerRadius="24dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@color/white"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E5E7EB"
                 tools:visibility="gone">
 
                 <LinearLayout
@@ -447,8 +482,8 @@
                     android:gravity="center">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
                         android:src="@drawable/ic_check_circle"
                         android:tint="@color/success"
                         android:layout_marginBottom="12dp" />
@@ -458,16 +493,16 @@
                         android:layout_height="wrap_content"
                         android:text="All Caught Up!"
                         android:textColor="@color/text_primary"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="6dp" />
+                        android:layout_marginBottom="4dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="No pending reminders right now"
                         android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:gravity="center" />
 
                 </LinearLayout>
@@ -483,19 +518,27 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Reminders List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvReminders"
+            <!-- Reminders List Container -->
+            <LinearLayout
+                android:id="@+id/remindersContainer"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:paddingBottom="80dp"
-                android:clipToPadding="false"
-                tools:listitem="@layout/item_reminder"
-                tools:itemCount="3" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="16dp">
+
+                <!-- RecyclerView will be populated here programmatically -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvReminders"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_reminder"
+                    tools:itemCount="3" />
+
+            </LinearLayout>
 
             <!-- Empty State -->
             <LinearLayout
@@ -504,16 +547,16 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="32dp"
+                android:padding="40dp"
                 android:visibility="gone"
                 tools:visibility="gone">
 
                 <ImageView
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:src="@drawable/ic_notifications"
                     android:tint="@color/text_secondary"
-                    android:alpha="0.5"
+                    android:alpha="0.4"
                     android:layout_marginBottom="16dp" />
 
                 <TextView
@@ -521,7 +564,7 @@
                     android:layout_height="wrap_content"
                     android:text="No Reminders Yet"
                     android:textColor="@color/text_primary"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
@@ -535,4 +578,8 @@
 
             </LinearLayout>
 
-</LinearLayout>
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
