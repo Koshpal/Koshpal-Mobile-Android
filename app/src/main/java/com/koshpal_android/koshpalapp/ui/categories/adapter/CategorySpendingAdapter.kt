@@ -24,6 +24,13 @@ class CategorySpendingAdapter(
     private val onCategoryClick: (CategorySpending) -> Unit = {}
 ) : ListAdapter<CategorySpendingWithBudget, CategorySpendingAdapter.CategorySpendingViewHolder>(CategorySpendingDiffCallback()) {
 
+    private var categoriesById: Map<String, TransactionCategory> = emptyMap()
+
+    fun setCategoriesMap(map: Map<String, TransactionCategory>) {
+        categoriesById = map
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategorySpendingViewHolder {
         val binding = ItemCategorySpendingBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -110,7 +117,7 @@ class CategorySpendingAdapter(
         }
 
         private fun getCategoryById(categoryId: String): TransactionCategory? {
-            return TransactionCategory.getDefaultCategories().find { it.id == categoryId }
+            return categoriesById[categoryId] ?: TransactionCategory.getDefaultCategories().find { it.id == categoryId }
         }
     }
 

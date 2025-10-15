@@ -65,6 +65,11 @@ class SetMonthlyBudgetFragment : Fragment() {
         binding.btnSave.setOnClickListener {
             saveBudget()
         }
+
+        // Add Category button
+        binding.btnAddCategory.setOnClickListener {
+            showAddCategoryDialog()
+        }
     }
 
     private fun setupMonthPicker() {
@@ -123,9 +128,9 @@ class SetMonthlyBudgetFragment : Fragment() {
                 val categorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
                 val spendingMap = categorySpending.associateBy { it.categoryId }
 
-                // Get all default categories
-                val allCategories = TransactionCategory.getDefaultCategories()
-                    .filter { it.id != "salary" } // Exclude income categories from budget setting
+                // Get categories from DB (includes defaults + any custom active categories)
+                val allCategories = transactionRepository.getAllActiveCategoriesList()
+                    .filter { it.id != "salary" }
 
                 // Create category budget items
                 val categoryBudgetItems = allCategories.map { category ->
@@ -150,6 +155,63 @@ class SetMonthlyBudgetFragment : Fragment() {
                 Toast.makeText(requireContext(), "Failed to load categories", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showAddCategoryDialog() {
+        val context = requireContext()
+        val input = android.widget.EditText(context)
+        input.hint = "Category name"
+        input.setSingleLine()
+
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setTitle("Add Category")
+            .setView(input)
+            .setPositiveButton("Add", null)
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val addBtn = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
+            addBtn.setOnClickListener {
+                val name = input.text?.toString()?.trim() ?: ""
+                if (name.isEmpty()) {
+                    input.error = "Enter a category name"
+                    return@setOnClickListener
+                }
+
+                lifecycleScope.launch {
+                    try {
+                        // Create custom category with default icon/color
+                        val created = transactionRepository.insertCustomCategory(name)
+
+                        // Append to the list with zero budget by default
+                        val current = setBudgetCategoryAdapter.getCategoryBudgets().toMutableList()
+                        val exists = current.any { it.categoryId == created.id || it.categoryName.equals(created.name, true) }
+                        if (!exists) {
+                            current.add(
+                                CategoryBudgetItem(
+                                    categoryId = created.id,
+                                    categoryName = created.name,
+                                    categoryIcon = created.icon,
+                                    categoryColor = created.color,
+                                    currentSpending = 0.0,
+                                    budgetAmount = 0.0
+                                )
+                            )
+                            setBudgetCategoryAdapter.submitList(current)
+                        }
+                        updateTotalBudget()
+                        Toast.makeText(context, "Category added", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    } catch (e: Exception) {
+                        android.util.Log.e("SetMonthlyBudget", "Failed to add category: ${'$'}{e.message}")
+                        Toast.makeText(context, "Failed to add category", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private fun loadExistingBudget() {

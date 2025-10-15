@@ -101,6 +101,46 @@ class TransactionRepository @Inject constructor(
     suspend fun getAllCategorizedTransactions(): List<Transaction> {
         return transactionDao.getAllCategorizedTransactions()
     }
+
+    // Category helpers for UI (custom categories support)
+    suspend fun getAllActiveCategoriesList(): List<TransactionCategory> {
+        return categoryDao.getAllActiveCategoriesList()
+    }
+
+    suspend fun insertCustomCategory(
+        name: String,
+        colorHex: String = "#6B7280", // Neutral gray
+        iconRes: Int = com.koshpal_android.koshpalapp.R.drawable.ic_budget_empty,
+        keywords: List<String> = emptyList()
+    ): TransactionCategory {
+        val trimmedName = name.trim()
+
+        // Check if a category with same name already exists (case-insensitive)
+        val existing = categoryDao.getAllCategoriesOnce().firstOrNull { it.name.equals(trimmedName, ignoreCase = true) }
+        if (existing != null) {
+            // If it exists but inactive, activate it
+            if (!existing.isActive) {
+                categoryDao.activateCategory(existing.id)
+                return existing.copy(isActive = true)
+            }
+            // Already exists and active - return it (treat as success, not failure)
+            return existing
+        }
+
+        // Create brand new custom category with a robust unique id
+        val uniqueId = java.util.UUID.randomUUID().toString()
+        val category = TransactionCategory(
+            id = uniqueId,
+            name = trimmedName,
+            icon = iconRes,
+            color = colorHex,
+            keywords = keywords,
+            isDefault = false,
+            isActive = true
+        )
+        categoryDao.insertCategory(category)
+        return category
+    }
     
     suspend fun getTotalAmountByTypeAndDateRange(
         type: TransactionType, 

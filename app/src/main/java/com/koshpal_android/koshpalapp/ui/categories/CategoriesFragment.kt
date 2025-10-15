@@ -38,6 +38,7 @@ class CategoriesFragment : Fragment() {
     lateinit var transactionRepository: TransactionRepository
 
     private lateinit var categorySpendingAdapter: CategorySpendingAdapter
+    private var categoriesById: Map<String, TransactionCategory> = emptyMap()
     
     // Month selection properties
     private var selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
@@ -193,6 +194,12 @@ class CategoriesFragment : Fragment() {
                 android.util.Log.d("CategoriesFragment", "📊 ===== QUERYING CATEGORY SPENDING =====")
                 android.util.Log.d("CategoriesFragment", "📅 Date Range: $startOfMonth to $endOfMonth")
                 
+                // Load categories from DB (defaults + custom) for proper labels/colors
+                val allCategories = transactionRepository.getAllActiveCategoriesList()
+                categoriesById = allCategories.associateBy { it.id }
+                // Provide to adapter so row names/icons/colors are correct
+                categorySpendingAdapter.setCategoriesMap(categoriesById)
+
                 val selectedMonthCategorySpending = transactionRepository.getCurrentMonthCategorySpending(startOfMonth, endOfMonth)
                 android.util.Log.d("CategoriesFragment", "📊 Selected month category spending: ${selectedMonthCategorySpending.size} categories")
                 
@@ -206,7 +213,7 @@ class CategoriesFragment : Fragment() {
                 
                 // Log the amounts for debugging
                 selectedMonthCategorySpending.forEach { spending ->
-                    val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
+                    val categoryName = categoriesById[spending.categoryId]?.name ?: "Unknown"
                     android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
                 }
                 
@@ -221,7 +228,7 @@ class CategoriesFragment : Fragment() {
                     if (allTimeSpending.isNotEmpty()) {
                         android.util.Log.d("CategoriesFragment", "✅ Using all-time data instead")
                         allTimeSpending.forEach { spending ->
-                            val categoryName = TransactionCategory.getDefaultCategories().find { it.id == spending.categoryId }?.name ?: "Unknown"
+                            val categoryName = categoriesById[spending.categoryId]?.name ?: "Unknown"
                             android.util.Log.d("CategoriesFragment", "   💰 ${spending.categoryId} ('$categoryName') -> ₹${spending.totalAmount}")
                         }
                         categorySpending = allTimeSpending
@@ -252,9 +259,8 @@ class CategoriesFragment : Fragment() {
     private fun updatePieChart(categorySpending: List<CategorySpending>) {
         // Convert to modern chart data format
         val chartData = categorySpending.map { spending ->
-            // Get category from default categories
-            val category = TransactionCategory.getDefaultCategories()
-                .find { it.id == spending.categoryId }
+            // Use DB-backed categories for proper names/colors (supports custom)
+            val category = categoriesById[spending.categoryId]
             val categoryName = category?.name ?: "Unknown"
             
             // Get category color
@@ -302,13 +308,7 @@ class CategoriesFragment : Fragment() {
                 // Combine spending with budget info and transaction counts
                 val combinedData = categorySpending.map { spending ->
                     // Find matching budget category
-                    val budgetCat = budgetCategories.find { 
-                        it.name.equals(
-                            TransactionCategory.getDefaultCategories()
-                                .find { cat -> cat.id == spending.categoryId }?.name,
-                            ignoreCase = true
-                        )
-                    }
+                    val budgetCat = budgetCategories.find { it.name.equals(categoriesById[spending.categoryId]?.name ?: spending.categoryId, ignoreCase = true) }
                     
                     // Get transaction count for this category
                     val transactionCount = transactionRepository.getTransactionCountByCategory(

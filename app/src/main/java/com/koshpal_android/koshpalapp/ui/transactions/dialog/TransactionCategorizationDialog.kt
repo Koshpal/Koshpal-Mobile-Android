@@ -16,8 +16,10 @@ import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionsViewModel
 import com.koshpal_android.koshpalapp.ui.transactions.adapter.CategorySelectionAdapter
+import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TransactionCategorizationDialog : BottomSheetDialogFragment() {
@@ -30,6 +32,9 @@ class TransactionCategorizationDialog : BottomSheetDialogFragment() {
     
     private var transaction: Transaction? = null
     private var onCategorySelected: ((Transaction, TransactionCategory) -> Unit)? = null
+
+    @Inject
+    lateinit var transactionRepository: TransactionRepository
 
     companion object {
         fun newInstance(
@@ -83,8 +88,9 @@ class TransactionCategorizationDialog : BottomSheetDialogFragment() {
     private fun loadCategories() {
         lifecycleScope.launch {
             try {
-                // Get default categories for now
-                val categories = TransactionCategory.getDefaultCategories()
+                // Ensure defaults exist once, then load active categories (includes custom)
+                transactionRepository.ensureDefaultCategoriesExist()
+                val categories = transactionRepository.getAllActiveCategoriesList()
                 categoryAdapter.submitList(categories)
             } catch (e: Exception) {
                 android.util.Log.e("TransactionCategorization", "Failed to load categories: ${e.message}")
