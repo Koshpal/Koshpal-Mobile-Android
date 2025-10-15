@@ -22,11 +22,10 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             KoshpalDatabase::class.java,
-            "koshpal_database_v7"
-        )// Remove destructive migration to preserve budget data
-         // .fallbackToDestructiveMigration()
-         // .fallbackToDestructiveMigrationOnDowngrade()
-         .build()
+            "koshpal_database_v8"
+        )
+        .fallbackToDestructiveMigration() // Allow database recreation for new Reminder feature
+        .build()
     }
     
     @Provides
@@ -63,6 +62,11 @@ object DatabaseModule {
     @Provides
     fun provideCashFlowTransactionDao(database: KoshpalDatabase): CashFlowTransactionDao {
         return database.cashFlowTransactionDao()
+    }
+    
+    @Provides
+    fun provideReminderDao(database: KoshpalDatabase): com.koshpal_android.koshpalapp.data.local.ReminderDao {
+        return database.reminderDao()
     }
     
     @Provides

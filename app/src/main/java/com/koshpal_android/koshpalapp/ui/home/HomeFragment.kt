@@ -231,6 +231,12 @@ class HomeFragment : Fragment() {
                 showAddTransactionDialog()
             }
 
+            // Reminders button
+            btnReminders.setOnClickListener {
+                android.util.Log.d("HomeFragment", "🔔 Reminders button clicked")
+                (activity as? HomeActivity)?.showRemindersListFragment()
+            }
+
             btnEnablePermissions.setOnClickListener {
                 requestSmsPermissions()
             }

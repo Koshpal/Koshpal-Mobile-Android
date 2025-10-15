@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardReminder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="@color/white"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Top Row: Type Badge + Priority -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <!-- Type Badge - Modern Card Style -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/expense_light">
+
+                <TextView
+                    android:id="@+id/chipType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💸 To Pay"
+                    android:textColor="@color/expense"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                    android:textStyle="bold"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="6dp"
+                    tools:text="💸 To Pay" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Priority Badge -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/chipPriority"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/error_light">
+
+                <TextView
+                    android:id="@+id/tvPriorityText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔥 High"
+                    android:textColor="@color/error"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                    android:textStyle="bold"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    tools:text="🔥 High" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Person Name - Prominent -->
+        <TextView
+            android:id="@+id/tvPersonName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rahul Kumar"
+            android:textAppearance="@style/TextAppearance.Koshpal.Title"
+            android:textSize="22sp"
+            android:letterSpacing="-0.01"
+            android:layout_marginBottom="8dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Rahul Kumar" />
+
+        <!-- Amount - Large and Bold -->
+        <TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹500"
+            android:textAppearance="@style/TextAppearance.Koshpal.Amount"
+            android:textSize="32sp"
+            android:textColor="@color/expense"
+            android:letterSpacing="-0.02"
+            android:layout_marginBottom="12dp"
+            tools:text="₹500" />
+
+        <!-- Purpose -->
+        <TextView
+            android:id="@+id/tvPurpose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dinner bill at restaurant"
+            android:textAppearance="@style/TextAppearance.Koshpal.BodySecondary"
+            android:lineHeight="20dp"
+            android:layout_marginBottom="16dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Dinner bill at restaurant" />
+
+        <!-- Due Date & Time - Modern Badge Style -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/background_light">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_calendar"
+                    android:tint="@color/primary" />
+
+                <TextView
+                    android:id="@+id/tvDueDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15 Oct 2025"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Body"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp"
+                    tools:text="15 Oct" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="•"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:layout_marginHorizontal="6dp" />
+
+                <TextView
+                    android:id="@+id/tvDueTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="06:00 PM"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Body"
+                    android:textStyle="bold"
+                    tools:text="6:00 PM" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Repeat Badge - Modern Style -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutRepeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/secondary_lightest"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvRepeat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔁 Repeats Monthly"
+                android:textColor="@color/secondary"
+                android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                android:textStyle="bold"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                tools:text="🔁 Monthly" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Bottom Row: Contact + Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@color/background_light"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:layout_marginHorizontal="-20dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="-20dp">
+
+            <!-- Contact Info -->
+            <TextView
+                android:id="@+id/tvContact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📞 +91 98765 43210"
+                android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="visible"
+                tools:text="📞 +91 98765 43210" />
+
+            <!-- Action Buttons - Modern Style -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- Mark Complete Button -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/success_light">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMarkComplete"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:icon="@drawable/ic_check_circle"
+                        app:iconTint="@color/success"
+                        app:iconSize="22dp"
+                        app:iconPadding="0dp"
+                        app:iconGravity="textStart"
+                        app:backgroundTint="@android:color/transparent"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@color/success"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Edit Button -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/primary_lightest">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEdit"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:icon="@drawable/ic_edit"
+                        app:iconTint="@color/primary"
+                        app:iconSize="20dp"
+                        app:iconPadding="0dp"
+                        app:iconGravity="textStart"
+                        app:backgroundTint="@android:color/transparent"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@color/primary"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Delete Button -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/error_light">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDelete"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:padding="0dp"
+                        app:icon="@drawable/ic_delete"
+                        app:iconTint="@color/error"
+                        app:iconSize="20dp"
+                        app:iconPadding="0dp"
+                        app:iconGravity="textStart"
+                        app:backgroundTint="@android:color/transparent"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@color/error"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Overdue Indicator - Modern Alert Banner -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutOverdue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="-20dp"
+            android:layout_marginBottom="-20dp"
+            android:visibility="gone"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/error"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_error"
+                    android:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OVERDUE"
+                    android:textColor="@color/white"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                    android:textStyle="bold"
+                    android:layout_marginStart="10dp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Needs Attention"
+                    android:textColor="@color/white"
+                    android:textAppearance="@style/TextAppearance.Koshpal.Caption"
+                    android:alpha="0.9" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

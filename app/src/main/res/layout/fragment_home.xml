@@ -305,21 +305,51 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Add Transaction Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddTransaction"
+        <!-- Action Buttons Row: Add Transaction & Reminders -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            android:text="+ Add Transaction"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:cornerRadius="16dp"
-            app:backgroundTint="@color/primary"
-            android:elevation="4dp" />
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <!-- Add Transaction Button (50% width) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddTransaction"
+                style="@style/Button.Koshpal.Primary"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="+ Add Transaction"
+                app:icon="@drawable/ic_add"
+                app:iconGravity="textStart"
+                app:iconSize="20dp"
+                app:iconTint="@color/white"
+                app:cornerRadius="14dp"
+                android:elevation="6dp" />
+
+            <!-- Reminders Button (50% width) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReminders"
+                style="@style/Button.Koshpal.Primary"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Reminders"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/secondary"
+                app:icon="@drawable/ic_notifications"
+                app:iconGravity="textStart"
+                app:iconSize="20dp"
+                app:iconTint="@color/white"
+                app:cornerRadius="14dp"
+                android:elevation="6dp" />
+
+        </LinearLayout>
 
         <!-- Recent Transactions Section - Single Card with Header and List -->
         <com.google.android.material.card.MaterialCardView

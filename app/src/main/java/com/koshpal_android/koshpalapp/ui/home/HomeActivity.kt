@@ -237,6 +237,19 @@ class HomeActivity : AppCompatActivity() {
             .commit()
     }
 
+    fun showRemindersListFragment() {
+        android.util.Log.d("HomeActivity", "🔔 Navigating to Reminders List")
+
+        val remindersListFragment = com.koshpal_android.koshpalapp.ui.reminders.RemindersListFragment.newInstance()
+
+        binding.bottomNavigation.visibility = android.view.View.GONE
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, remindersListFragment)
+            .addToBackStack("reminders_list")
+            .commit()
+    }
+
     private fun openTransactionDetailsDialog(transactionId: String) {
         android.util.Log.d("HomeActivity", "🔍 Opening transaction dialog for ID: $transactionId")
         

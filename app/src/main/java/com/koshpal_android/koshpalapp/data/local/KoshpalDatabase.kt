@@ -16,9 +16,10 @@ import com.koshpal_android.koshpalapp.data.local.dao.*
         User::class,
         Budget::class,
         BudgetCategory::class,
-        CashFlowTransaction::class
+        CashFlowTransaction::class,
+        Reminder::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -31,6 +32,7 @@ abstract class KoshpalDatabase : RoomDatabase() {
     abstract fun budgetNewDao(): BudgetNewDao
     abstract fun budgetCategoryNewDao(): BudgetCategoryNewDao
     abstract fun cashFlowTransactionDao(): CashFlowTransactionDao
+    abstract fun reminderDao(): ReminderDao
     
     companion object {
         @Volatile
@@ -41,8 +43,9 @@ abstract class KoshpalDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     KoshpalDatabase::class.java,
-                    "koshpal_database_v7"
+                    "koshpal_database_v8"
                 )
+                .fallbackToDestructiveMigration() // Allow database recreation for new Reminder feature
                 // Remove destructive migration to preserve budget data
                 // .fallbackToDestructiveMigration() // Allow database recreation when schema changes
                 // .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
