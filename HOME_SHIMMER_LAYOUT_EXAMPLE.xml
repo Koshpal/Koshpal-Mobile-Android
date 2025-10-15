@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    HomeFragment Layout - Component-Level Shimmer Implementation
+    
+    This shows the structure for wrapping individual components with shimmer.
+    Apply this pattern to fragment_home.xml
+-->
+
+<!-- STEP 1: Remove the fullscreen shimmer wrapper -->
+<!--
+❌ REMOVE THIS:
+<FrameLayout>
+    <ShimmerFrameLayout android:id="@+id/shimmerLayout" ...>
+        <include layout="@layout/shimmer_home_placeholder" />
+    </ShimmerFrameLayout>
+    
+    <NestedScrollView android:id="@+id/contentLayout" android:visibility="gone" ...>
+        ...content...
+    </NestedScrollView>
+</FrameLayout>
+-->
+
+<!-- STEP 2: Use this pattern instead -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ========== HEADER SECTION (No shimmer - static content) ========== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="32dp"
+            android:background="@drawable/bg_primary_rounded_bottom"
+            android:clipToPadding="false">
+
+            <!-- Greeting Section - Shows immediately (no shimmer) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="20dp">
+
+                <!-- Profile, Greeting, Notification - Static, no shimmer -->
+                <!-- ...existing greeting section code... -->
+
+            </LinearLayout>
+
+            <!-- ========== FINANCIAL OVERVIEW - Individual Shimmer ========== -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Shimmer Placeholder for Financial Overview -->
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmerFinancialOverview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    app:shimmer_auto_start="true"
+                    app:shimmer_base_alpha="0.7"
+                    app:shimmer_duration="1500"
+                    app:shimmer_highlight_alpha="0.9"
+                    app:shimmer_direction="left_to_right"
+                    app:shimmer_repeat_mode="restart"
+                    app:shimmer_shape="linear">
+
+                    <include layout="@layout/shimmer_financial_overview" />
+
+                </com.facebook.shimmer.ShimmerFrameLayout>
+
+                <!-- Actual Financial Overview Card (hidden initially) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/layoutFinancialOverview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:alpha="0"
+                    android:visibility="gone"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="12dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <!-- Title -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="20dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="This Month Overview"
+                                android:textColor="@color/text_primary"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="View Details"
+                                android:textColor="@color/primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Income & Expense Cards -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:weightSum="2">
+
+                            <!-- Income Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="8dp"
+                                app:cardCornerRadius="16dp"
+                                app:cardElevation="0dp"
+                                app:cardBackgroundColor="#E8F5E9"
+                                app:strokeColor="#4CAF50"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="18dp">
+
+                                    <!-- Icon & Label -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <com.google.android.material.card.MaterialCardView
+                                            android:layout_width="36dp"
+                                            android:layout_height="36dp"
+                                            app:cardCornerRadius="18dp"
+                                            app:cardElevation="0dp"
+                                            app:cardBackgroundColor="#4CAF50">
+
+                                            <ImageView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="match_parent"
+                                                android:src="@drawable/ic_trending_up"
+                                                android:tint="@color/white"
+                                                android:padding="9dp" />
+                                        </com.google.android.material.card.MaterialCardView>
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:text="Income"
+                                            android:textSize="12sp"
+                                            android:textColor="#2E7D32"
+                                            android:textStyle="bold" />
+                                    </LinearLayout>
+
+                                    <!-- Amount -->
+                                    <TextView
+                                        android:id="@+id/tvTotalIncome"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="14dp"
+                                        android:text="₹0.00"
+                                        android:textSize="22sp"
+                                        android:textStyle="bold"
+                                        android:textColor="#1B5E20" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Expense Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                app:cardCornerRadius="16dp"
+                                app:cardElevation="0dp"
+                                app:cardBackgroundColor="#FFEBEE"
+                                app:strokeColor="#F44336"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="18dp">
+
+                                    <!-- Icon & Label -->
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <com.google.android.material.card.MaterialCardView
+                                            android:layout_width="36dp"
+                                            android:layout_height="36dp"
+                                            app:cardCornerRadius="18dp"
+                                            app:cardElevation="0dp"
+                                            app:cardBackgroundColor="#F44336">
+
+                                            <ImageView
+                                                android:layout_width="match_parent"
+                                                android:layout_height="match_parent"
+                                                android:src="@drawable/ic_trending_down"
+                                                android:tint="@color/white"
+                                                android:padding="9dp" />
+                                        </com.google.android.material.card.MaterialCardView>
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:text="Expense"
+                                            android:textSize="12sp"
+                                            android:textColor="#C62828"
+                                            android:textStyle="bold" />
+                                    </LinearLayout>
+
+                                    <!-- Amount -->
+                                    <TextView
+                                        android:id="@+id/tvTotalExpense"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="14dp"
+                                        android:text="₹0.00"
+                                        android:textSize="22sp"
+                                        android:textStyle="bold"
+                                        android:textColor="#B71C1C" />
+
+                                </LinearLayout>
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- ========== QUICK ACTIONS (No shimmer - instant) ========== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="20dp"
+            android:weightSum="2">
+
+            <!-- Add Payment Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddPayment"
+                style="@style/Button.Koshpal.Primary"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="Add Payment"
+                app:icon="@drawable/ic_add"
+                app:iconGravity="textStart"
+                app:cornerRadius="5dp" />
+
+            <!-- Reminders Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReminders"
+                style="@style/Button.Koshpal.Primary"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Reminders"
+                app:backgroundTint="@color/secondary"
+                app:icon="@drawable/ic_notifications"
+                app:iconGravity="textStart"
+                app:cornerRadius="5dp" />
+
+        </LinearLayout>
+
+        <!-- ========== RECENT TRANSACTIONS - Individual Shimmer ========== -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <!-- Shimmer Placeholder for Recent Transactions -->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerRecentTransactions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                app:shimmer_auto_start="true"
+                app:shimmer_base_alpha="0.7"
+                app:shimmer_duration="1500"
+                app:shimmer_highlight_alpha="0.9"
+                app:shimmer_direction="left_to_right"
+                app:shimmer_repeat_mode="restart"
+                app:shimmer_shape="linear">
+
+                <include layout="@layout/shimmer_recent_transactions" />
+
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!-- Actual Recent Transactions Card (hidden initially) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRecentTransactions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:alpha="0"
+                android:visibility="gone"
+                app:cardCornerRadius="20dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Section Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Recent Transactions"
+                            android:textColor="@color/black"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="12dp" />
+
+                        <LinearLayout
+                            android:id="@+id/tvViewAllTransactions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/rounded_white_background"
+                            android:padding="8dp"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="View All"
+                                android:textColor="@color/primary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_chevron_right"
+                                android:tint="@color/primary"
+                                android:layout_marginStart="4dp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginHorizontal="20dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Transactions RecyclerView -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecentTransactions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:nestedScrollingEnabled="false" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

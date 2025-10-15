@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import com.google.android.material.snackbar.Snackbar
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.FragmentTransactionsBinding
+import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
@@ -34,6 +35,7 @@ class TransactionsFragment : Fragment() {
 
     private lateinit var transactionsAdapter: TransactionAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
+    private val shimmerItemCount = 8 // Number of shimmer placeholders to show while loading
     
     @Inject
     lateinit var transactionRepository: TransactionRepository
@@ -58,6 +60,9 @@ class TransactionsFragment : Fragment() {
         setupSearchFilter()
         setupFilterChips()
         setupBackPressHandler()
+        
+        // Show shimmer placeholders initially
+        showShimmerItems()
         
         // Defer data loading to allow view to render first
         view.post {
@@ -250,8 +255,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "🔍 Found ${filteredTransactions.size} transactions matching '$query'")
                 
-                // Update UI
-                transactionsAdapter.submitList(filteredTransactions)
+                // Replace shimmer with search results
+                showTransactionData(filteredTransactions)
                 updateEmptyState(filteredTransactions.isEmpty())
                 
                 // Hide loading
@@ -260,6 +265,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to search transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -287,8 +293,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "⭐ Found ${starredTransactions.size} starred transactions")
                 
-                // Update UI
-                transactionsAdapter.submitList(starredTransactions)
+                // Replace shimmer with starred transactions
+                showTransactionData(starredTransactions)
                 updateEmptyState(starredTransactions.isEmpty())
                 
                 // Hide loading
@@ -299,6 +305,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load starred transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -319,8 +326,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "💰 Found ${cashFlowTransactions.size} cash flow transactions")
                 
-                // Update UI
-                transactionsAdapter.submitList(cashFlowTransactions)
+                // Replace shimmer with cash flow transactions
+                showTransactionData(cashFlowTransactions)
                 updateEmptyState(cashFlowTransactions.isEmpty())
                 
                 // Hide loading
@@ -331,6 +338,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load cash flow transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -340,6 +348,9 @@ class TransactionsFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("TransactionsFragment", "📋 Loading all transactions...")
+                
+                // Show shimmer placeholders
+                showShimmerItems()
                 
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
@@ -352,8 +363,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "📋 Found ${allTransactions.size} total transactions")
                 
-                // Update UI
-                transactionsAdapter.submitList(allTransactions)
+                // Replace shimmer with actual data
+                showTransactionData(allTransactions)
                 updateEmptyState(allTransactions.isEmpty())
                 updateTransactionCount(allTransactions.size)
                 
@@ -365,6 +376,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load all transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -374,6 +386,9 @@ class TransactionsFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("TransactionsFragment", "💚 Filtering income transactions...")
+                
+                // Show shimmer placeholders
+                showShimmerItems()
                 
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
@@ -387,8 +402,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "💚 Found ${incomeTransactions.size} income transactions")
                 
-                // Update UI
-                transactionsAdapter.submitList(incomeTransactions)
+                // Replace shimmer with actual data
+                showTransactionData(incomeTransactions)
                 updateEmptyState(incomeTransactions.isEmpty())
                 
                 // Hide loading
@@ -399,6 +414,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load income transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -408,6 +424,9 @@ class TransactionsFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("TransactionsFragment", "🔴 Filtering expense transactions...")
+                
+                // Show shimmer placeholders
+                showShimmerItems()
                 
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
@@ -421,8 +440,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "🔴 Found ${expenseTransactions.size} expense transactions")
                 
-                // Update UI
-                transactionsAdapter.submitList(expenseTransactions)
+                // Replace shimmer with actual data
+                showTransactionData(expenseTransactions)
                 updateEmptyState(expenseTransactions.isEmpty())
                 
                 // Hide loading
@@ -433,6 +452,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load expense transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -469,8 +489,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "📅 Found ${thisMonthTransactions.size} transactions for this month")
                 
-                // Update UI
-                transactionsAdapter.submitList(thisMonthTransactions)
+                // Replace shimmer with this month transactions
+                showTransactionData(thisMonthTransactions)
                 updateEmptyState(thisMonthTransactions.isEmpty())
                 
                 // Hide loading
@@ -481,6 +501,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load this month transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -518,8 +539,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "📆 Found ${lastMonthTransactions.size} transactions for last month")
                 
-                // Update UI
-                transactionsAdapter.submitList(lastMonthTransactions)
+                // Replace shimmer with last month transactions
+                showTransactionData(lastMonthTransactions)
                 updateEmptyState(lastMonthTransactions.isEmpty())
                 
                 // Hide loading
@@ -530,6 +551,7 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load last month transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -539,6 +561,9 @@ class TransactionsFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("TransactionsFragment", "🚀 Loading transactions directly...")
+                
+                // Show shimmer placeholders in RecyclerView
+                showShimmerItems()
                 
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
@@ -586,8 +611,8 @@ class TransactionsFragment : Fragment() {
                 
                 android.util.Log.d("TransactionsFragment", "📊 Current Month - Income: ₹$currentMonthIncome, Expense: ₹$currentMonthExpense")
                 
-                // Update UI on Main thread
-                transactionsAdapter.submitList(transactions)
+                // Replace shimmer with actual transaction data
+                showTransactionData(transactions)
                 updateEmptyState(transactions.isEmpty())
                 
                 // Update summary with CURRENT MONTH data
@@ -602,6 +627,8 @@ class TransactionsFragment : Fragment() {
             } catch (e: Exception) {
                 android.util.Log.e("TransactionsFragment", "❌ Failed to load transactions: ${e.message}", e)
                 binding.progressBar.visibility = View.GONE
+                // Show empty list on error (removes shimmer)
+                showTransactionData(emptyList())
                 updateEmptyState(true)
             }
         }
@@ -780,8 +807,29 @@ class TransactionsFragment : Fragment() {
         dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
     }
 
+    /**
+     * Show shimmer loading placeholders in the RecyclerView
+     * Creates a list of Loading items that display shimmer animation
+     */
+    private fun showShimmerItems() {
+        val shimmerList = List(shimmerItemCount) { TransactionListItem.Loading() }
+        transactionsAdapter.submitList(shimmerList)
+        android.util.Log.d("TransactionsFragment", "✨ Showing $shimmerItemCount shimmer placeholders")
+    }
+
+    /**
+     * Replace shimmer items with actual transaction data
+     * Automatically triggers fade-in animation via adapter's bind() method
+     */
+    private fun showTransactionData(transactions: List<Transaction>) {
+        val dataList = transactions.map { TransactionListItem.Data(it) }
+        transactionsAdapter.submitList(dataList)
+        android.util.Log.d("TransactionsFragment", "✅ Replaced shimmer with ${transactions.size} actual transactions")
+    }
+
     override fun onResume() {
         super.onResume()
+        
         // Ensure all views are visible when fragment resumes
         if (binding.layoutSearch.visibility == View.GONE) {
             binding.layoutSummary.visibility = View.VISIBLE

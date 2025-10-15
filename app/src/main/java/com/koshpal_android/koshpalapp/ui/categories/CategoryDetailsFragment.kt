@@ -13,6 +13,7 @@ import com.koshpal_android.koshpalapp.databinding.FragmentCategoryDetailsBinding
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
+import com.koshpal_android.koshpalapp.ui.transactions.TransactionListItem
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.model.TransactionCategory
@@ -209,7 +210,9 @@ class CategoryDetailsFragment : Fragment() {
     private fun showTransactionsList(transactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
         binding.rvTransactions.visibility = View.VISIBLE
         binding.layoutEmpty.visibility = View.GONE
-        transactionsAdapter.submitList(transactions)
+        // Convert to TransactionListItem.Data for adapter
+        val listItems = transactions.map { TransactionListItem.Data(it) }
+        transactionsAdapter.submitList(listItems)
     }
 
     private fun showTransactionDetailsDialog(transaction: com.koshpal_android.koshpalapp.model.Transaction) {

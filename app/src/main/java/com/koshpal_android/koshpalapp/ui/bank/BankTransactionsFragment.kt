@@ -15,6 +15,7 @@ import com.koshpal_android.koshpalapp.databinding.FragmentBankTransactionsBindin
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
+import com.koshpal_android.koshpalapp.ui.transactions.TransactionListItem
 import com.koshpal_android.koshpalapp.utils.BankThemeProvider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -211,7 +212,9 @@ class BankTransactionsFragment : Fragment() {
         // Observe transactions
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.transactions.collect { transactions ->
-                transactionAdapter.submitList(transactions)
+                // Convert to TransactionListItem.Data for adapter
+                val listItems = transactions.map { TransactionListItem.Data(it) }
+                transactionAdapter.submitList(listItems)
                 
                 // Update UI based on transaction count
                 if (transactions.isEmpty()) {

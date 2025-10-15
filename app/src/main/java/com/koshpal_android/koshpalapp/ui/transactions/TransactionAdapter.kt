@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ItemTransactionBinding
+import com.koshpal_android.koshpalapp.databinding.ItemTransactionShimmerBinding
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
@@ -19,21 +20,53 @@ import java.util.*
 class TransactionAdapter(
     private val onTransactionClick: (Transaction) -> Unit,
     private val onTransactionDelete: (Transaction, Int) -> Unit
-) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
+) : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(TransactionListItemDiffCallback()) {
 
     private val dateFormatter = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
-        val binding = ItemTransactionBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return TransactionViewHolder(binding)
+    companion object {
+        private const val VIEW_TYPE_DATA = 0
+        private const val VIEW_TYPE_LOADING = 1
     }
 
-    override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is TransactionListItem.Data -> VIEW_TYPE_DATA
+            is TransactionListItem.Loading -> VIEW_TYPE_LOADING
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_DATA -> {
+                val binding = ItemTransactionBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                TransactionViewHolder(binding)
+            }
+            VIEW_TYPE_LOADING -> {
+                val binding = ItemTransactionShimmerBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                ShimmerViewHolder(binding)
+            }
+            else -> throw IllegalArgumentException("Invalid view type")
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = getItem(position)) {
+            is TransactionListItem.Data -> {
+                (holder as TransactionViewHolder).bind(item.transaction)
+            }
+            is TransactionListItem.Loading -> {
+                // Shimmer auto-animates, no binding needed
+            }
+        }
     }
 
     inner class TransactionViewHolder(
@@ -41,6 +74,13 @@ class TransactionAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(transaction: Transaction) {
+            // Add fade-in animation when replacing shimmer with real data
+            binding.root.alpha = 0f
+            binding.root.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+            
             binding.apply {
                 tvMerchant.text = transaction.merchant
                 tvTimestamp.text = dateFormatter.format(Date(transaction.timestamp))
@@ -125,29 +165,57 @@ class TransactionAdapter(
         }
     }
 
+    /**
+     * ShimmerViewHolder for loading placeholders
+     * Shimmer animation starts automatically via layout configuration
+     */
+    class ShimmerViewHolder(
+        binding: ItemTransactionShimmerBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+        // No binding needed - shimmer auto-animates
+    }
+
     fun deleteItem(position: Int) {
         val currentList = currentList.toMutableList()
         if (position >= 0 && position < currentList.size) {
-            val deletedTransaction = currentList[position]
-            currentList.removeAt(position)
-            submitList(currentList)
-            onTransactionDelete(deletedTransaction, position)
+            val item = currentList[position]
+            if (item is TransactionListItem.Data) {
+                currentList.removeAt(position)
+                submitList(currentList)
+                onTransactionDelete(item.transaction, position)
+            }
         }
     }
 
     fun restoreItem(transaction: Transaction, position: Int) {
         val currentList = currentList.toMutableList()
-        currentList.add(position.coerceAtMost(currentList.size), transaction)
+        currentList.add(position.coerceAtMost(currentList.size), TransactionListItem.Data(transaction))
         submitList(currentList)
     }
 
-    private class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
-        override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem.id == newItem.id
+    private class TransactionListItemDiffCallback : DiffUtil.ItemCallback<TransactionListItem>() {
+        override fun areItemsTheSame(oldItem: TransactionListItem, newItem: TransactionListItem): Boolean {
+            return when {
+                oldItem is TransactionListItem.Data && newItem is TransactionListItem.Data -> {
+                    oldItem.transaction.id == newItem.transaction.id
+                }
+                oldItem is TransactionListItem.Loading && newItem is TransactionListItem.Loading -> {
+                    oldItem.id == newItem.id
+                }
+                else -> false
+            }
         }
 
-        override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem == newItem
+        override fun areContentsTheSame(oldItem: TransactionListItem, newItem: TransactionListItem): Boolean {
+            return when {
+                oldItem is TransactionListItem.Data && newItem is TransactionListItem.Data -> {
+                    oldItem.transaction == newItem.transaction
+                }
+                oldItem is TransactionListItem.Loading && newItem is TransactionListItem.Loading -> {
+                    true // All loading items are the same
+                }
+                else -> false
+            }
         }
     }
 }
