@@ -172,7 +172,7 @@ class RemindersListFragment : Fragment() {
 
             // Type badge (now a TextView)
             val typeEmoji = if (reminder.type == ReminderType.GIVE) "💸" else "💰"
-            chipNextType.text = "$typeEmoji ${reminder.type.getDisplayName()}"
+            tvNextTypeText.text = "$typeEmoji ${reminder.type.getDisplayName()}"
 
             // Due date time
             val dueDateTime = Calendar.getInstance().apply {
