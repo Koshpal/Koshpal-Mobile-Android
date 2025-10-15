@@ -22,6 +22,8 @@ import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -232,16 +234,18 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions and search
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                
-                val filteredTransactions = allTransactions.filter { transaction ->
-                    transaction.merchant.contains(query, ignoreCase = true) ||
-                    transaction.description.contains(query, ignoreCase = true) ||
-                    transaction.amount.toString().contains(query) ||
-                    transaction.notes?.contains(query, ignoreCase = true) == true ||
-                    transaction.tags?.contains(query, ignoreCase = true) == true
+                // Get all transactions and search on IO dispatcher
+                val filteredTransactions = withContext(Dispatchers.IO) {
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    
+                    allTransactions.filter { transaction ->
+                        transaction.merchant.contains(query, ignoreCase = true) ||
+                        transaction.description.contains(query, ignoreCase = true) ||
+                        transaction.amount.toString().contains(query) ||
+                        transaction.notes?.contains(query, ignoreCase = true) == true ||
+                        transaction.tags?.contains(query, ignoreCase = true) == true
+                    }
                 }
                 
                 android.util.Log.d("TransactionsFragment", "🔍 Found ${filteredTransactions.size} transactions matching '$query'")
@@ -274,10 +278,12 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions and filter starred ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val starredTransactions = allTransactions.filter { it.isStarred }
+                // Get all transactions and filter starred ones on IO dispatcher
+                val starredTransactions = withContext(Dispatchers.IO) {
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    allTransactions.filter { it.isStarred }
+                }
                 
                 android.util.Log.d("TransactionsFragment", "⭐ Found ${starredTransactions.size} starred transactions")
                 
@@ -306,8 +312,10 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get cash flow transactions from separate table
-                val cashFlowTransactions = transactionRepository.getCashFlowTransactions()
+                // Get cash flow transactions from separate table on IO dispatcher
+                val cashFlowTransactions = withContext(Dispatchers.IO) {
+                    transactionRepository.getCashFlowTransactions()
+                }
                 
                 android.util.Log.d("TransactionsFragment", "💰 Found ${cashFlowTransactions.size} cash flow transactions")
                 
@@ -336,9 +344,11 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                // Get all transactions on IO dispatcher
+                val allTransactions = withContext(Dispatchers.IO) {
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    database.transactionDao().getAllTransactionsOnce()
+                }
                 
                 android.util.Log.d("TransactionsFragment", "📋 Found ${allTransactions.size} total transactions")
                 
@@ -368,10 +378,12 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions and filter income ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val incomeTransactions = allTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.CREDIT }
+                // Get all transactions and filter income ones on IO dispatcher
+                val incomeTransactions = withContext(Dispatchers.IO) {
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    allTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.CREDIT }
+                }
                 
                 android.util.Log.d("TransactionsFragment", "💚 Found ${incomeTransactions.size} income transactions")
                 
@@ -400,10 +412,12 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get all transactions and filter expense ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val expenseTransactions = allTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }
+                // Get all transactions and filter expense ones on IO dispatcher
+                val expenseTransactions = withContext(Dispatchers.IO) {
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    allTransactions.filter { it.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT }
+                }
                 
                 android.util.Log.d("TransactionsFragment", "🔴 Found ${expenseTransactions.size} expense transactions")
                 
@@ -432,23 +446,26 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Calculate this month's date range
-                val calendar = java.util.Calendar.getInstance()
-                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                calendar.set(java.util.Calendar.MINUTE, 0)
-                calendar.set(java.util.Calendar.SECOND, 0)
-                calendar.set(java.util.Calendar.MILLISECOND, 0)
-                val startOfMonth = calendar.timeInMillis
-                
-                calendar.add(java.util.Calendar.MONTH, 1)
-                calendar.add(java.util.Calendar.MILLISECOND, -1)
-                val endOfMonth = calendar.timeInMillis
-                
-                // Get all transactions and filter this month ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val thisMonthTransactions = allTransactions.filter { it.date in startOfMonth..endOfMonth }
+                // Get this month's transactions on IO dispatcher
+                val thisMonthTransactions = withContext(Dispatchers.IO) {
+                    // Calculate this month's date range
+                    val calendar = java.util.Calendar.getInstance()
+                    calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(java.util.Calendar.MINUTE, 0)
+                    calendar.set(java.util.Calendar.SECOND, 0)
+                    calendar.set(java.util.Calendar.MILLISECOND, 0)
+                    val startOfMonth = calendar.timeInMillis
+                    
+                    calendar.add(java.util.Calendar.MONTH, 1)
+                    calendar.add(java.util.Calendar.MILLISECOND, -1)
+                    val endOfMonth = calendar.timeInMillis
+                    
+                    // Get all transactions and filter this month ones
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    allTransactions.filter { it.date in startOfMonth..endOfMonth }
+                }
                 
                 android.util.Log.d("TransactionsFragment", "📅 Found ${thisMonthTransactions.size} transactions for this month")
                 
@@ -477,24 +494,27 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Calculate last month's date range
-                val calendar = java.util.Calendar.getInstance()
-                calendar.add(java.util.Calendar.MONTH, -1) // Go to last month
-                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                calendar.set(java.util.Calendar.MINUTE, 0)
-                calendar.set(java.util.Calendar.SECOND, 0)
-                calendar.set(java.util.Calendar.MILLISECOND, 0)
-                val startOfLastMonth = calendar.timeInMillis
-                
-                calendar.add(java.util.Calendar.MONTH, 1)
-                calendar.add(java.util.Calendar.MILLISECOND, -1)
-                val endOfLastMonth = calendar.timeInMillis
-                
-                // Get all transactions and filter last month ones
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val allTransactions = database.transactionDao().getAllTransactionsOnce()
-                val lastMonthTransactions = allTransactions.filter { it.date in startOfLastMonth..endOfLastMonth }
+                // Get last month's transactions on IO dispatcher
+                val lastMonthTransactions = withContext(Dispatchers.IO) {
+                    // Calculate last month's date range
+                    val calendar = java.util.Calendar.getInstance()
+                    calendar.add(java.util.Calendar.MONTH, -1) // Go to last month
+                    calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(java.util.Calendar.MINUTE, 0)
+                    calendar.set(java.util.Calendar.SECOND, 0)
+                    calendar.set(java.util.Calendar.MILLISECOND, 0)
+                    val startOfLastMonth = calendar.timeInMillis
+                    
+                    calendar.add(java.util.Calendar.MONTH, 1)
+                    calendar.add(java.util.Calendar.MILLISECOND, -1)
+                    val endOfLastMonth = calendar.timeInMillis
+                    
+                    // Get all transactions and filter last month ones
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                    allTransactions.filter { it.date in startOfLastMonth..endOfLastMonth }
+                }
                 
                 android.util.Log.d("TransactionsFragment", "📆 Found ${lastMonthTransactions.size} transactions for last month")
                 
@@ -523,43 +543,50 @@ class TransactionsFragment : Fragment() {
                 // Show loading
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Get data directly from database
-                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
-                val transactions = database.transactionDao().getAllTransactionsOnce()
-                
-                android.util.Log.d("TransactionsFragment", "📊 Found ${transactions.size} transactions")
-                
-                // Get current month boundaries
-                val calendar = java.util.Calendar.getInstance()
-                val currentMonth = calendar.get(java.util.Calendar.MONTH)
-                val currentYear = calendar.get(java.util.Calendar.YEAR)
-                
-                // Calculate THIS MONTH summary only
-                var currentMonthIncome = 0.0
-                var currentMonthExpense = 0.0
-                
-                transactions.forEach { transaction ->
-                    // Check if transaction is from current month
-                    calendar.timeInMillis = transaction.timestamp
-                    val transactionMonth = calendar.get(java.util.Calendar.MONTH)
-                    val transactionYear = calendar.get(java.util.Calendar.YEAR)
+                // Perform database operations on IO dispatcher
+                val result = withContext(Dispatchers.IO) {
+                    // Get data directly from database
+                    val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                    val transactions = database.transactionDao().getAllTransactionsOnce()
                     
-                    if (transactionMonth == currentMonth && transactionYear == currentYear) {
-                        when (transaction.type) {
-                            com.koshpal_android.koshpalapp.model.TransactionType.CREDIT -> {
-                                currentMonthIncome += transaction.amount
-                            }
-                            com.koshpal_android.koshpalapp.model.TransactionType.DEBIT,
-                            com.koshpal_android.koshpalapp.model.TransactionType.TRANSFER -> {
-                                currentMonthExpense += transaction.amount
+                    android.util.Log.d("TransactionsFragment", "📊 Found ${transactions.size} transactions")
+                    
+                    // Calculate current month start time once
+                    val calendar = java.util.Calendar.getInstance()
+                    calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(java.util.Calendar.MINUTE, 0)
+                    calendar.set(java.util.Calendar.SECOND, 0)
+                    calendar.set(java.util.Calendar.MILLISECOND, 0)
+                    val startOfMonth = calendar.timeInMillis
+                    
+                    // Calculate THIS MONTH summary - optimized
+                    var currentMonthIncome = 0.0
+                    var currentMonthExpense = 0.0
+                    
+                    transactions.forEach { transaction ->
+                        // Check if transaction is from current month using simple comparison
+                        if (transaction.date >= startOfMonth) {
+                            when (transaction.type) {
+                                com.koshpal_android.koshpalapp.model.TransactionType.CREDIT -> {
+                                    currentMonthIncome += transaction.amount
+                                }
+                                com.koshpal_android.koshpalapp.model.TransactionType.DEBIT,
+                                com.koshpal_android.koshpalapp.model.TransactionType.TRANSFER -> {
+                                    currentMonthExpense += transaction.amount
+                                }
                             }
                         }
                     }
+                    
+                    Triple(transactions, currentMonthIncome, currentMonthExpense)
                 }
+                
+                val (transactions, currentMonthIncome, currentMonthExpense) = result
                 
                 android.util.Log.d("TransactionsFragment", "📊 Current Month - Income: ₹$currentMonthIncome, Expense: ₹$currentMonthExpense")
                 
-                // Update UI
+                // Update UI on Main thread
                 transactionsAdapter.submitList(transactions)
                 updateEmptyState(transactions.isEmpty())
                 

@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:fillViewport="true"
+    android:orientation="vertical"
     tools:context=".ui.transactions.TransactionsFragment">
 
+    <!-- Blue Header Section -->
     <LinearLayout
+        android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <!-- Blue Header Section -->
-        <LinearLayout
-            android:id="@+id/layoutHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="32dp"
-            android:background="@drawable/bg_primary_rounded_bottom"
-            android:clipToPadding="false">
+        android:orientation="vertical"
+        android:paddingBottom="32dp"
+        android:background="@drawable/bg_primary_rounded_bottom"
+        android:clipToPadding="false">
 
         <!-- Greeting Section -->
         <LinearLayout
@@ -383,7 +378,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTransactions"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginTop="16dp"
         android:clipToPadding="false"
         android:paddingBottom="80dp"
@@ -444,6 +440,4 @@
         android:visibility="gone"
         android:padding="32dp" />
 
-    </LinearLayout>
-
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

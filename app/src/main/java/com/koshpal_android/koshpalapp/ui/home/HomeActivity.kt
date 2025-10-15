@@ -51,9 +51,9 @@ class HomeActivity : AppCompatActivity() {
         }
         // Pre-add all primary fragments and show Home by default for faster nav
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragmentContainer, profileFragment, "profile").hide(profileFragment)
+            .add(R.id.fragmentContainer, insightsFragment, "insights").hide(insightsFragment)
             .add(R.id.fragmentContainer, categoriesFragment, "categories").hide(categoriesFragment)
-            .add(R.id.fragmentContainer, fregmentReminders, "insights").hide(fregmentReminders)
+            .add(R.id.fragmentContainer, fregmentReminders, "reminders").hide(fregmentReminders)
             .add(R.id.fragmentContainer, transactionsFragment, "transactions").hide(transactionsFragment)
             .add(R.id.fragmentContainer, homeFragment, "home")
             .commit()
@@ -78,7 +78,7 @@ class HomeActivity : AppCompatActivity() {
                     showFragment(transactionsFragment)
                     true
                 }
-                R.id.insights -> {
+                R.id.reminders -> {
                     showFragment(fregmentReminders)
                     true
                 }
@@ -86,8 +86,8 @@ class HomeActivity : AppCompatActivity() {
                     showFragment(categoriesFragment)
                     true
                 }
-                R.id.profile -> {
-                    showFragment(profileFragment)
+                R.id.insights -> {
+                    showFragment(insightsFragment)
                     true
                 }
                 else -> false
