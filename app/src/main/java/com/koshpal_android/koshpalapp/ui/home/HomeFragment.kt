@@ -67,6 +67,9 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: HomeViewModel by viewModels()
+    private var isFirstLoad = true
+    private var isBankDataLoaded = false
+    private var isViewModelDataLoaded = false
 
     @Inject
     lateinit var smsReader: SMSReader
@@ -109,6 +112,9 @@ class HomeFragment : Fragment() {
 
         // Set status bar color to primary blue
         setStatusBarColor()
+
+        // Start shimmer loading
+        showShimmer()
 
         setupRecyclerViews()
         setupClickListeners()
@@ -194,6 +200,8 @@ class HomeFragment : Fragment() {
     private fun loadBankSpending() {
         lifecycleScope.launch {
             try {
+                android.util.Log.d("HomeFragment", "💳 Loading bank spending data...")
+                
                 // Get ONLY real SMS transaction data for current month
                 val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
                 
@@ -220,8 +228,19 @@ class HomeFragment : Fragment() {
                 if (bankSpending.size == 1) { // Only Cash card
                     android.util.Log.d("HomeFragment", "⚠️ No bank transactions found for current month")
                 }
+                
+                // Mark bank data as loaded
+                isBankDataLoaded = true
+                android.util.Log.d("HomeFragment", "✅ Bank data loaded")
+                
+                // Check if we can hide shimmer now
+                checkAndHideShimmer()
+                
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "❌ Failed to load bank spending: ${e.message}", e)
+                // Mark as loaded even on error to avoid stuck shimmer
+                isBankDataLoaded = true
+                checkAndHideShimmer()
             }
         }
     }
@@ -392,11 +411,23 @@ class HomeFragment : Fragment() {
             viewModel.uiState.collect { uiState ->
                 android.util.Log.d(
                     "HomeFragment",
-                    "🔄 UI State received: hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}"
+                    "🔄 UI State received: isLoading=${uiState.isLoading}, hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}"
                 )
+                
+                // Show shimmer when loading
+                if (uiState.isLoading) {
+                    android.util.Log.d("HomeFragment", "⏳ ViewModel data is loading - shimmer should be visible")
+                    isViewModelDataLoaded = false
+                    // Shimmer already visible from onViewCreated or will be shown
+                } else {
+                    android.util.Log.d("HomeFragment", "✅ ViewModel data loaded")
+                    isViewModelDataLoaded = true
+                    // Check if all data is loaded before hiding shimmer
+                    checkAndHideShimmer()
+                }
+                
                 updateUI(uiState)
                 updateCurrentMonthDisplay()
-
             }
         }
 
@@ -429,6 +460,62 @@ class HomeFragment : Fragment() {
                         "📱 Displaying ${recentTransactions.size} recent transactions"
                     )
                 }
+            }
+        }
+    }
+
+    private fun showShimmer() {
+        _binding?.let { binding ->
+            binding.shimmerLayout.visibility = View.VISIBLE
+            binding.shimmerLayout.startShimmer()
+            binding.contentLayout.visibility = View.GONE
+            binding.contentLayout.alpha = 0f
+            
+            // Reset loading flags
+            isBankDataLoaded = false
+            isViewModelDataLoaded = false
+            
+            android.util.Log.d("HomeFragment", "✨ Shimmer started - waiting for all data to load")
+        }
+    }
+
+    private fun checkAndHideShimmer() {
+        android.util.Log.d("HomeFragment", "🔍 Checking data load status: ViewModel=$isViewModelDataLoaded, Bank=$isBankDataLoaded")
+        
+        // Only hide shimmer when ALL data sources are loaded
+        if (isViewModelDataLoaded && isBankDataLoaded) {
+            android.util.Log.d("HomeFragment", "✅ ALL data loaded - hiding shimmer now")
+            hideShimmer()
+        } else {
+            android.util.Log.d("HomeFragment", "⏳ Still waiting for data: ViewModel=$isViewModelDataLoaded, Bank=$isBankDataLoaded")
+        }
+    }
+
+    private fun hideShimmer() {
+        _binding?.let { binding ->
+            // Only hide shimmer once
+            if (binding.shimmerLayout.visibility == View.VISIBLE) {
+                binding.shimmerLayout.stopShimmer()
+                
+                // Fade out shimmer and fade in content
+                binding.shimmerLayout.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction {
+                        binding.shimmerLayout.visibility = View.GONE
+                        binding.shimmerLayout.alpha = 1f
+                    }
+                    .start()
+                
+                // Show and fade in content
+                binding.contentLayout.visibility = View.VISIBLE
+                binding.contentLayout.animate()
+                    .alpha(1f)
+                    .setDuration(400)
+                    .setStartDelay(150)
+                    .start()
+                
+                android.util.Log.d("HomeFragment", "✅ Shimmer hidden with smooth fade animation, content displayed")
             }
         }
     }
@@ -685,6 +772,9 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("HomeFragment", "📱 ===== STARTING REAL SMS PARSING =====")
+                
+                // Show shimmer during data loading
+                showShimmer()
 
                 val debugManager = DebugDataManager(requireContext())
 
@@ -823,11 +913,25 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        
+        // Skip refresh on first load (already handled in onViewCreated)
+        if (isFirstLoad) {
+            isFirstLoad = false
+            android.util.Log.d("HomeFragment", "⏭️ Skipping onResume refresh (first load)")
+            return
+        }
+        
         android.util.Log.d("HomeFragment", "🔄 onResume - performing comprehensive data refresh...")
+        
+        // Show shimmer when returning to fragment
+        showShimmer()
 
         // Perform comprehensive data check and refresh
         lifecycleScope.launch {
             try {
+                // Reload bank data
+                loadBankSpending()
+                
                 val debugManager = DebugDataManager(requireContext())
                 val homeDebugResult = debugManager.debugHomeScreenData()
 
@@ -1134,6 +1238,9 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 android.util.Log.d("HomeFragment", "🧽 ===== CLEARING ALL DATA AND PARSING REAL SMS =====")
+                
+                // Show shimmer during data loading
+                showShimmer()
                 
                 // Step 1: Clear all existing data
                 val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())

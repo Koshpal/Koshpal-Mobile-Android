@@ -43,6 +43,10 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadDashboardData() {
         android.util.Log.d("HomeViewModel", "📊 ===== LOADING DASHBOARD DATA =====")
         
+        // Set loading state to true at the start
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        android.util.Log.d("HomeViewModel", "⏳ Loading state: TRUE - Shimmer should be visible")
+        
         try {
             // CRITICAL FIX: Use the same database instance as DebugDataManager
             val context = getApplication<Application>().applicationContext
@@ -203,6 +207,7 @@ class HomeViewModel @Inject constructor(
             _uiState.value = newState
             android.util.Log.d("HomeViewModel", "✅ NEW STATE APPLIED TO UI!")
             android.util.Log.d("HomeViewModel", "📱 Recent transactions count: ${recentTransactions.size}")
+            android.util.Log.d("HomeViewModel", "✅ Loading state: FALSE - Shimmer should hide now")
             
         } catch (e: Exception) {
             android.util.Log.e("HomeViewModel", "❌ CRITICAL ERROR loading dashboard data: ${e.message}", e)
@@ -210,6 +215,7 @@ class HomeViewModel @Inject constructor(
                 isLoading = false,
                 errorMessage = "Failed to load data: ${e.message}"
             )
+            android.util.Log.d("HomeViewModel", "❌ Loading state: FALSE (error) - Shimmer should hide")
         }
     }
 
