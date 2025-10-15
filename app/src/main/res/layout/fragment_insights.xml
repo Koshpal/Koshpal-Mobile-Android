@@ -1,273 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/surface_medium"
     tools:context=".ui.insights.InsightsFragment">
 
-    <!-- Header -->
-    <LinearLayout
-        android:id="@+id/layoutHeader"
-        android:layout_width="0dp"
+    <!-- Header Section -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
-        android:background="@color/surface_light"
-        android:elevation="2dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:background="@color/surface_medium"
+        app:elevation="0dp">
 
-        <TextView
+        <!-- Header Content -->
+        <LinearLayout
+            android:id="@+id/layoutHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Insights"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:fontFamily="@font/roboto_semibold"
-            android:letterSpacing="-0.01" />
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="16dp"
+            app:layout_scrollFlags="scroll|enterAlways">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Insights"
+                android:textColor="@color/text_primary"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Analyze your spending patterns"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Content -->
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="80dp">
 
-            <!-- 1. Budget Usage KPI Card -->
-            <!-- Card Heading -->
+            <!-- 1. Recurring Payments -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recurring Payments"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="4dp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_budget_empty"
-                    android:tint="@color/primary"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:text="Budget Usage"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="@font/roboto_semibold"
-                    android:textSize="16sp"
-                    android:letterSpacing="-0.01"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/tvMonthSelector"
-                    android:text="This Month"
-                    android:textColor="@color/text_secondary"
-                    android:fontFamily="@font/roboto_regular"
-                    android:textSize="10sp"
-                    android:background="@drawable/rounded_background_white_20"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-            </LinearLayout>
-            
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardBudgetUsage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/surface_light"
-                app:strokeColor="@color/divider"
-                app:strokeWidth="1dp"
                 android:layout_marginBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- KPI Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="16dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:text="Total Budget"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                            <TextView
-                                android:id="@+id/tvTotalBudget"
-                                android:text="₹0"
-                                android:textColor="@color/text_primary"
-                                android:textStyle="bold"
-                                android:textSize="16sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:text="Spent This Month"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                            <TextView
-                                android:id="@+id/tvSpentThisMonth"
-                                android:text="₹0"
-                                android:textColor="@color/secondary"
-                                android:textStyle="bold"
-                                android:textSize="16sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:text="Percent Used"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                            <TextView
-                                android:id="@+id/tvPercentUsed"
-                                android:text="0%"
-                                android:textColor="@color/secondary"
-                                android:textStyle="bold"
-                                android:textSize="16sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Budget Category Progress Header -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_chart"
-                            android:tint="@color/primary"
-                            android:layout_marginEnd="8dp" />
-
-                        <TextView
-                            android:text="Category-wise Budget Progress"
-                            android:textColor="@color/text_primary"
-                            android:textStyle="bold"
-                            android:textSize="16sp"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:text="This Month"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp"
-                            android:background="@drawable/rounded_background_white_20"
-                            android:padding="4dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                    </LinearLayout>
-
-                    <!-- Budget Category Progress List -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvBudgetCategories"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:nestedScrollingEnabled="false"
-                        android:clipToPadding="false"
-                        android:minHeight="200dp" />
-
-                    <!-- Removed old donut/sparkline charts; replaced with per-category progress bars -->
-
-                    <!-- Warning badge removed per design -->
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- 3. Recurring Payments -->
-            <!-- Card Heading -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_subscriptions"
-                    android:tint="@color/success"
-                    android:layout_marginEnd="8dp" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Recurring Payments"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="@font/roboto_semibold"
-                    android:textSize="16sp"
-                    android:letterSpacing="-0.01" />
+                    android:text="Subscriptions detected from your transactions"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/tvRecurringCount"
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0 found"
-                    android:textColor="@color/text_secondary"
-                    android:fontFamily="@font/roboto_regular"
-                    android:textSize="11sp" />
+                    app:cardBackgroundColor="@color/success_light"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <TextView
+                        android:id="@+id/tvRecurringCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 found"
+                        android:textColor="@color/success_dark"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp" />
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
             
@@ -275,125 +115,161 @@
                 android:id="@+id/cardRecurringPayments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/surface_light"
-                app:strokeColor="@color/divider"
-                app:strokeWidth="1dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="0dp"
+                android:layout_marginBottom="24dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecurringPayments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_recurring_payment" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2. Top Merchants -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Top Merchants"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Where your money flows"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Money Received From -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCreditMerchants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvRecurringPayments"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        tools:listitem="@layout/item_recurring_payment" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            app:cardBackgroundColor="@color/success_light"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_salary_money"
+                                android:tint="@color/success_dark"
+                                android:layout_gravity="center" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Money Received From"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginStart="12dp" />
+
+                    </LinearLayout>
+                    
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTopCreditMerchants"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false"
+                        android:clipToPadding="false" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 4. Top Merchant Hotspots -->
-            <!-- Card Heading -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_store"
-                    android:tint="@color/warning"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:text="Top Merchants"
-                    android:textColor="@color/text_primary"
-                    android:fontFamily="@font/roboto_semibold"
-                    android:textSize="16sp"
-                    android:letterSpacing="-0.01"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:text="This Month"
-                    android:textColor="@color/text_secondary"
-                    android:fontFamily="@font/roboto_regular"
-                    android:textSize="10sp"
-                    android:background="@drawable/rounded_background_white_20"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:onClick="@{() -> monthSelector.click()}" />
-
-            </LinearLayout>
-            
+            <!-- Money Spent On -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardMerchantHotspots"
+                android:id="@+id/cardDebitMerchants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/surface_light"
-                app:strokeColor="@color/divider"
-                app:strokeWidth="1dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:strokeWidth="0dp"
                 android:layout_marginBottom="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
-                    <!-- Credit Merchants (Money IN) -->
-                    <TextView
-                        android:text="💰 Money Received From"
-                        android:textColor="@color/success"
-                        android:fontFamily="@font/roboto_medium"
-                        android:textSize="14sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp" />
-                    
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvTopCreditMerchants"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"
-                        android:nestedScrollingEnabled="false"
-                        android:clipToPadding="false" />
-                    
-                    <!-- Debit Merchants (Money OUT) -->
-                    <TextView
-                        android:text="💸 Money Spent On"
-                        android:textColor="@color/secondary"
-                        android:fontFamily="@font/roboto_medium"
-                        android:textSize="14sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            app:cardBackgroundColor="@color/expense_light"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_shopping_bag"
+                                android:tint="@color/expense"
+                                android:layout_gravity="center" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Money Spent On"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginStart="12dp" />
+
+                    </LinearLayout>
                     
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvTopDebitMerchants"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
                         android:nestedScrollingEnabled="false"
                         android:clipToPadding="false" />
-
-                    <!-- Category distribution removed per design -->
 
                 </LinearLayout>
 
@@ -401,6 +277,6 @@
 
         </LinearLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

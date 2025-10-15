@@ -41,7 +41,6 @@ class InsightsFragment : Fragment() {
     lateinit var transactionRepository: TransactionRepository
 
     private lateinit var recurringPaymentAdapter: RecurringPaymentAdapter
-    private lateinit var budgetCategoryProgressAdapterModern: BudgetCategoryProgressAdapterModern
     private lateinit var topCreditMerchantAdapter: TopMerchantProgressAdapter
     private lateinit var topDebitMerchantAdapter: TopMerchantProgressAdapter
     
@@ -83,10 +82,6 @@ class InsightsFragment : Fragment() {
 
     private fun setupUI() {
         binding.apply {
-            // Setup charts
-            setupMerchantHotspotsChart()
-            // setupCategoryDistributionChart() // Removed as per design
-
             // Setup recurring payments adapter
             recurringPaymentAdapter = RecurringPaymentAdapter(
                 onMarkEssential = { item -> markRecurringAsEssential(item) },
@@ -95,36 +90,16 @@ class InsightsFragment : Fragment() {
             )
             rvRecurringPayments.layoutManager = LinearLayoutManager(requireContext())
             rvRecurringPayments.adapter = recurringPaymentAdapter
-
-            // Setup Budget Category Progress RecyclerView (modern)
-            budgetCategoryProgressAdapterModern = BudgetCategoryProgressAdapterModern()
-            rvBudgetCategories.layoutManager = LinearLayoutManager(requireContext())
-            rvBudgetCategories.adapter = budgetCategoryProgressAdapterModern
             
             // Setup Top Credit Merchants RecyclerView (Money IN)
             topCreditMerchantAdapter = TopMerchantProgressAdapter()
             rvTopCreditMerchants.layoutManager = LinearLayoutManager(requireContext())
             rvTopCreditMerchants.adapter = topCreditMerchantAdapter
-            android.util.Log.d("InsightsFragment", "✅ Top Credit Merchants RecyclerView setup complete")
             
             // Setup Top Debit Merchants RecyclerView (Money OUT)
             topDebitMerchantAdapter = TopMerchantProgressAdapter()
             rvTopDebitMerchants.layoutManager = LinearLayoutManager(requireContext())
             rvTopDebitMerchants.adapter = topDebitMerchantAdapter
-            android.util.Log.d("InsightsFragment", "✅ Top Debit Merchants RecyclerView setup complete")
-            
-            // Add pull-to-refresh functionality
-            setupPullToRefresh()
-
-            // Setup month selector click listener
-            tvMonthSelector.setOnClickListener {
-                showMonthPickerDialog()
-            }
-            
-            // Update month selector text
-            updateMonthSelectorText()
-
-            // Adjust button removed per design
         }
     }
 
@@ -134,8 +109,6 @@ class InsightsFragment : Fragment() {
                 val context = requireContext().applicationContext
                 val db = KoshpalDatabase.getDatabase(context)
                 val transactionDao = db.transactionDao()
-                val budgetDao = db.budgetNewDao()
-                val budgetCategoryDao = db.budgetCategoryNewDao()
 
                 // Use cached data if available and not expired
                 val allTransactions = if (cachedTransactions != null && 
@@ -150,14 +123,11 @@ class InsightsFragment : Fragment() {
                     }
                 }
 
-                // Load all insights data in parallel for better performance
-                val budgetJob = async { loadBudgetUsageData(allTransactions, budgetDao, budgetCategoryDao) }
-                // Spending Trend removed
+                // Load insights data in parallel for better performance
                 val recurringJob = async { loadRecurringPaymentsData(allTransactions) }
                 val merchantJob = async { loadMerchantHotspotsData(allTransactions) }
 
                 // Wait for all jobs to complete
-                budgetJob.await()
                 recurringJob.await()
                 merchantJob.await()
                 
@@ -168,92 +138,7 @@ class InsightsFragment : Fragment() {
         }
     }
 
-    // 1. Budget Usage Data Loading
-    private suspend fun loadBudgetUsageData(
-        allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>,
-        budgetDao: com.koshpal_android.koshpalapp.data.local.dao.BudgetNewDao,
-        budgetCategoryDao: com.koshpal_android.koshpalapp.data.local.dao.BudgetCategoryNewDao
-    ) {
-        val currentMonth = getCurrentMonthRange()
-        val currentMonthExpenses = allTransactions.filter { 
-            it.type == TransactionType.DEBIT && it.date in currentMonth.first..currentMonth.second 
-        }.sumOf { it.amount }
-
-        val budget = withContext(Dispatchers.IO) { budgetDao.getSingleBudget() }
-        if (budget != null) {
-            val categories = withContext(Dispatchers.IO) { budgetCategoryDao.getCategoriesForBudget(budget.id) }
-            
-            // Update KPI values
-            binding.tvTotalBudget.text = "₹${String.format("%.0f", budget.totalBudget)}"
-            binding.tvSpentThisMonth.text = "₹${String.format("%.0f", currentMonthExpenses)}"
-            
-            val percentUsed = (currentMonthExpenses / budget.totalBudget * 100).coerceAtMost(100.0)
-            binding.tvPercentUsed.text = "${String.format("%.0f", percentUsed)}%"
-            
-            // Set warning color based on usage
-            val percentColor = when {
-                percentUsed >= 100 -> requireContext().getColor(com.koshpal_android.koshpalapp.R.color.error)
-                percentUsed >= 80 -> requireContext().getColor(com.koshpal_android.koshpalapp.R.color.warning)
-                else -> requireContext().getColor(com.koshpal_android.koshpalapp.R.color.success)
-            }
-            binding.tvPercentUsed.setTextColor(percentColor)
-            
-            // Warning badge removed per design
-            
-            // Calculate and display budget category progress using repository (same as Categories screen)
-            val repoSpending = withContext(Dispatchers.IO) {
-                transactionRepository.getCurrentMonthCategorySpending(currentMonth.first, currentMonth.second)
-            }
-            val spendingById = repoSpending.associateBy { it.categoryId }
-
-            val budgetCategoryProgressList = categories.map { bc ->
-                val categoryId = mapBudgetNameToCategoryId(bc.name)
-                val spentAmount = spendingById[categoryId]?.totalAmount ?: 0.0
-                val percentageUsed = if (bc.allocatedAmount > 0) (spentAmount / bc.allocatedAmount).toFloat() else 0f
-                val remainingAmount = bc.allocatedAmount - spentAmount
-                val isOverBudget = spentAmount > bc.allocatedAmount
-                val details = getCategoryDetails(bc.name)
-
-                BudgetCategoryProgress(
-                    categoryName = bc.name,
-                    categoryId = categoryId,
-                    allocatedAmount = bc.allocatedAmount,
-                    spentAmount = spentAmount,
-                    percentageUsed = percentageUsed,
-                    remainingAmount = remainingAmount,
-                    isOverBudget = isOverBudget,
-                    categoryColor = details.first,
-                    categoryIcon = details.second
-                )
-            }.sortedByDescending { it.percentageUsed }
-
-            android.util.Log.d("InsightsFragment", "Budget categories found: ${categories.size}")
-            android.util.Log.d("InsightsFragment", "Budget progress items: ${budgetCategoryProgressList.size}")
-
-            budgetCategoryProgressAdapterModern.submitList(budgetCategoryProgressList)
-            
-            // Show a message if no budget categories are set
-            if (budgetCategoryProgressList.isEmpty()) {
-                Toast.makeText(requireContext(), "No budget categories set. Go to Budget settings to set category limits.", Toast.LENGTH_LONG).show()
-                
-                // For testing purposes, show sample data if no budget categories are set
-                val sampleProgressList = createSampleBudgetProgressData()
-                budgetCategoryProgressAdapterModern.submitList(sampleProgressList)
-            }
-            
-            // Old donut/sparkline charts removed in favor of per-category progress bars
-            // renderBudgetUsageChart(categories, currentMonthExpenses)
-            // renderBudgetTrendSparkline(allTransactions)
-        } else {
-            // No budget set
-            binding.tvTotalBudget.text = "₹0"
-            binding.tvSpentThisMonth.text = "₹${String.format("%.0f", currentMonthExpenses)}"
-            binding.tvPercentUsed.text = "0%"
-            // Warning badge removed per design
-        }
-    }
-
-    // 3. Recurring Payments Data Loading
+    // 1. Recurring Payments Data Loading
     private fun loadRecurringPaymentsData(allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
         val recurringPayments = detectRecurringPayments(allTransactions)
         
@@ -506,51 +391,7 @@ class InsightsFragment : Fragment() {
         // TODO: Update database
     }
 
-    private fun exportInsightsCsv() {
-        try {
-            val content = StringBuilder()
-                .appendLine("Insights Export - ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())}")
-                .appendLine("")
-                .appendLine("Budget Usage")
-                .appendLine("Total Budget,${binding.tvTotalBudget.text}")
-                .appendLine("Spent This Month,${binding.tvSpentThisMonth.text}")
-                .appendLine("Percent Used,${binding.tvPercentUsed.text}")
-                .appendLine("")
-                // Spending Trend removed from export
-                .toString()
-            
-            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = "text/csv"
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "Koshpal Insights Export")
-                putExtra(android.content.Intent.EXTRA_TEXT, content)
-            }
-            startActivity(android.content.Intent.createChooser(intent, "Share insights"))
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Export failed", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Chart Setup Methods
-    // private fun setupBudgetUsageChart() {
-    //     // Deprecated: donut chart removed from layout
-    // }
-
-    // setupSpendingTrendChart removed (trend card deleted)
-
-    private fun setupMerchantHotspotsChart() {
-        // No chart to setup; replaced with progress rows
-    }
-
-    // Category distribution removed per design
-
-    // Chart Rendering Methods
-    // private fun renderBudgetUsageChart(categories: List<com.koshpal_android.koshpalapp.model.BudgetCategory>, currentMonthExpenses: Double) {
-    //     // Deprecated: donut chart removed from layout
-    // }
-
-    // private fun renderBudgetTrendSparkline(allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
-    //     // Deprecated: sparkline removed from layout
-    // }
+    // Export functionality removed - Budget Usage section no longer exists
 
     private fun renderTopCreditMerchantsChart(topMerchants: List<Pair<String, Double>>) {
         android.util.Log.d("InsightsFragment", "💰 TOP CREDIT MERCHANTS: Rendering ${topMerchants.size} items")
@@ -774,89 +615,7 @@ class InsightsFragment : Fragment() {
         )
     }
 
-    private fun setupPullToRefresh() {
-        // Add swipe-to-refresh functionality
-        binding.root.setOnTouchListener { _, event ->
-            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                val startY = event.y
-                binding.root.setOnTouchListener { _, moveEvent ->
-                    if (moveEvent.action == android.view.MotionEvent.ACTION_UP) {
-                        val endY = moveEvent.y
-                        if (startY - endY > 100) { // Swipe up to refresh
-                            refreshData()
-                        }
-                    }
-                    false
-                }
-            }
-            false
-        }
-    }
-    
-    private fun refreshData() {
-        // Clear cache and reload data
-        cachedTransactions = null
-        lastDataLoadTime = 0
-        loadInsightsData()
-        Toast.makeText(requireContext(), "Refreshing insights...", Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun showMonthPickerDialog() {
-        val calendar = Calendar.getInstance()
-        calendar.set(selectedYear, selectedMonth, 1)
-        
-        val builder = android.app.AlertDialog.Builder(requireContext())
-        val inflater = layoutInflater
-        val dialogView = inflater.inflate(R.layout.dialog_month_picker, null)
-        
-        val monthPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.monthPicker)
-        val yearPicker = dialogView.findViewById<android.widget.NumberPicker>(R.id.yearPicker)
-        
-        // Setup month picker
-        val months = arrayOf("January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December")
-        monthPicker.minValue = 0
-        monthPicker.maxValue = 11
-        monthPicker.displayedValues = months
-        monthPicker.value = selectedMonth
-        monthPicker.wrapSelectorWheel = false
-        
-        // Setup year picker (last 5 years to current year)
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        yearPicker.minValue = currentYear - 5
-        yearPicker.maxValue = currentYear
-        yearPicker.value = selectedYear
-        yearPicker.wrapSelectorWheel = false
-        
-        builder.setView(dialogView)
-            .setTitle("Select Month")
-            .setPositiveButton("OK") { _, _ ->
-                selectedMonth = monthPicker.value
-                selectedYear = yearPicker.value
-                
-                // Update UI and reload data
-                updateMonthSelectorText()
-                refreshData()
-            }
-            .setNegativeButton("Cancel", null)
-        
-        builder.create().show()
-    }
-    
-    private fun updateMonthSelectorText() {
-        val months = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-        
-        val currentCal = Calendar.getInstance()
-        val isCurrentMonth = selectedMonth == currentCal.get(Calendar.MONTH) && 
-                             selectedYear == currentCal.get(Calendar.YEAR)
-        
-        binding.tvMonthSelector.text = if (isCurrentMonth) {
-            "This Month"
-        } else {
-            "${months[selectedMonth]} $selectedYear"
-        }
-    }
+    // Month selector and pull-to-refresh removed with Budget Usage section
 
     override fun onDestroyView() {
         super.onDestroyView()
