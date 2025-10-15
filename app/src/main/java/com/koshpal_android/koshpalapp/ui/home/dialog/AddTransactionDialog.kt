@@ -29,17 +29,14 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     
     private val categories = listOf(
         "Food & Dining",
-        "Shopping",
+        "Grocery",
         "Transportation",
         "Bills & Utilities",
+        "Education",
         "Entertainment",
         "Healthcare",
-        "Education",
-        "Travel",
-        "Groceries",
-        "Salary",
-        "Business",
-        "Investment",
+        "Shopping",
+        "Salary & Income",
         "Others"
     )
     
@@ -174,7 +171,7 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             TransactionType.CREDIT
         }
 
-        // Get category ID (you may want to map category names to IDs)
+        // Get category ID
         val categoryId = getCategoryId(category)
 
         val transaction = Transaction(
@@ -196,11 +193,23 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         // Save to database
         lifecycleScope.launch {
             try {
+                android.util.Log.d("AddTransactionDialog", "💾 Saving transaction with category: $category -> $categoryId")
+                
                 // First, ensure default categories exist
                 ensureDefaultCategoriesExist()
                 
+                // Verify category exists
+                val categoryExists = database.categoryDao().getCategoryById(categoryId)
+                if (categoryExists == null) {
+                    throw Exception("Category '$category' (ID: $categoryId) does not exist in database")
+                }
+                
+                android.util.Log.d("AddTransactionDialog", "✅ Category verified: ${categoryExists.name}")
+                
                 // Then insert the transaction
                 database.transactionDao().insertTransaction(transaction)
+                
+                android.util.Log.d("AddTransactionDialog", "✅ Transaction saved successfully: ₹$amount - $description")
                 
                 requireActivity().runOnUiThread {
                     Toast.makeText(
@@ -213,11 +222,11 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
                     dismiss()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("AddTransactionDialog", "Error saving transaction", e)
+                android.util.Log.e("AddTransactionDialog", "❌ Error saving transaction: ${e.message}", e)
                 requireActivity().runOnUiThread {
                     Toast.makeText(
                         requireContext(),
-                        "Error adding transaction: ${e.message}",
+                        "Error: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -244,20 +253,17 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     }
 
     private fun getCategoryId(categoryName: String): String {
-        // Map category names to IDs
+        // Map category names to actual database IDs (MUST match TransactionCategory.getDefaultCategories())
         return when (categoryName) {
             "Food & Dining" -> "food"
-            "Shopping" -> "shopping"
+            "Grocery" -> "grocery"
             "Transportation" -> "transport"
             "Bills & Utilities" -> "bills"
+            "Education" -> "education"
             "Entertainment" -> "entertainment"
             "Healthcare" -> "healthcare"
-            "Education" -> "education"
-            "Travel" -> "travel"
-            "Groceries" -> "groceries"
-            "Salary" -> "salary"
-            "Business" -> "business"
-            "Investment" -> "investment"
+            "Shopping" -> "shopping"
+            "Salary & Income" -> "salary"
             else -> "others"
         }
     }

@@ -46,11 +46,32 @@ class RemindersListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Set status bar color to primary blue
+        setStatusBarColor()
+
         setupRecyclerView()
         setupClickListeners()
-        observeViewModel()
+        
+        // Defer data loading to allow view to render first
+        view.post {
+            observeViewModel()
+        }
 
         android.util.Log.d("RemindersListFragment", "✅ Reminders List Fragment created")
+    }
+
+    private fun setStatusBarColor() {
+        activity?.window?.let { window ->
+            // Set status bar color to primary blue
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary)
+            
+            // Make status bar icons white (for dark background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
+            }
+            
+            android.util.Log.d("RemindersListFragment", "🎨 Status bar color set to primary blue")
+        }
     }
 
     private fun setupRecyclerView() {
@@ -78,19 +99,9 @@ class RemindersListFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.apply {
-            // Back button
-            btnBack.setOnClickListener {
-                (activity as? HomeActivity)?.onBackPressed()
-            }
-
             // FAB - Add new reminder
             fabAddReminder.setOnClickListener {
                 navigateToSetReminder(null)
-            }
-
-            // Search button (placeholder for now)
-            btnSearch.setOnClickListener {
-                Toast.makeText(requireContext(), "Search feature coming soon!", Toast.LENGTH_SHORT).show()
             }
 
             // Mark next reminder complete
@@ -248,6 +259,17 @@ class RemindersListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore status bar color to white when leaving RemindersListFragment
+        activity?.window?.let { window ->
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.white)
+            
+            // Make status bar icons dark (for light background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+            
+            android.util.Log.d("RemindersListFragment", "🎨 Status bar color restored to white")
+        }
         _binding = null
     }
 

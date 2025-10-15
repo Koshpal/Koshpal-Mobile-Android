@@ -48,12 +48,33 @@ class TransactionsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
+        // Set status bar color to primary blue
+        setStatusBarColor()
+        
         setupRecyclerView()
         setupClickListeners()
         setupSearchFilter()
         setupFilterChips()
         setupBackPressHandler()
-        loadTransactionsDirectly()
+        
+        // Defer data loading to allow view to render first
+        view.post {
+            loadTransactionsDirectly()
+        }
+    }
+    
+    private fun setStatusBarColor() {
+        activity?.window?.let { window ->
+            // Set status bar color to primary blue
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary)
+            
+            // Make status bar icons white (for dark background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
+            }
+            
+            android.util.Log.d("TransactionsFragment", "🎨 Status bar color set to primary blue")
+        }
     }
     
     private fun setupBackPressHandler() {
@@ -744,6 +765,17 @@ class TransactionsFragment : Fragment() {
     
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore status bar color to white when leaving TransactionsFragment
+        activity?.window?.let { window ->
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.white)
+            
+            // Make status bar icons dark (for light background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+            
+            android.util.Log.d("TransactionsFragment", "🎨 Status bar color restored to white")
+        }
         // Restore bottom navigation when leaving fragment
         showBottomNavigation()
         _binding = null

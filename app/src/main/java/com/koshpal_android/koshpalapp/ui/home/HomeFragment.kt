@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -12,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import java.util.Calendar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -105,6 +107,9 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Set status bar color to primary blue
+        setStatusBarColor()
+
         setupRecyclerViews()
         setupClickListeners()
         setupRecentTransactionsRecyclerView()
@@ -124,6 +129,20 @@ class HomeFragment : Fragment() {
         }
         binding.tvGreeting.text = greetingText
 
+    }
+
+    private fun setStatusBarColor() {
+        activity?.window?.let { window ->
+            // Set status bar color to primary blue
+            window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary)
+            
+            // Make status bar icons white (for dark background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
+            }
+            
+            android.util.Log.d("HomeFragment", "🎨 Status bar color set to primary blue")
+        }
     }
 
     private fun setupRecyclerViews() {
@@ -1211,5 +1230,21 @@ class HomeFragment : Fragment() {
             ).show()
         }
         dialog.show(childFragmentManager, com.koshpal_android.koshpalapp.ui.home.dialog.AddTransactionDialog.TAG)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Restore status bar color to white when leaving HomeFragment
+        activity?.window?.let { window ->
+            window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.white)
+            
+            // Make status bar icons dark (for light background)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+            
+            android.util.Log.d("HomeFragment", "🎨 Status bar color restored to white")
+        }
+        _binding = null
     }
 }
