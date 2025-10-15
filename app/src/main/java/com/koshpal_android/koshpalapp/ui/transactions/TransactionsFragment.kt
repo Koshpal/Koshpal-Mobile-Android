@@ -5,19 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.FragmentTransactionsBinding
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
-import com.koshpal_android.koshpalapp.ui.home.HomeFragment
 import com.koshpal_android.koshpalapp.ui.transactions.TransactionAdapter
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
@@ -33,9 +30,7 @@ class TransactionsFragment : Fragment() {
     private var _binding: FragmentTransactionsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: TransactionsViewModel by viewModels()
     private lateinit var transactionsAdapter: TransactionAdapter
-    private lateinit var backPressedCallback: OnBackPressedCallback
     private lateinit var itemTouchHelper: ItemTouchHelper
     
     @Inject
@@ -56,18 +51,22 @@ class TransactionsFragment : Fragment() {
         setupRecyclerView()
         setupClickListeners()
         setupSearchFilter()
-        setupBackPressedCallback()
         setupFilterChips()
+        setupBackPressHandler()
         loadTransactionsDirectly()
     }
-
-    private fun setupBackPressedCallback() {
-        backPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                navigateBackToHome()
+    
+    private fun setupBackPressHandler() {
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            if (binding.layoutSearch.visibility == View.VISIBLE) {
+                // If search is open, close it instead of going back
+                closeSearch()
+            } else {
+                // If search is not open, allow normal back behavior
+                isEnabled = false
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressedCallback)
     }
 
     private fun setupRecyclerView() {
@@ -96,16 +95,26 @@ class TransactionsFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.apply {
-            btnFilter.setOnClickListener {
-                // Show filter options
-            }
-
-            btnBack.setOnClickListener {
-                navigateBackToHome()
-            }
-
             btnSearch.setOnClickListener {
-                toggleSearchVisibility()
+                if (binding.layoutSearch.visibility == View.VISIBLE) {
+                    // Close search using the unified close function
+                    closeSearch()
+                } else {
+                    // Open search
+                    binding.layoutSearch.visibility = View.VISIBLE
+                    
+                    // Hide summary cards and filter chips when searching
+                    binding.layoutSummary.visibility = View.GONE
+                    binding.scrollViewFilters.visibility = View.GONE
+                    
+                    // Hide bottom navigation
+                    hideBottomNavigation()
+                    
+                    binding.etSearch.requestFocus()
+                    // Show keyboard
+                    val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                    imm.showSoftInput(binding.etSearch, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                }
             }
 
             // Filter chips with single selection
@@ -125,21 +134,115 @@ class TransactionsFragment : Fragment() {
 
     private fun setupSearchFilter() {
         binding.etSearch.doOnTextChanged { text, _, _, _ ->
-            viewModel.searchTransactions(text.toString())
+            val searchQuery = text.toString().trim()
+            
+            // Show/hide clear button
+            binding.btnClearSearch.visibility = if (searchQuery.isNotEmpty()) View.VISIBLE else View.GONE
+            
+            if (searchQuery.isEmpty()) {
+                // If search is empty, reload based on current filter
+                when (binding.chipGroupFilters.checkedChipId) {
+                    R.id.chipAll -> filterAllTransactions()
+                    R.id.chipIncome -> filterIncomeTransactions()
+                    R.id.chipExpense -> filterExpenseTransactions()
+                    R.id.chipThisMonth -> filterThisMonthTransactions()
+                    R.id.chipLastMonth -> filterLastMonthTransactions()
+                    R.id.chipStarred -> filterStarredTransactions()
+                    R.id.chipCashFlow -> filterCashFlowTransactions()
+                }
+            } else {
+                // Search in current transactions
+                searchTransactions(searchQuery)
+            }
+        }
+        
+        // Clear search button
+        binding.btnClearSearch.setOnClickListener {
+            binding.etSearch.text?.clear()
+        }
+        
+        // Handle back press on keyboard - restore views when search loses focus
+        binding.etSearch.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus && binding.layoutSearch.visibility == View.VISIBLE) {
+                // Search field lost focus, close search and restore views
+                closeSearch()
+            }
+        }
+        
+        // Add IME action listener for "Done" button on keyboard
+        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE || 
+                actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                // User pressed done/search on keyboard, hide keyboard but keep search open
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+                binding.etSearch.clearFocus()
+                true
+            } else {
+                false
+            }
+        }
+    }
+    
+    private fun closeSearch() {
+        // Close search bar
+        binding.layoutSearch.visibility = View.GONE
+        
+        // Show summary cards and filter chips
+        binding.layoutSummary.visibility = View.VISIBLE
+        binding.scrollViewFilters.visibility = View.VISIBLE
+        
+        // Show bottom navigation
+        showBottomNavigation()
+        
+        // Clear search
+        binding.etSearch.text?.clear()
+        
+        // Hide keyboard
+        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+    }
+    
+    private fun searchTransactions(query: String) {
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("TransactionsFragment", "🔍 Searching transactions for: '$query'")
+                
+                // Show loading
+                binding.progressBar.visibility = View.VISIBLE
+                
+                // Get all transactions and search
+                val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
+                val allTransactions = database.transactionDao().getAllTransactionsOnce()
+                
+                val filteredTransactions = allTransactions.filter { transaction ->
+                    transaction.merchant.contains(query, ignoreCase = true) ||
+                    transaction.description.contains(query, ignoreCase = true) ||
+                    transaction.amount.toString().contains(query) ||
+                    transaction.notes?.contains(query, ignoreCase = true) == true ||
+                    transaction.tags?.contains(query, ignoreCase = true) == true
+                }
+                
+                android.util.Log.d("TransactionsFragment", "🔍 Found ${filteredTransactions.size} transactions matching '$query'")
+                
+                // Update UI
+                transactionsAdapter.submitList(filteredTransactions)
+                updateEmptyState(filteredTransactions.isEmpty())
+                
+                // Hide loading
+                binding.progressBar.visibility = View.GONE
+                
+            } catch (e: Exception) {
+                android.util.Log.e("TransactionsFragment", "❌ Failed to search transactions: ${e.message}", e)
+                binding.progressBar.visibility = View.GONE
+                updateEmptyState(true)
+            }
         }
     }
 
     private fun setupFilterChips() {
         // Ensure "All" chip is selected by default
         binding.chipGroupFilters.check(R.id.chipAll)
-    }
-
-    private fun toggleSearchVisibility() {
-        binding.layoutSearch.visibility = if (binding.layoutSearch.visibility == View.VISIBLE) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
     }
 
     private fun filterStarredTransactions() {
@@ -472,17 +575,29 @@ class TransactionsFragment : Fragment() {
             1 -> "1 transaction this month"
             else -> "$count transactions this month"
         }
-        binding.tvTransactionCount.text = countText
+       // binding.tvTransactionCount.text = countText
     }
-
-    private fun navigateBackToHome() {
-        // Since Transactions is now in bottom nav, back button goes to Home
-        val homeActivity = requireActivity() as HomeActivity
-        
-        // Update bottom navigation to Home (will trigger fragment change)
-        homeActivity.showHomeFragment()
-        
-        android.util.Log.d("TransactionsFragment", "✅ Navigating back to Home via bottom nav")
+    
+    private fun hideBottomNavigation() {
+        try {
+            val homeActivity = activity as? HomeActivity
+            homeActivity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNavigation)?.visibility = View.GONE
+            homeActivity?.findViewById<com.google.android.material.bottomappbar.BottomAppBar>(R.id.bottomAppBar)?.visibility = View.GONE
+            homeActivity?.findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabCenter)?.visibility = View.GONE
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionsFragment", "Failed to hide bottom nav: ${e.message}")
+        }
+    }
+    
+    private fun showBottomNavigation() {
+        try {
+            val homeActivity = activity as? HomeActivity
+            homeActivity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottomNavigation)?.visibility = View.VISIBLE
+            homeActivity?.findViewById<com.google.android.material.bottomappbar.BottomAppBar>(R.id.bottomAppBar)?.visibility = View.VISIBLE
+            homeActivity?.findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabCenter)?.visibility = View.VISIBLE
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionsFragment", "Failed to show bottom nav: ${e.message}")
+        }
     }
 
     private var isUpdatingTransaction = false
@@ -617,8 +732,26 @@ class TransactionsFragment : Fragment() {
         dialog.show(parentFragmentManager, "TransactionCategorizationDialog")
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Ensure all views are visible when fragment resumes
+        if (binding.layoutSearch.visibility == View.GONE) {
+            binding.layoutSummary.visibility = View.VISIBLE
+            binding.scrollViewFilters.visibility = View.VISIBLE
+            showBottomNavigation()
+        }
+    }
+    
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore bottom navigation when leaving fragment
+        showBottomNavigation()
         _binding = null
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Restore bottom navigation when fragment is paused
+        showBottomNavigation()
     }
 }
