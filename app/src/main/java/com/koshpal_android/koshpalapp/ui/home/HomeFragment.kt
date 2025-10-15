@@ -116,6 +116,14 @@ class HomeFragment : Fragment() {
         // FIXED: Use single data source - ViewModel only
         android.util.Log.d("HomeFragment", "🚀 Setting up ViewModel observation...")
         observeViewModel()
+
+        val greetingText = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+            in 0..11 -> "Good Morning ☀️"
+            in 12..16 -> "Good Afternoon 🌤️"
+            else -> "Good Evening 🌙"
+        }
+        binding.tvGreeting.text = greetingText
+
     }
 
     private fun setupRecyclerViews() {
@@ -262,7 +270,7 @@ class HomeFragment : Fragment() {
             }
 
             // LONG PRESS financial card to trigger auto-categorization + show debug info
-            cardFinancialOverview.setOnLongClickListener {
+            layoutFinancialOverview.setOnLongClickListener {
                 android.util.Log.d("HomeFragment", "🤖 Long press detected - showing transaction debug info")
                 lifecycleScope.launch {
                     try {
@@ -301,7 +309,7 @@ class HomeFragment : Fragment() {
                 true
             }
 
-            cardFinancialOverview.setOnClickListener {
+            layoutFinancialOverview.setOnClickListener {
                 // Perform comprehensive debugging check
                 lifecycleScope.launch {
                     try {
@@ -353,10 +361,10 @@ class HomeFragment : Fragment() {
                 }
             }
 
-            // Month selector click listener
-            layoutMonthSelector.setOnClickListener {
-                showMonthSelectionDialog()
-            }
+            // Month selector removed - no longer in layout
+            // layoutMonthSelector.setOnClickListener {
+            //     showMonthSelectionDialog()
+            // }
         }
     }
 
@@ -369,7 +377,7 @@ class HomeFragment : Fragment() {
                 )
                 updateUI(uiState)
                 updateCurrentMonthDisplay()
-                renderSpendingLineChart(uiState)
+
             }
         }
 
@@ -406,6 +414,8 @@ class HomeFragment : Fragment() {
         }
     }
 
+
+
     private fun updateCurrentMonthDisplay() {
         val calendar = java.util.Calendar.getInstance()
         val monthNames = arrayOf(
@@ -415,124 +425,9 @@ class HomeFragment : Fragment() {
         val currentMonth = monthNames[calendar.get(java.util.Calendar.MONTH)]
         val currentYear = calendar.get(java.util.Calendar.YEAR)
 
-        _binding?.tvCurrentMonth?.text = "$currentMonth $currentYear"
-        android.util.Log.d("HomeFragment", "📅 Updated month display: $currentMonth $currentYear")
-    }
-
-    private fun renderSpendingLineChart(state: HomeUiState) {
-        val chart: LineChart = binding.lineChartSpending
-        
-        // Modern chart styling
-        chart.description.isEnabled = false
-        chart.setPinchZoom(false)
-        chart.setScaleEnabled(false)
-        chart.setDrawGridBackground(false)
-        chart.setDrawBorders(false)
-        chart.setNoDataText("No spending data yet")
-        chart.setNoDataTextColor(android.graphics.Color.parseColor("#9CA3AF"))
-        chart.setExtraOffsets(16f, 16f, 16f, 16f)
-        
-        val dailyData = state.dailySpendingData
-        if (dailyData.isEmpty()) {
-            chart.clear()
-            return
-        }
-
-        // Create line entries for daily spending and income
-        val spendingEntries = mutableListOf<Entry>()
-        val incomeEntries = mutableListOf<Entry>()
-        val dayLabels = mutableListOf<String>()
-        
-        dailyData.forEachIndexed { index, dayData ->
-            spendingEntries.add(Entry(index.toFloat(), dayData.totalSpent.toFloat()))
-            incomeEntries.add(Entry(index.toFloat(), dayData.totalIncome.toFloat()))
-            dayLabels.add(dayData.dayLabel)
-        }
-
-        val spendingDataSet = LineDataSet(spendingEntries, "Spending").apply {
-            color = android.graphics.Color.parseColor("#EF4444") // Red for spending
-            setCircleColor(android.graphics.Color.parseColor("#EF4444"))
-            lineWidth = 2f // Smaller line width
-            circleRadius = 3f
-            setDrawValues(false)
-            setDrawCircles(true)
-            setDrawCircleHole(false)
-            isHighlightEnabled = true
-            highLightColor = android.graphics.Color.parseColor("#B91C1C")
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            cubicIntensity = 0.2f
-            setDrawFilled(false) // No fill for cleaner look
-        }
-
-        val incomeDataSet = LineDataSet(incomeEntries, "Income").apply {
-            color = android.graphics.Color.parseColor("#10B981") // Green for income
-            setCircleColor(android.graphics.Color.parseColor("#10B981"))
-            lineWidth = 2f // Smaller line width
-            circleRadius = 3f
-            setDrawValues(false)
-            setDrawCircles(true)
-            setDrawCircleHole(false)
-            isHighlightEnabled = true
-            highLightColor = android.graphics.Color.parseColor("#059669")
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            cubicIntensity = 0.2f
-            setDrawFilled(false) // No fill for cleaner look
-        }
-
-        val lineData = LineData(spendingDataSet, incomeDataSet)
-
-        // Configure X-axis
-        chart.xAxis.apply {
-            position = XAxis.XAxisPosition.BOTTOM
-            setDrawGridLines(false)
-            setDrawAxisLine(false)
-            valueFormatter = IndexAxisValueFormatter(dayLabels)
-            granularity = 1f
-            textColor = android.graphics.Color.parseColor("#6B7280")
-            textSize = 10f
-            setLabelCount(dayLabels.size, false)
-        }
-
-        // Configure left Y-axis
-        chart.axisLeft.apply {
-            setDrawGridLines(true)
-            gridColor = android.graphics.Color.parseColor("#F3F4F6")
-            textColor = android.graphics.Color.parseColor("#6B7280")
-            textSize = 10f
-            axisMinimum = 0f
-            setDrawAxisLine(false)
-            setLabelCount(5, true)
-            valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    return when {
-                        value >= 100000 -> "₹${(value / 100000).toInt()}L"
-                        value >= 1000 -> "₹${(value / 1000).toInt()}K"
-                        else -> "₹${value.toInt()}"
-                    }
-                }
-            }
-        }
-
-        // Disable right Y-axis
-        chart.axisRight.isEnabled = false
-
-        // Configure legend to show both lines
-        chart.legend.apply {
-            isEnabled = true
-            verticalAlignment = com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.TOP
-            horizontalAlignment = com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER
-            orientation = com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL
-            textColor = android.graphics.Color.parseColor("#374151")
-            textSize = 11f
-            setDrawInside(false)
-            yOffset = -10f
-        }
-
-        // Set data and refresh
-        chart.data = lineData
-        chart.invalidate()
-
-        android.util.Log.d("HomeFragment", "📊 Beautiful dual line chart (spending & income) rendered with ${dailyData.size} days of data")
+        // tvCurrentMonth removed from layout - no longer displaying month selector
+        // _binding?.tvCurrentMonth?.text = "$currentMonth $currentYear"
+        android.util.Log.d("HomeFragment", "📅 Month display removed from new design")
     }
 
 
@@ -552,12 +447,11 @@ class HomeFragment : Fragment() {
                 tvTotalIncome.text = "₹${String.format("%.0f", state.currentMonthIncome)}"
                 tvTotalExpenses.text = "₹${String.format("%.0f", state.currentMonthExpenses)}"
 
-                // Update the month display to selected month
-                val selectedDate = java.util.Calendar.getInstance()
-                selectedDate.set(state.selectedYear, state.selectedMonth, 1)
-                val monthFormat = java.text.SimpleDateFormat("MMM", java.util.Locale.getDefault())
-                tvCurrentMonth.text =
-                    "${monthFormat.format(selectedDate.time)} ${state.selectedYear}"
+                // Month display removed from new design
+                // val selectedDate = java.util.Calendar.getInstance()
+                // selectedDate.set(state.selectedYear, state.selectedMonth, 1)
+                // val monthFormat = java.text.SimpleDateFormat("MMM", java.util.Locale.getDefault())
+                // tvCurrentMonth.text = "${monthFormat.format(selectedDate.time)} ${state.selectedYear}"
 
                 // Debug logging
                 android.util.Log.d(
@@ -605,11 +499,11 @@ class HomeFragment : Fragment() {
             val currentMonth = monthlyData.lastOrNull()
             currentMonth?.let { month ->
                 binding.apply {
-                    // Update the current month display
-                    tvCurrentMonth.text = "${month.month} ${month.year}"
+                    // Month display removed from new design
+                    // tvCurrentMonth.text = "${month.month} ${month.year}"
 
                     // Make the financial overview card clickable to show detailed view
-                    cardFinancialOverview.setOnClickListener {
+                    layoutFinancialOverview.setOnClickListener {
                         showMonthlySpendingDetails(monthlyData)
                     }
                 }
@@ -889,12 +783,12 @@ class HomeFragment : Fragment() {
                     cardRecentTransactions.visibility = View.VISIBLE
                     cardNoTransactions.visibility = View.GONE
                     cardSmsParser.visibility = View.GONE
-                    cardFinancialOverview.visibility = View.VISIBLE
+                    layoutFinancialOverview.visibility = View.VISIBLE
                 } else {
                     cardRecentTransactions.visibility = View.GONE
                     cardNoTransactions.visibility = View.VISIBLE
                     cardSmsParser.visibility = View.VISIBLE
-                    cardFinancialOverview.visibility = View.VISIBLE
+                    layoutFinancialOverview.visibility = View.VISIBLE
                 }
 
                 android.util.Log.d(
