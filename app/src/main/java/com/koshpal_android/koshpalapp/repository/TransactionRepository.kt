@@ -15,6 +15,7 @@ import com.koshpal_android.koshpalapp.model.CashFlowTransaction
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import com.koshpal_android.koshpalapp.utils.BudgetMonitor
+import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,7 @@ class TransactionRepository @Inject constructor(
     private val budgetCategoryDao: BudgetCategoryNewDao,
     private val cashFlowTransactionDao: CashFlowTransactionDao,
     private val categorizationEngine: TransactionCategorizationEngine,
+    private val syncService: TransactionSyncService,
     @ApplicationContext private val context: Context
 ) {
     
@@ -172,6 +174,14 @@ class TransactionRepository @Inject constructor(
         } catch (e: Exception) {
             android.util.Log.e("TransactionRepository", "❌ Failed to check budget status after update", e)
         }
+        
+        // Auto-sync transaction update to MongoDB
+        try {
+            syncService.autoSyncTransactionUpdate(transaction)
+            android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for transaction update")
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for transaction update: ${e.message}")
+        }
     }
     
     suspend fun deleteTransaction(transaction: Transaction) {
@@ -261,6 +271,14 @@ class TransactionRepository @Inject constructor(
                         android.util.Log.d("TransactionRepository", "💰 Budget monitoring triggered after category update")
                     } catch (e: Exception) {
                         android.util.Log.e("TransactionRepository", "❌ Failed to trigger budget monitoring after category update", e)
+                    }
+                    
+                    // Auto-sync category update to MongoDB
+                    try {
+                        syncService.autoSyncTransactionUpdate(updatedTransaction)
+                        android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for category update")
+                    } catch (e: Exception) {
+                        android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for category update: ${e.message}")
                     }
                 } else {
                     android.util.Log.e("TransactionRepository", "❌ VERIFICATION FAILED: Expected '$categoryId', got '${updatedTransaction?.categoryId}'")

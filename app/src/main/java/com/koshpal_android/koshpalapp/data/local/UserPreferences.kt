@@ -22,6 +22,7 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         private const val KEY_LOGIN_TYPE = "login_type" // "phone" or "email"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
         private const val KEY_INITIAL_SMS_PROCESSED = "initial_sms_processed"
+        private const val KEY_INITIAL_SYNC_COMPLETED = "initial_sync_completed"
         
         // Alert preferences
         private const val KEY_ALERTS_ENABLED = "alerts_enabled"
@@ -30,6 +31,11 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         private const val KEY_THRESHOLD_100_ENABLED = "threshold_100_enabled"
         private const val KEY_DAILY_SUMMARY_ENABLED = "daily_summary_enabled"
         private const val KEY_WEEKLY_SUMMARY_ENABLED = "weekly_summary_enabled"
+        
+        // Transaction sync preferences
+        private const val KEY_TOTAL_SYNCED_COUNT = "total_synced_count"
+        private const val KEY_LAST_SYNC_ERROR = "last_sync_error"
+        private const val KEY_LAST_SYNC_TIME = "last_sync_time"
     }
 
     fun saveUserToken(token: String) {
@@ -148,5 +154,44 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
     
     fun setInitialSmsProcessed(processed: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_INITIAL_SMS_PROCESSED, processed).apply()
+    }
+    
+    // Sync preferences
+    fun isInitialSyncCompleted(): Boolean {
+        return sharedPreferences.getBoolean(KEY_INITIAL_SYNC_COMPLETED, false)
+    }
+    
+    fun setInitialSyncCompleted(completed: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_INITIAL_SYNC_COMPLETED, completed).apply()
+    }
+    
+    // Transaction sync count methods
+    fun getTotalSyncedCount(): Long {
+        return sharedPreferences.getLong(KEY_TOTAL_SYNCED_COUNT, 0L)
+    }
+    
+    fun setTotalSyncedCount(count: Long) {
+        sharedPreferences.edit().putLong(KEY_TOTAL_SYNCED_COUNT, count).apply()
+    }
+    
+    fun incrementSyncedCount(count: Int = 1) {
+        val currentCount = getTotalSyncedCount()
+        setTotalSyncedCount(currentCount + count)
+    }
+    
+    fun getLastSyncError(): String? {
+        return sharedPreferences.getString(KEY_LAST_SYNC_ERROR, null)
+    }
+    
+    fun setLastSyncError(error: String?) {
+        sharedPreferences.edit().putString(KEY_LAST_SYNC_ERROR, error).apply()
+    }
+    
+    fun getLastSyncTime(): Long {
+        return sharedPreferences.getLong(KEY_LAST_SYNC_TIME, 0L)
+    }
+    
+    fun setLastSyncTime(time: Long) {
+        sharedPreferences.edit().putLong(KEY_LAST_SYNC_TIME, time).apply()
     }
 }

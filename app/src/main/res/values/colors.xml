@@ -125,4 +125,9 @@
     <color name="primary_dark_card">#2C2C54</color>
     <color name="success_dark_theme">#1B4332</color>
     <color name="accent_light">#B8E6B8</color>
+    
+    <!-- Sync Activity Colors -->
+    <color name="background_primary">#F8F9FA</color>
+    <color name="background_secondary">#E9ECEF</color>
+    <color name="primary_color">#334EAC</color>
 </resources>

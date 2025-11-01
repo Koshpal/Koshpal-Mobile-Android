@@ -7,6 +7,7 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -20,11 +21,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivitySplashBinding
 import com.koshpal_android.koshpalapp.ui.auth.CheckActivity
-import com.koshpal_android.koshpalapp.ui.auth.LoginActivity
+import com.koshpal_android.koshpalapp.ui.login.DemoLoginActivity
 import com.koshpal_android.koshpalapp.ui.auth.EmployeeLoginActivity
 import com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
+import com.koshpal_android.koshpalapp.ui.sync.SyncActivity
 import com.koshpal_android.koshpalapp.utils.NotificationPermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -69,13 +71,16 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.navigationEvent.collect { destination ->
+                    Log.d("SplashActivity", "🧭 Navigation destination: $destination")
                     when (destination) {
                         SplashViewModel.NavigationDestination.CHECK -> {
+                            Log.d("SplashActivity", "➡️ Navigating to CheckActivity")
                             startActivity(Intent(this@SplashActivity, CheckActivity::class.java))
                             finish()
                         }
                         SplashViewModel.NavigationDestination.LOGIN -> {
-                            startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+                            Log.d("SplashActivity", "➡️ Navigating to DemoLoginActivity")
+                            startActivity(Intent(this@SplashActivity, DemoLoginActivity::class.java))
                             finish()
                         }
                         SplashViewModel.NavigationDestination.HOME -> {
@@ -97,6 +102,10 @@ class SplashActivity : AppCompatActivity() {
                         }
                         SplashViewModel.NavigationDestination.SMS_PROCESSING -> {
                             startActivity(Intent(this@SplashActivity, SmsProcessingActivity::class.java))
+                            finish()
+                        }
+                        SplashViewModel.NavigationDestination.SYNC -> {
+                            startActivity(Intent(this@SplashActivity, SyncActivity::class.java))
                             finish()
                         }
                     }

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Fintech Color Palette -->
+<resources>
+    
+    <!-- Gradient Backgrounds -->
+    <color name="gradient_primary_start">#6366F1</color> <!-- Indigo -->
+    <color name="gradient_primary_end">#8B5CF6</color> <!-- Purple -->
+    <color name="gradient_success_start">#10B981</color> <!-- Emerald -->
+    <color name="gradient_success_end">#34D399</color> <!-- Light emerald -->
+    <color name="gradient_warning_start">#F59E0B</color> <!-- Amber -->
+    <color name="gradient_warning_end">#FBBF24</color> <!-- Light amber -->
+    <color name="gradient_surface_start">#F9FAFB</color> <!-- Very light gray -->
+    <color name="gradient_surface_end">#FFFFFF</color> <!-- White -->
+    
+    <!-- Glassmorphism -->
+    <color name="glass_background">#F0FFFFFF</color> <!-- 94% white -->
+    <color name="glass_border">#33000000</color> <!-- 20% black -->
+    
+    <!-- Accent Colors (Pastel) -->
+    <color name="accent_blue_light">#EFF6FF</color>
+    <color name="accent_blue">#3B82F6</color>
+    <color name="accent_green_light">#ECFDF5</color>
+    <color name="accent_green">#10B981</color>
+    <color name="accent_red_light">#FEF2F2</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="accent_yellow_light">#FFFBEB</color>
+    <color name="accent_yellow">#F59E0B</color>
+    <color name="accent_purple_light">#F5F3FF</color>
+    <color name="accent_purple">#8B5CF6</color>
+    
+    <!-- Merchant Category Colors (Vibrant Gradients) -->
+    <color name="merchant_food_start">#F97316</color>
+    <color name="merchant_food_end">#FB923C</color>
+    <color name="merchant_transport_start">#0EA5E9</color>
+    <color name="merchant_transport_end">#38BDF8</color>
+    <color name="merchant_shopping_start">#EC4899</color>
+    <color name="merchant_shopping_end">#F472B6</color>
+    <color name="merchant_bills_start">#6366F1</color>
+    <color name="merchant_bills_end">#818CF8</color>
+    <color name="merchant_entertainment_start">#8B5CF6</color>
+    <color name="merchant_entertainment_end">#A78BFA</color>
+    
+    <!-- Text with Emphasis -->
+    <color name="text_highlight">#6366F1</color>
+    <color name="text_success_emphasis">#059669</color>
+    <color name="text_error_emphasis">#DC2626</color>
+    
+    <!-- Premium Overlays -->
+    <color name="overlay_scrim">#80000000</color> <!-- 50% black -->
+    
+</resources>

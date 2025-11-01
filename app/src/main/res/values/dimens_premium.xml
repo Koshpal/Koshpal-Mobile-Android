@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Dimensions -->
+<resources>
+    
+    <!-- Spacing System (8dp base) -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+    
+    <!-- Card Dimensions -->
+    <dimen name="card_corner_radius_premium">24dp</dimen>
+    <dimen name="card_corner_radius_subcard">16dp</dimen>
+    <dimen name="card_elevation_premium">8dp</dimen>
+    <dimen name="card_elevation_subcard">2dp</dimen>
+    <dimen name="card_padding">20dp</dimen>
+    
+    <!-- Avatar & Icons -->
+    <dimen name="avatar_size_large">56dp</dimen>
+    <dimen name="avatar_size_medium">48dp</dimen>
+    <dimen name="avatar_size_small">40dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_small">20dp</dimen>
+    
+    <!-- Progress Bars -->
+    <dimen name="progress_bar_height">12dp</dimen>
+    <dimen name="progress_bar_corner_radius">8dp</dimen>
+    
+    <!-- Chips & Badges -->
+    <dimen name="chip_corner_radius">20dp</dimen>
+    <dimen name="badge_corner_radius">12dp</dimen>
+    
+</resources>

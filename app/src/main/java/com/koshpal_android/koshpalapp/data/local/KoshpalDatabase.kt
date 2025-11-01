@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
 import com.koshpal_android.koshpalapp.model.*
 import com.koshpal_android.koshpalapp.data.local.dao.*
@@ -19,7 +21,7 @@ import com.koshpal_android.koshpalapp.data.local.dao.*
         CashFlowTransaction::class,
         Reminder::class
     ],
-    version = 8,
+    version = 9, // Updated for sync tracking columns (isSynced, lastSyncAttempt)
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -38,17 +40,29 @@ abstract class KoshpalDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: KoshpalDatabase? = null
         
+        /**
+         * Migration from version 8 to 9
+         * Adds sync tracking columns to transactions table
+         */
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add isSynced column (default false - will be synced on next sync cycle)
+                database.execSQL("ALTER TABLE transactions ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+                
+                // Add lastSyncAttempt column (default null)
+                database.execSQL("ALTER TABLE transactions ADD COLUMN lastSyncAttempt INTEGER")
+            }
+        }
+        
         fun getDatabase(context: Context): KoshpalDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     KoshpalDatabase::class.java,
-                    "koshpal_database_v8"
+                    "koshpal_database_v8" // Keep the same name to allow migration!
                 )
-                .fallbackToDestructiveMigration() // Allow database recreation for new Reminder feature
-                // Remove destructive migration to preserve budget data
-                // .fallbackToDestructiveMigration() // Allow database recreation when schema changes
-                // .fallbackToDestructiveMigrationOnDowngrade() // Handle downgrades too
+                .addMigrations(MIGRATION_8_9) // Preserve existing data with migration
+                .fallbackToDestructiveMigration() // Only if migration fails
                 .build()
                 INSTANCE = instance
                 instance

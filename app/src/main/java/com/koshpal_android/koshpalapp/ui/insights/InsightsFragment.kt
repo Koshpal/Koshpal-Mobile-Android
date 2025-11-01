@@ -5,7 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.koshpal_android.koshpalapp.databinding.FragmentInsightsBinding
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,10 +29,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.*
 import com.koshpal_android.koshpalapp.R
+import android.graphics.Color as AndroidColor
+import android.view.animation.DecelerateInterpolator
+import android.widget.LinearLayout
+import androidx.core.view.isVisible
+import com.koshpal_android.koshpalapp.ui.insights.PremiumAnimationUtils
+import com.koshpal_android.koshpalapp.ui.insights.TextHighlightUtils
 
 @AndroidEntryPoint
 class InsightsFragment : Fragment() {
@@ -39,8 +49,10 @@ class InsightsFragment : Fragment() {
 
     @Inject
     lateinit var transactionRepository: TransactionRepository
+    
+    private val viewModel: InsightsViewModel by viewModels()
 
-    private lateinit var recurringPaymentAdapter: RecurringPaymentAdapter
+    private lateinit var recurringPaymentEnhancedAdapter: RecurringPaymentEnhancedAdapter
     private lateinit var topCreditMerchantAdapter: TopMerchantProgressAdapter
     private lateinit var topDebitMerchantAdapter: TopMerchantProgressAdapter
     
@@ -52,6 +64,9 @@ class InsightsFragment : Fragment() {
     private var cachedTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>? = null
     private var lastDataLoadTime: Long = 0
     private val DATA_CACHE_DURATION = 5 * 60 * 1000L // 5 minutes
+    
+    // Toggle state for comparison view
+    private var showPercentages = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,18 +93,19 @@ class InsightsFragment : Fragment() {
         }
         
         loadInsightsData()
+        viewModel.loadMonthComparisonData()
+        viewModel.loadRecurringPayments() // Load real recurring payments data
     }
 
     private fun setupUI() {
         binding.apply {
-            // Setup recurring payments adapter
-            recurringPaymentAdapter = RecurringPaymentAdapter(
-                onMarkEssential = { item -> markRecurringAsEssential(item) },
-                onCancelSuggestion = { item -> showCancelSuggestion(item) },
-                onMarkReimbursable = { item -> markRecurringAsReimbursable(item) }
-            )
+            // Setup collapsing toolbar title
+            collapsingToolbar.title = "Insights"
+            
+            // Setup enhanced recurring payments adapter
+            recurringPaymentEnhancedAdapter = RecurringPaymentEnhancedAdapter()
             rvRecurringPayments.layoutManager = LinearLayoutManager(requireContext())
-            rvRecurringPayments.adapter = recurringPaymentAdapter
+            rvRecurringPayments.adapter = recurringPaymentEnhancedAdapter
             
             // Setup Top Credit Merchants RecyclerView (Money IN)
             topCreditMerchantAdapter = TopMerchantProgressAdapter()
@@ -100,7 +116,22 @@ class InsightsFragment : Fragment() {
             topDebitMerchantAdapter = TopMerchantProgressAdapter()
             rvTopDebitMerchants.layoutManager = LinearLayoutManager(requireContext())
             rvTopDebitMerchants.adapter = topDebitMerchantAdapter
+            
+            // Setup swipe to refresh
+            swipeRefresh?.setOnRefreshListener {
+                refreshAllData()
+            }
+            
+            // Setup month comparison
+            setupMonthComparison()
+            
+            // Setup toggle chips for view mode
+            setupToggleChips()
         }
+        
+        // Observe ViewModel data
+        observeViewModel()
+        observeRecurringPayments()
     }
 
     private fun loadInsightsData() {
@@ -123,13 +154,8 @@ class InsightsFragment : Fragment() {
                     }
                 }
 
-                // Load insights data in parallel for better performance
-                val recurringJob = async { loadRecurringPaymentsData(allTransactions) }
-                val merchantJob = async { loadMerchantHotspotsData(allTransactions) }
-
-                // Wait for all jobs to complete
-                recurringJob.await()
-                merchantJob.await()
+                // Load merchant hotspots data
+                loadMerchantHotspotsData(allTransactions)
                 
             } catch (e: Exception) {
                 android.util.Log.e("InsightsFragment", "Failed to load insights: ${e.message}")
@@ -138,15 +164,7 @@ class InsightsFragment : Fragment() {
         }
     }
 
-    // 1. Recurring Payments Data Loading
-    private fun loadRecurringPaymentsData(allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
-        val recurringPayments = detectRecurringPayments(allTransactions)
-        
-        binding.tvRecurringCount.text = "${recurringPayments.size} found"
-        recurringPaymentAdapter.submitList(recurringPayments)
-    }
-
-    // 4. Merchant Hotspots Data Loading (Split into Credit & Debit)
+    // Merchant Hotspots Data Loading (Split into Credit & Debit)
     private fun loadMerchantHotspotsData(allTransactions: List<com.koshpal_android.koshpalapp.model.Transaction>) {
         android.util.Log.d("InsightsFragment", "\n\n═══════════════════════════════════════════")
         android.util.Log.d("InsightsFragment", "🔍 MERCHANT ANALYSIS STARTED (Credit & Debit)")
@@ -237,158 +255,13 @@ class InsightsFragment : Fragment() {
         return Pair(start, end)
     }
 
-    private fun detectRecurringPayments(transactions: List<com.koshpal_android.koshpalapp.model.Transaction>): List<RecurringPaymentItem> {
-        val result = mutableListOf<RecurringPaymentItem>()
-
-        // Consider last 3 full months: M0 (current), M-1, M-2
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-
-        val monthStarts = mutableListOf<Long>()
-        val monthEnds = mutableListOf<Long>()
-        for (i in 0..2) {
-            val c = cal.clone() as Calendar
-            c.add(Calendar.MONTH, -i)
-            val start = c.timeInMillis
-            c.add(Calendar.MONTH, 1)
-            c.add(Calendar.MILLISECOND, -1)
-            val end = c.timeInMillis
-            monthStarts.add(start)
-            monthEnds.add(end)
-        }
-
-        val last3monthsTx = transactions.filter { it.type == TransactionType.DEBIT && it.date >= monthStarts.last() && it.date <= monthEnds.first() }
-        val groups = last3monthsTx.groupBy { normalizeMerchantName(it.merchant) }
-
-        groups.forEach { (merchant, txs) ->
-            // Check presence in each month
-            var monthsWithTxn = 0
-            for (i in 0..2) {
-                val hasTxn = txs.any { it.date in monthStarts[i]..monthEnds[i] }
-                if (hasTxn) monthsWithTxn++
-            }
-            if (monthsWithTxn == 3) {
-                // Monthly average over last 3 months (sum per month / 3)
-                var sum3 = 0.0
-                for (i in 0..2) {
-                    val monthSum = txs.filter { it.date in monthStarts[i]..monthEnds[i] }.sumOf { it.amount }
-                    sum3 += monthSum
-                }
-                val monthlyAvg = sum3 / 3.0
-                val dates = txs.map { it.date }.sorted()
-                val timelineData = getTimelineData(transactions, merchant, 6)
-
-                result.add(
-                    RecurringPaymentItem(
-                        merchantName = merchant,
-                        monthlyAvgAmount = monthlyAvg,
-                        frequency = "Monthly (3/3)",
-                        last3MonthsFrequency = 3,
-                        subscriptionScore = 0.9f,
-                        firstSeen = dates.firstOrNull() ?: monthStarts.last(),
-                        lastSeen = dates.lastOrNull() ?: monthEnds.first(),
-                        timelineData = timelineData
-                    )
-                )
-            }
-        }
-
-        return result.sortedByDescending { it.monthlyAvgAmount }
-    }
-
+    // Merchant name normalization (still used for merchant hotspots)
     private fun normalizeMerchantName(merchant: String): String {
         return merchant.lowercase()
             .replace(Regex("(upi|imps|neft|ref|txn|id|pos|card|debit|credit)"), "")
             .replace(Regex("\\d+"), "")
             .trim()
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-    }
-
-    private fun calculateFrequency(dates: List<Long>): String {
-        if (dates.size < 2) return "Unknown"
-        
-        val intervals = dates.zipWithNext().map { (first, second) -> second - first }
-        val avgInterval = intervals.average()
-        val days = avgInterval / (24 * 60 * 60 * 1000)
-        
-        return when {
-            days <= 7 -> "Weekly"
-            days <= 14 -> "Bi-weekly"
-            days <= 35 -> "Monthly"
-            days <= 70 -> "Bi-monthly"
-            else -> "Quarterly"
-        }
-    }
-
-    private fun calculateSubscriptionScore(transactionCount: Int, amountVariance: Double, frequency: String): Float {
-        var score = 0f
-        
-        // Transaction count score (0-40 points)
-        score += (transactionCount * 10f).coerceAtMost(40f)
-        
-        // Amount consistency score (0-30 points)
-        score += (30f * (1f - amountVariance.toFloat())).coerceAtLeast(0f)
-        
-        // Frequency score (0-30 points)
-        score += when (frequency) {
-            "Monthly" -> 30f
-            "Weekly" -> 25f
-            "Bi-weekly" -> 20f
-            "Bi-monthly" -> 15f
-            else -> 10f
-        }
-        
-        return (score / 100f).coerceIn(0f, 1f)
-    }
-
-    private fun getTimelineData(transactions: List<com.koshpal_android.koshpalapp.model.Transaction>, merchant: String, months: Int): List<Double> {
-        val timelineData = mutableListOf<Double>()
-        val cal = Calendar.getInstance()
-        
-        for (i in months - 1 downTo 0) {
-            cal.time = Date()
-            cal.add(Calendar.MONTH, -i)
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            val monthStart = cal.timeInMillis
-            
-            cal.add(Calendar.MONTH, 1)
-            cal.add(Calendar.MILLISECOND, -1)
-            val monthEnd = cal.timeInMillis
-            
-            val monthAmount = transactions.filter { 
-                it.type == TransactionType.DEBIT && 
-                it.date in monthStart..monthEnd && 
-                normalizeMerchantName(it.merchant) == merchant
-            }.sumOf { it.amount }
-            
-            timelineData.add(monthAmount)
-        }
-        
-        return timelineData
-    }
-
-    // Action handlers for recurring payments
-    private fun markRecurringAsEssential(item: RecurringPaymentItem) {
-        Toast.makeText(requireContext(), "Marked ${item.merchantName} as essential", Toast.LENGTH_SHORT).show()
-        // TODO: Update database
-    }
-
-    private fun showCancelSuggestion(item: RecurringPaymentItem) {
-        Toast.makeText(requireContext(), "Cancel suggestion for ${item.merchantName}", Toast.LENGTH_SHORT).show()
-        // TODO: Show cancel dialog
-    }
-
-    private fun markRecurringAsReimbursable(item: RecurringPaymentItem) {
-        Toast.makeText(requireContext(), "Marked ${item.merchantName} as reimbursable", Toast.LENGTH_SHORT).show()
-        // TODO: Update database
     }
 
     // Export functionality removed - Budget Usage section no longer exists
@@ -616,6 +489,388 @@ class InsightsFragment : Fragment() {
     }
 
     // Month selector and pull-to-refresh removed with Budget Usage section
+    
+    // ==================== Month Comparison Feature ====================
+    
+    private fun setupMonthComparison() {
+        // Month comparison setup is now handled by setupToggleChips()
+        // This method is kept for compatibility but the toggle functionality
+        // has been moved to ChipGroup in the premium layout
+    }
+    
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observe loading state
+                launch {
+                    viewModel.isLoading.collect { isLoading ->
+                        val comparisonCard = binding.root.findViewById<View>(R.id.cardMonthComparison)
+                        val shimmer = comparisonCard?.findViewById<com.facebook.shimmer.ShimmerFrameLayout>(R.id.shimmerComparisonChart)
+                        val chart = comparisonCard?.findViewById<View>(R.id.chartMonthComparison)
+                        
+                        if (shimmer != null && chart != null) {
+                            if (isLoading) {
+                                shimmer.visibility = View.VISIBLE
+                                shimmer.startShimmer()
+                                chart.visibility = View.GONE
+                            } else {
+                                shimmer.stopShimmer()
+                                shimmer.visibility = View.GONE
+                                chart.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                }
+                
+                // Observe comparison data
+                launch {
+                    viewModel.monthComparisonData.collect { data ->
+                        if (data.isNotEmpty()) {
+                            renderMonthComparisonChart(data, showPercentages)
+                        }
+                    }
+                }
+                
+                // Observe insights
+                launch {
+                    viewModel.comparisonInsight.collect { insight ->
+                        insight?.let {
+                            renderInsights(it)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun showComparisonShimmer(shimmer: com.facebook.shimmer.ShimmerFrameLayout, content: View) {
+        shimmer.isVisible = true
+        shimmer.startShimmer()
+        content.isVisible = false
+    }
+    
+    private fun hideComparisonShimmer(shimmer: com.facebook.shimmer.ShimmerFrameLayout, content: View) {
+        shimmer.stopShimmer()
+        shimmer.animate()
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                shimmer.isVisible = false
+                shimmer.alpha = 1f
+                
+                content.alpha = 0f
+                content.isVisible = true
+                content.animate()
+                    .alpha(1f)
+                    .setDuration(300)
+                    .start()
+            }
+            .start()
+    }
+    
+    private fun renderMonthComparisonChart(data: List<MonthComparisonData>, showPercentage: Boolean) {
+        val comparisonCard = binding.root.findViewById<View>(R.id.cardMonthComparison)
+        val chart = comparisonCard.findViewById<BarChart>(R.id.chartMonthComparison)
+        
+        // Prepare data
+        val entries1 = mutableListOf<BarEntry>() // Previous month
+        val entries2 = mutableListOf<BarEntry>() // Current month
+        val labels = mutableListOf<String>()
+        
+        data.take(6).forEachIndexed { index, item ->
+            if (showPercentage) {
+                // Show percentage values
+                entries1.add(BarEntry(index.toFloat(), item.previousMonthAmount.toFloat()))
+                entries2.add(BarEntry(index.toFloat(), item.currentMonthAmount.toFloat()))
+            } else {
+                // Show absolute amounts
+                entries1.add(BarEntry(index.toFloat(), item.previousMonthAmount.toFloat()))
+                entries2.add(BarEntry(index.toFloat(), item.currentMonthAmount.toFloat()))
+            }
+            labels.add(item.categoryName.take(8))
+        }
+        
+        val dataSet1 = BarDataSet(entries1, "Previous Month").apply {
+            color = AndroidColor.parseColor("#B0BEC5")
+            valueTextColor = AndroidColor.parseColor("#546E7A")
+            valueTextSize = 10f
+        }
+        
+        val dataSet2 = BarDataSet(entries2, "Current Month").apply {
+            color = AndroidColor.parseColor("#5C6BC0")
+            valueTextColor = AndroidColor.parseColor("#3949AB")
+            valueTextSize = 10f
+        }
+        
+        val barData = BarData(dataSet1, dataSet2)
+        val groupSpace = 0.3f
+        val barSpace = 0.05f
+        val barWidth = 0.3f
+        
+        barData.barWidth = barWidth
+        
+        chart.apply {
+            this.data = barData
+            description.isEnabled = false
+            
+            xAxis.apply {
+                valueFormatter = IndexAxisValueFormatter(labels)
+                position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+                granularity = 1f
+                setCenterAxisLabels(true)
+                setDrawGridLines(false)
+                textColor = AndroidColor.parseColor("#546E7A")
+            }
+            
+            axisLeft.apply {
+                setDrawGridLines(true)
+                textColor = AndroidColor.parseColor("#546E7A")
+                axisMinimum = 0f
+            }
+            
+            axisRight.isEnabled = false
+            
+            legend.apply {
+                verticalAlignment = Legend.LegendVerticalAlignment.TOP
+                horizontalAlignment = Legend.LegendHorizontalAlignment.RIGHT
+                orientation = Legend.LegendOrientation.HORIZONTAL
+                setDrawInside(false)
+                textColor = AndroidColor.parseColor("#546E7A")
+            }
+            
+            groupBars(0f, groupSpace, barSpace)
+            xAxis.axisMinimum = 0f
+            xAxis.axisMaximum = data.size.toFloat()
+            
+            // Make chart interactive
+            setTouchEnabled(true)
+            setOnChartValueSelectedListener(object : com.github.mikephil.charting.listener.OnChartValueSelectedListener {
+                override fun onValueSelected(e: com.github.mikephil.charting.data.Entry?, h: com.github.mikephil.charting.highlight.Highlight?) {
+                    e?.let {
+                        val index = it.x.toInt()
+                        if (index < data.size) {
+                            showCategoryDrilldown(data[index])
+                        }
+                    }
+                }
+                
+                override fun onNothingSelected() {}
+            })
+            
+            animateY(800, Easing.EaseInOutQuad)
+            invalidate()
+        }
+    }
+    
+    private fun renderInsights(insight: MonthComparisonInsight) {
+        val comparisonCard = binding.root.findViewById<View>(R.id.cardMonthComparison) ?: return
+        val layoutInsights = comparisonCard.findViewById<android.widget.LinearLayout>(R.id.layoutComparisonInsights)
+        val layoutTopIncreases = comparisonCard.findViewById<android.widget.LinearLayout>(R.id.layoutTopIncreases)
+        val layoutTopDecreases = comparisonCard.findViewById<android.widget.LinearLayout>(R.id.layoutTopDecreases)
+        
+        // Show insights section if we have data
+        if (insight.topIncreases.isNotEmpty() || insight.topDecreases.isNotEmpty()) {
+            layoutInsights?.visibility = View.VISIBLE
+            
+            // Clear existing views
+            layoutTopIncreases?.removeAllViews()
+            layoutTopDecreases?.removeAllViews()
+            
+            // Add top increases
+            insight.topIncreases.take(3).forEach { change ->
+                val itemView = layoutInflater.inflate(R.layout.item_top_change, layoutTopIncreases, false)
+                setupTopChangeItem(itemView, change, true)
+                layoutTopIncreases?.addView(itemView)
+            }
+            
+            // Add top decreases
+            insight.topDecreases.take(3).forEach { change ->
+                val itemView = layoutInflater.inflate(R.layout.item_top_change, layoutTopDecreases, false)
+                setupTopChangeItem(itemView, change, false)
+                layoutTopDecreases?.addView(itemView)
+            }
+        } else {
+            layoutInsights?.visibility = View.GONE
+        }
+    }
+    
+    private fun setupTopChangeItem(itemView: View, change: MonthComparisonData, isIncrease: Boolean) {
+        val ivCategoryIcon = itemView.findViewById<android.widget.ImageView>(R.id.ivCategoryIcon)
+        val tvCategoryName = itemView.findViewById<android.widget.TextView>(R.id.tvCategoryName)
+        val tvAmountChange = itemView.findViewById<android.widget.TextView>(R.id.tvAmountChange)
+        val tvPercentageChange = itemView.findViewById<android.widget.TextView>(R.id.tvPercentageChange)
+        val cardBadge = itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPercentageBadge)
+        
+        ivCategoryIcon.setImageResource(change.categoryIcon)
+        tvCategoryName.text = change.categoryName
+        
+        val amountText = if (isIncrease) {
+            "₹${String.format("%.0f", abs(change.absoluteChange))} more"
+        } else {
+            "₹${String.format("%.0f", abs(change.absoluteChange))} less"
+        }
+        tvAmountChange.text = amountText
+        
+        val arrow = if (isIncrease) "↑" else "↓"
+        tvPercentageChange.text = "$arrow ${abs(change.percentageChange).toInt()}%"
+        
+        val bgColor = if (isIncrease) {
+            AndroidColor.parseColor("#FFEBEE")
+        } else {
+            AndroidColor.parseColor("#E8F5E9")
+        }
+        
+        val textColor = if (isIncrease) {
+            AndroidColor.parseColor("#D32F2F")
+        } else {
+            AndroidColor.parseColor("#388E3C")
+        }
+        
+        cardBadge.setCardBackgroundColor(bgColor)
+        tvPercentageChange.setTextColor(textColor)
+        
+        itemView.setOnClickListener {
+            showCategoryDrilldown(change)
+        }
+    }
+    
+    private fun showCategoryDrilldown(data: MonthComparisonData) {
+        val dialog = CategoryDrilldownDialog.newInstance(
+            data.categoryId,
+            data.categoryName,
+            data.categoryIcon
+        )
+        dialog.show(childFragmentManager, "CategoryDrilldown")
+    }
+    
+    private fun refreshAllData() {
+        cachedTransactions = null
+        lastDataLoadTime = 0
+        loadInsightsData()
+        viewModel.loadMonthComparisonData()
+        viewModel.loadRecurringPayments()
+        binding.swipeRefresh?.isRefreshing = false
+    }
+    
+    // ==================== Recurring Payments Real Data Loading ====================
+    
+    private fun observeRecurringPayments() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observe recurring payments list
+                launch {
+                    viewModel.recurringPayments.collect { payments ->
+                        recurringPaymentEnhancedAdapter.submitList(payments)
+                        
+                        // Update count badge
+                        binding.tvRecurringCount.text = "${payments.size} found"
+                    }
+                }
+                
+                // Observe recurring insights
+                launch {
+                    viewModel.recurringInsights.collect { insights ->
+                        insights?.let { renderRecurringInsights(it) }
+                    }
+                }
+                
+                // Observe loading state
+                launch {
+                    viewModel.isLoadingRecurring.collect { isLoading ->
+                        if (isLoading) {
+                            showRecurringShimmer()
+                        } else {
+                            hideRecurringShimmer()
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun renderRecurringInsights(insights: RecurringPaymentsInsight) {
+        // Find views
+        val insightsCard = binding.root.findViewById<View>(R.id.cardRecurringInsights) ?: return
+        val tvSummary = insightsCard.findViewById<android.widget.TextView>(R.id.tvInsightSummary)
+        val tvCount = insightsCard.findViewById<android.widget.TextView>(R.id.tvTotalCount)
+        val tvSpend = insightsCard.findViewById<android.widget.TextView>(R.id.tvTotalSpend)
+        val cardSavings = insightsCard.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSavingsSuggestion)
+        val tvSavings = insightsCard.findViewById<android.widget.TextView>(R.id.tvSavingsSuggestion)
+        
+        // Highlight text with colors (amounts and percentages)
+        TextHighlightUtils.highlightInsightText(tvSummary, insights.insightText)
+        
+        // Animate counters with roll-up effect
+        PremiumAnimationUtils.animateNumberRollUp(
+            tvCount,
+            insights.totalRecurringCount,
+            duration = 800L
+        )
+        
+        PremiumAnimationUtils.animateCurrencyRollUp(
+            tvSpend,
+            insights.totalMonthlySpend,
+            duration = 1000L
+        )
+        
+        // Fade in card
+        PremiumAnimationUtils.fadeInSlideUp(insightsCard, duration = 300L, startDelay = 100L)
+        
+        // Show/hide savings suggestion with pop animation
+        if (insights.potentialSavings > 0 && insights.savingsSuggestion.isNotEmpty()) {
+            cardSavings.visibility = View.VISIBLE
+            tvSavings.text = insights.savingsSuggestion
+            
+            // Pop in with bounce
+            PremiumAnimationUtils.popInBadge(cardSavings, duration = 400L)
+        } else {
+            cardSavings.visibility = View.GONE
+        }
+    }
+    
+    private fun setupToggleChips() {
+        binding.root.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupViewMode)?.let { chipGroup ->
+            chipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+                val chipId = checkedIds.firstOrNull() ?: return@setOnCheckedStateChangeListener
+                
+                when (chipId) {
+                    R.id.chipAbsolute -> {
+                        showPercentages = false
+                        renderMonthComparisonChart(viewModel.monthComparisonData.value, false)
+                    }
+                    R.id.chipPercentage -> {
+                        showPercentages = true
+                        renderMonthComparisonChart(viewModel.monthComparisonData.value, true)
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun showRecurringShimmer() {
+        val shimmer = binding.root.findViewById<com.facebook.shimmer.ShimmerFrameLayout>(
+            R.id.shimmerRecurringPayments
+        ) ?: return
+        
+        shimmer.visibility = View.VISIBLE
+        shimmer.startShimmer()
+        binding.rvRecurringPayments.visibility = View.GONE
+    }
+    
+    private fun hideRecurringShimmer() {
+        val shimmer = binding.root.findViewById<com.facebook.shimmer.ShimmerFrameLayout>(
+            R.id.shimmerRecurringPayments
+        ) ?: return
+        val content = binding.rvRecurringPayments
+        
+        // Use premium shimmer to content transition
+        PremiumAnimationUtils.shimmerToContentTransition(
+            shimmer,
+            content,
+            fadeOutDuration = 200L,
+            fadeInDuration = 300L
+        )
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

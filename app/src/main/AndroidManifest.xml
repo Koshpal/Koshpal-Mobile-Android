@@ -7,6 +7,7 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -27,7 +28,8 @@
         android:roundIcon="@drawable/app_logo"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.KoshpalApp">
+        android:theme="@style/Theme.KoshpalApp"
+        tools:targetApi="31">
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="true">
@@ -71,9 +73,24 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".ui.sync.SyncActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.login.DemoLoginActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".ui.notification.NotificationActivity"
             android:exported="false"
             android:theme="@style/Theme.KoshpalApp.NoActionBar"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.profile.ProfileActivity"
+            android:exported="false"
             android:screenOrientation="portrait" />
 
         <receiver
@@ -100,6 +117,18 @@
             android:name=".ui.reminders.ReminderActionReceiver"
             android:enabled="true"
             android:exported="false" />
+
+        <!-- Disable default WorkManager initialization (we use Hilt) -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

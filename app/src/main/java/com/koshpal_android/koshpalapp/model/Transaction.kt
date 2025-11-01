@@ -65,7 +65,11 @@ data class Transaction(
     @ColumnInfo(name = "originalMerchant")
     val originalMerchant: String? = null,
     @ColumnInfo(name = "isCashFlow")
-    val isCashFlow: Boolean = false
+    val isCashFlow: Boolean = false,
+    @ColumnInfo(name = "isSynced")
+    val isSynced: Boolean = false, // Track if transaction is synced to server
+    @ColumnInfo(name = "lastSyncAttempt")
+    val lastSyncAttempt: Long? = null // Track last sync attempt timestamp
 ) {
     val timestamp: Long
         get() = date

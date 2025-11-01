@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gradient Avatar Background (App Theme) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:angle="135"
+        android:startColor="@color/primary"
+        android:endColor="@color/primary_mid"
+        android:type="linear" />
+</shape>
