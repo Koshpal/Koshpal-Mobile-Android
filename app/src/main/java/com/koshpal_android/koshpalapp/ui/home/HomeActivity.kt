@@ -217,7 +217,9 @@ class HomeActivity : AppCompatActivity() {
     fun navigateBackFromCategoryDetails() {
         android.util.Log.d("HomeActivity", "🔙 Navigating back from category details")
 
+        binding.bottomAppBar.visibility = android.view.View.VISIBLE
         binding.bottomNavigation.visibility = android.view.View.VISIBLE
+        binding.fabCenter.visibility = android.view.View.VISIBLE
         supportFragmentManager.popBackStack()
         refreshCategoriesData()
     }
@@ -240,12 +242,18 @@ class HomeActivity : AppCompatActivity() {
 
         val setMonthlyBudgetFragment = com.koshpal_android.koshpalapp.ui.categories.SetMonthlyBudgetFragment()
 
-        binding.bottomNavigation.visibility = android.view.View.GONE
-
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, setMonthlyBudgetFragment)
             .addToBackStack("set_monthly_budget")
             .commit()
+
+        // Hide bottom app bar, bottom nav and FAB after fragment transaction
+        binding.root.post {
+            binding.bottomAppBar.visibility = android.view.View.GONE
+            binding.bottomNavigation.visibility = android.view.View.GONE
+            binding.fabCenter.visibility = android.view.View.GONE
+            android.util.Log.d("HomeActivity", "🚫 Bottom app bar, nav and FAB hidden")
+        }
     }
 
     fun showRemindersListFragment() {
@@ -310,7 +318,9 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
+            binding.bottomAppBar.visibility = android.view.View.VISIBLE
             binding.bottomNavigation.visibility = android.view.View.VISIBLE
+            binding.fabCenter.visibility = android.view.View.VISIBLE
             supportFragmentManager.popBackStack()
         } else {
             super.onBackPressed()

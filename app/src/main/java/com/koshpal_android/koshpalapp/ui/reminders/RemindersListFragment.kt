@@ -243,6 +243,14 @@ class RemindersListFragment : Fragment() {
                 .replace(R.id.fragmentContainer, fragment)
                 .addToBackStack("set_reminder")
                 .commit()
+            
+            // Hide bottom app bar, navigation and FAB after fragment transaction
+            view?.post {
+                activity.findViewById<android.view.View>(R.id.bottomAppBar)?.visibility = android.view.View.GONE
+                activity.findViewById<android.view.View>(R.id.bottomNavigation)?.visibility = android.view.View.GONE
+                activity.findViewById<android.view.View>(R.id.fabCenter)?.visibility = android.view.View.GONE
+                android.util.Log.d("RemindersListFragment", "🚫 Bottom elements hidden for Set Reminder")
+            }
         }
     }
 

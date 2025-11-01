@@ -12,6 +12,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import java.util.Calendar
 import androidx.activity.result.contract.ActivityResultContracts
@@ -250,6 +252,84 @@ class HomeFragment : Fragment() {
         Toast.makeText(requireContext(), "Add Cash Transaction - Coming Soon!", Toast.LENGTH_SHORT).show()
     }
 
+    private fun showFeedbackDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_feedback, null)
+        val dialog = android.app.Dialog(requireContext(), android.R.style.Theme_Material_Light_NoActionBar_Fullscreen)
+        dialog.setContentView(dialogView)
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+        )
+
+        val btnBack = dialogView.findViewById<ImageView>(R.id.btnBack)
+        val etFeedback = dialogView.findViewById<EditText>(R.id.etFeedback)
+        val btnSubmit = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSubmit)
+
+        // Enable/disable submit button based on text input
+        etFeedback.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val hasText = !s.isNullOrBlank()
+                btnSubmit.isEnabled = hasText
+                btnSubmit.alpha = if (hasText) 1f else 0.5f
+            }
+        })
+
+        btnBack.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnSubmit.setOnClickListener {
+            val feedbackText = etFeedback.text.toString().trim()
+            if (feedbackText.isNotBlank()) {
+                sendFeedbackEmail(feedbackText)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun sendFeedbackEmail(feedback: String) {
+        try {
+            if (isGmailInstalled()) {
+                val gmailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:koshpal@koshpal.com")
+                    setPackage("com.google.android.gm")
+                    putExtra(Intent.EXTRA_SUBJECT, "Koshpal App Feedback")
+                    putExtra(Intent.EXTRA_TEXT, feedback)
+                }
+                startActivity(gmailIntent)
+                Toast.makeText(requireContext(), "Opening Gmail...", Toast.LENGTH_SHORT).show()
+            } else {
+                // Fallback: Open chooser with any available email app
+                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:koshpal@koshpal.com")
+                    putExtra(Intent.EXTRA_SUBJECT, "Koshpal App Feedback")
+                    putExtra(Intent.EXTRA_TEXT, feedback)
+                }
+                startActivity(Intent.createChooser(emailIntent, "Send Feedback via"))
+            }
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error sending feedback", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
+
+
+    private fun isGmailInstalled(): Boolean {
+        val pm = requireContext().packageManager
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            setPackage("com.google.android.gm")
+        }
+        val resolveInfo = pm.queryIntentActivities(intent, 0)
+        return resolveInfo.isNotEmpty()
+    }
+
+
+
     private fun setupClickListeners() {
         binding.apply {
             // Real SMS parsing button
@@ -281,6 +361,11 @@ class HomeFragment : Fragment() {
             btnReminders.setOnClickListener {
                 android.util.Log.d("HomeFragment", "🔔 Reminders button clicked")
                 (activity as? HomeActivity)?.showRemindersListFragment()
+            }
+
+            // Feedback card
+            cardFeedback.setOnClickListener {
+                showFeedbackDialog()
             }
 
             btnEnablePermissions.setOnClickListener {

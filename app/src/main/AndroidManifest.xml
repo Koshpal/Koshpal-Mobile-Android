@@ -2,6 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 👇 Add this queries block -->
+    <queries>
+        <!-- Gmail packages -->
+        <package android:name="com.google.android.gm" />
+        <package android:name="com.google.android.gm.lite" />
+
+        <!-- Any email app that supports SENDTO (like Outlook, Yahoo, etc.) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+    <!-- 👆 End queries block -->
+
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
@@ -10,7 +24,8 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -28,11 +43,11 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.KoshpalApp">
+
         <activity
             android:name=".ui.home.HomeActivity"
-            android:exported="true">
+            android:exported="true" />
 
-        </activity>
         <activity
             android:name=".ui.auth.CheckActivity"
             android:exported="false" />
@@ -64,7 +79,7 @@
         <activity
             android:name=".ui.budget.BudgetActivity"
             android:exported="false" />
-        
+
         <activity
             android:name=".ui.sms.SmsProcessingActivity"
             android:exported="false"
@@ -84,7 +99,7 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-        
+
         <receiver
             android:name=".utils.NotificationDeleteReceiver"
             android:enabled="true"
@@ -100,6 +115,7 @@
             android:name=".ui.reminders.ReminderActionReceiver"
             android:enabled="true"
             android:exported="false" />
+
     </application>
 
 </manifest>

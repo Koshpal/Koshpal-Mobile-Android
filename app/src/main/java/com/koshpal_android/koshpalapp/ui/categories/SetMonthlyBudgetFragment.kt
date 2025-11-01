@@ -48,6 +48,13 @@ class SetMonthlyBudgetFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Hide bottom app bar, bottom navigation and FAB
+        (activity as? HomeActivity)?.let { homeActivity ->
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.GONE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.GONE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.GONE
+        }
+
         setupUI()
         setupRecyclerView()
     }
@@ -322,6 +329,14 @@ class SetMonthlyBudgetFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        
+        // Show bottom app bar, bottom navigation and FAB again when leaving this fragment
+        (activity as? HomeActivity)?.let { homeActivity ->
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.VISIBLE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.VISIBLE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.VISIBLE
+        }
+        
         _binding = null
     }
 

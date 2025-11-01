@@ -780,13 +780,90 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Feedback Card -->
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvRecentTransactions"
             android:layout_width="match_parent"
-            android:layout_marginBottom="70dp"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false"
             android:padding="8dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="80dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#37474F"
+            android:foreground="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="20dp">
+
+                <!-- Feedback Icon -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#FFB74D">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="💬"
+                        android:textSize="24sp"
+                        android:gravity="center" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Feedback Text -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Give feedback"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Suggest new features, report problems..."
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:alpha="0.8"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- Arrow Icon -->
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/white"
+                    android:alpha="0.6" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
 
     </LinearLayout>
 

@@ -1,76 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface_medium"
+    android:background="@color/white"
+    android:fillViewport="true"
     tools:context=".ui.categories.CategoriesFragment">
 
-    <!-- Header Section -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface_medium"
-        app:elevation="0dp">
+        android:orientation="vertical">
 
-        <!-- Header Content -->
+    <!-- Blue Header Section with Chart -->
+    <LinearLayout
+        android:id="@+id/layoutHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="32dp"
+        android:background="@drawable/bg_primary_rounded_bottom"
+        android:clipToPadding="false">
+
+        <!-- Top Bar: Title + Month Selector -->
         <LinearLayout
-            android:id="@+id/layoutHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="20dp"
-            android:paddingBottom="16dp"
             android:gravity="center_vertical"
-            app:layout_scrollFlags="scroll|enterAlways">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp">
 
+            <!-- Profile Image -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                app:cardCornerRadius="26dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <ImageView
+                    android:id="@+id/ivUserProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_person"
+                    android:scaleType="centerCrop"
+                    android:tint="@color/primary"
+                    android:padding="11dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Title -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-                
+                android:orientation="vertical"
+                android:layout_marginStart="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Budget"
+                    android:textColor="@color/white"
+                    android:alpha="0.85"
+                    android:textSize="13sp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Categories"
-                    android:textColor="@color/text_primary"
-                    android:textSize="26sp"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
-                
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Your spending breakdown"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:layout_marginTop="4dp" />
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="2dp" />
             </LinearLayout>
 
+            <!-- Month Selector -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="21dp"
                 app:cardElevation="2dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider_light">
+                app:cardBackgroundColor="#33FFFFFF">
                 
                 <TextView
                     android:id="@+id/tvMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sep"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:text="September"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:drawableEnd="@drawable/ic_chevron_down"
                     android:drawablePadding="6dp"
-                    android:drawableTint="@color/text_secondary"
+                    android:drawableTint="@color/white"
                     android:background="?attr/selectableItemBackground"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="10dp" />
@@ -78,121 +104,105 @@
 
         </LinearLayout>
 
-    </com.google.android.material.appbar.AppBarLayout>
+        <!-- Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="20dp"
+            android:background="#33FFFFFF"
+            android:alpha="0.5" />
 
-    <!-- Scrollable Content -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <LinearLayout
+        <!-- Chart Card - Inside Blue Section -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/chartContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="80dp">
+            android:layout_marginHorizontal="16dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp">
 
-    <!-- Chart Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/chartContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="16dp"
-        app:cardBackgroundColor="@android:color/white"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="4dp">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="32dp"
-            android:paddingHorizontal="20dp"
-            android:gravity="center">
-
-            <!-- Donut Chart -->
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/pieChart"
-                android:layout_width="260dp"
-                android:layout_height="260dp"
-                android:layout_centerHorizontal="true" />
-
-            <!-- Center Total Display -->
-            <LinearLayout
-                android:id="@+id/layoutTotalSpending"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:orientation="vertical"
+                android:paddingVertical="28dp"
+                android:paddingHorizontal="16dp"
                 android:gravity="center">
 
-                <TextView
+                <!-- Donut Chart -->
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pieChart"
+                    android:layout_width="240dp"
+                    android:layout_height="240dp"
+                    android:layout_centerHorizontal="true" />
+
+                <!-- Center Total Display -->
+                <LinearLayout
+                    android:id="@+id/layoutTotalSpending"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Total Spends"
-                    android:textColor="@color/text_tertiary"
-                    android:textSize="11sp"
-                    android:textAllCaps="true"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_centerInParent="true"
+                    android:orientation="vertical"
+                    android:gravity="center">
 
-                <TextView
-                    android:id="@+id/tvTotalSpending"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="₹2,556"
-                    android:textColor="@color/primary"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TOTAL SPENDS"
+                        android:textColor="@color/text_tertiary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08"
+                        android:layout_marginBottom="6dp" />
 
-            </LinearLayout>
-        </RelativeLayout>
-    </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:id="@+id/tvTotalSpending"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹2,556"
+                        android:textColor="@color/primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium" />
+
+                </LinearLayout>
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
 
     <!-- Set Budget Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSetBudget"
         android:layout_width="match_parent"
-        android:layout_height="54dp"
-        android:layout_marginHorizontal="20dp"
+        android:layout_height="50dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="20dp"
         android:text="Set Monthly Budget"
         android:textColor="@android:color/white"
-        android:textSize="15sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:textAllCaps="false"
         android:backgroundTint="@color/primary"
-        app:cornerRadius="16dp"
+        app:cornerRadius="14dp"
         app:icon="@drawable/ic_add"
         app:iconGravity="textStart"
         app:iconTint="@android:color/white"
+        app:iconSize="20dp"
         app:iconPadding="8dp"
-        app:elevation="6dp" />
+        app:elevation="4dp" />
 
-    <!-- Categories Section Header -->
-    <TextView
-        android:id="@+id/tvCategoriesHeader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Spending Breakdown"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="24dp" />
-
-    <!-- Categories List -->
+    <!-- Scrollable Content -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCategories"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="12dp"
-        android:nestedScrollingEnabled="false"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="16dp"
         android:clipToPadding="false"
+        android:paddingBottom="80dp"
+        android:nestedScrollingEnabled="false"
         android:overScrollMode="never"
         tools:listitem="@layout/item_category_spending" />
 
@@ -245,8 +255,6 @@
 
     </LinearLayout>
 
-        </LinearLayout>
+    </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.core.widget.NestedScrollView>

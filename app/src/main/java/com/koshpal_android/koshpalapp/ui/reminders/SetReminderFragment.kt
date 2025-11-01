@@ -59,6 +59,16 @@ class SetReminderFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Hide bottom app bar, bottom navigation and FAB with post to ensure it happens after view is ready
+        view.post {
+            (activity as? com.koshpal_android.koshpalapp.ui.home.HomeActivity)?.let { homeActivity ->
+                homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.GONE
+                homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.GONE
+                homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.GONE
+                android.util.Log.d("SetReminderFragment", "🚫 Bottom elements hidden in SetReminderFragment")
+            }
+        }
+
         setupUI()
         setupClickListeners()
 
@@ -365,6 +375,14 @@ class SetReminderFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        
+        // Show bottom app bar, bottom navigation and FAB again when leaving this fragment
+        (activity as? com.koshpal_android.koshpalapp.ui.home.HomeActivity)?.let { homeActivity ->
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.VISIBLE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.VISIBLE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.VISIBLE
+        }
+        
         _binding = null
     }
 
