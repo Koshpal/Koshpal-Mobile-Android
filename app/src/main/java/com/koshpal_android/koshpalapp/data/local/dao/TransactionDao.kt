@@ -199,4 +199,68 @@ interface TransactionDao {
     // Duplicate prevention: Check by amount and time window
     @Query("SELECT * FROM transactions WHERE amount = :amount AND date BETWEEN :startTime AND :endTime LIMIT 1")
     suspend fun getTransactionByAmountAndTime(amount: Double, startTime: Long, endTime: Long): Transaction?
+    
+    // Month-over-month comparison queries
+    @Query("""
+        SELECT categoryId, SUM(amount) as totalAmount 
+        FROM transactions 
+        WHERE type = 'DEBIT' 
+        AND categoryId IS NOT NULL 
+        AND categoryId != ''
+        AND date >= :startDate 
+        AND date <= :endDate
+        GROUP BY categoryId 
+        HAVING SUM(amount) > 0
+        ORDER BY categoryId ASC
+    """)
+    suspend fun getMonthlySpendingByCategory(startDate: Long, endDate: Long): List<CategorySpending>
+    
+    // Get transactions by category and month for drill-down
+    @Query("""
+        SELECT * FROM transactions 
+        WHERE categoryId = :categoryId 
+        AND type = 'DEBIT'
+        AND date >= :startDate 
+        AND date <= :endDate
+        ORDER BY date DESC
+    """)
+    suspend fun getTransactionsByCategoryAndMonth(categoryId: String, startDate: Long, endDate: Long): List<Transaction>
+    
+    // ========== SYNC-RELATED QUERIES ==========
+    
+    /**
+     * Get all transactions that have not been synced to the server yet
+     */
+    @Query("SELECT * FROM transactions WHERE isSynced = 0 ORDER BY date DESC")
+    suspend fun getUnsyncedTransactions(): List<Transaction>
+    
+    /**
+     * Get count of unsynced transactions
+     */
+    @Query("SELECT COUNT(*) FROM transactions WHERE isSynced = 0")
+    suspend fun getUnsyncedTransactionCount(): Int
+    
+    /**
+     * Mark a transaction as synced
+     */
+    @Query("UPDATE transactions SET isSynced = 1, lastSyncAttempt = :syncTime WHERE id = :transactionId")
+    suspend fun markTransactionAsSynced(transactionId: String, syncTime: Long = System.currentTimeMillis())
+    
+    /**
+     * Mark multiple transactions as synced
+     */
+    @Query("UPDATE transactions SET isSynced = 1, lastSyncAttempt = :syncTime WHERE id IN (:transactionIds)")
+    suspend fun markTransactionsAsSynced(transactionIds: List<String>, syncTime: Long = System.currentTimeMillis())
+    
+    /**
+     * Update last sync attempt time (for failed syncs)
+     */
+    @Query("UPDATE transactions SET lastSyncAttempt = :syncTime WHERE id = :transactionId")
+    suspend fun updateLastSyncAttempt(transactionId: String, syncTime: Long = System.currentTimeMillis())
+    
+    /**
+     * Reset sync status for all transactions (for re-sync)
+     */
+    @Query("UPDATE transactions SET isSynced = 0")
+    suspend fun resetAllSyncStatus()
 }

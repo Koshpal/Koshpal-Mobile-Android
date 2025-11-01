@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Smart Insights Card with Glassmorphism -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/card_padding">
+
+    <!-- Header with Gradient Icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/spacing_md">
+
+        <!-- Gradient Bulb Icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/accent_yellow_light">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="💡"
+                android:textSize="18sp"
+                android:gravity="center" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Smart Insights"
+            android:textColor="@color/text_highlight"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginStart="@dimen/spacing_sm" />
+
+    </LinearLayout>
+
+    <!-- AI-Style Summary Text with Highlights -->
+    <TextView
+        android:id="@+id/tvInsightSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="We detected 3 recurring payments: Netflix ₹499, Spotify ₹199, Vodafone ₹399."
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="@dimen/spacing_md" />
+
+    <!-- Animated Stats Grid -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/spacing_md"
+        android:weightSum="2">
+
+        <!-- Subscription Count (Animated) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/spacing_xs"
+            app:cardCornerRadius="@dimen/card_corner_radius_subcard"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/accent_blue_light">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="@dimen/spacing_md">
+
+                <TextView
+                    android:id="@+id/tvTotalCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:textColor="@color/accent_blue"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Subscriptions"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:layout_marginTop="@dimen/spacing_xs" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Total Monthly Spend (Animated) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/spacing_xs"
+            app:cardCornerRadius="@dimen/card_corner_radius_subcard"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/accent_red_light">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="@dimen/spacing_md">
+
+                <TextView
+                    android:id="@+id/tvTotalSpend"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="₹1,097"
+                    android:textColor="@color/accent_red"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Monthly Total"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:layout_marginTop="@dimen/spacing_xs" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+    <!-- Savings Suggestion with Icon (Conditional) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSavingsSuggestion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="@dimen/card_corner_radius_subcard"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/accent_green_light"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="@dimen/spacing_md">
+
+            <TextView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:text="💰"
+                android:textSize="16sp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tvSavingsSuggestion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="You could save ₹699/month by reviewing streaming subscriptions."
+                android:textColor="@color/text_success_emphasis"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginStart="@dimen/spacing_sm" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

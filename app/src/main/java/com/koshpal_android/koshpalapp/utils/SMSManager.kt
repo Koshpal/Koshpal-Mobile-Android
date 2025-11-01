@@ -12,14 +12,20 @@ import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 class SMSManager(private val context: Context) {
     
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    
+    // Inject TransactionSyncService for auto-sync
+    @Inject
+    lateinit var syncService: TransactionSyncService
     
     suspend fun processAllSMS(): ProcessResult {
         return withContext(Dispatchers.IO) {
@@ -183,6 +189,16 @@ class SMSManager(private val context: Context) {
                                 Log.d("SMSManager", "✅ Is null? ${savedTransaction?.categoryId == null}")
                                 Log.d("SMSManager", "✅ Is empty? ${savedTransaction?.categoryId?.isEmpty()}")
                                 Log.d("SMSManager", "✅ Created & Verified: ₹${details.amount} at ${details.merchant} → Category: ${savedTransaction?.categoryId}")
+                                
+                                // Auto-sync to MongoDB if available
+                                try {
+                                    if (::syncService.isInitialized) {
+                                        syncService.autoSyncNewTransaction(transaction)
+                                        Log.d("SMSManager", "🔄 Auto-sync triggered for new transaction")
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("SMSManager", "❌ Auto-sync failed: ${e.message}")
+                                }
                             } else {
                                 Log.d("SMSManager", "⚠️ Skipping invalid merchant: ${details.merchant}")
                             }

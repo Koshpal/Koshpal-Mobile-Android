@@ -12,6 +12,8 @@ import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.service.TransactionSyncService
+import com.koshpal_android.koshpalapp.service.TransactionSyncServiceEntryPoint
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -121,6 +123,17 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 Log.d("TransactionSMS", "🎉 NEW TRANSACTION CREATED: ₹${details.amount} at ${details.merchant}")
                                                 Log.d("TransactionSMS", "💾 Transaction saved to database successfully")
                                                 
+                                                // Auto-sync to MongoDB
+                                                try {
+                                                    val syncService = getSyncService(context)
+                                                    if (syncService != null) {
+                                                        syncService.autoSyncNewTransaction(transaction)
+                                                        Log.d("TransactionSMS", "🔄 Auto-sync triggered for new SMS transaction")
+                                                    }
+                                                } catch (e: Exception) {
+                                                    Log.e("TransactionSMS", "❌ Auto-sync failed: ${e.message}")
+                                                }
+                                                
                                                 // Send notification for new transaction
                                                 try {
                                                     val notificationManager = KoshpalNotificationManager.getInstance(ctx)
@@ -206,6 +219,19 @@ class TransactionSMSReceiver : BroadcastReceiver() {
             } ?: false
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    private fun getSyncService(context: Context?): TransactionSyncService? {
+        return try {
+            val application = context?.applicationContext as? Application
+            application?.let { app ->
+                val entryPoint = EntryPointAccessors.fromApplication(app, TransactionSyncServiceEntryPoint::class.java)
+                entryPoint.transactionSyncService()
+            }
+        } catch (e: Exception) {
+            Log.e("TransactionSMS", "Failed to get sync service: ${e.message}")
+            null
         }
     }
     

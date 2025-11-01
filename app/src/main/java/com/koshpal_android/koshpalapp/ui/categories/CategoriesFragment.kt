@@ -341,22 +341,31 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun updateTotalSpending(categorySpending: List<CategorySpending>) {
+        // Safety check: binding might be null if fragment is destroyed
+        val safeBinding = _binding ?: return
+        
         val total = categorySpending.sumOf { it.totalAmount }
-        binding.tvTotalSpending.text = "₹${String.format("%.0f", total)}"
+        safeBinding.tvTotalSpending.text = "₹${String.format("%.0f", total)}"
     }
 
     private fun showDataViews() {
-        binding.chartContainer.visibility = View.VISIBLE
-        binding.btnSetBudget.visibility = View.VISIBLE
-        binding.rvCategories.visibility = View.VISIBLE
-        binding.layoutEmptyState.visibility = View.GONE
+        // Safety check: binding might be null if fragment is destroyed
+        val safeBinding = _binding ?: return
+        
+        safeBinding.chartContainer.visibility = View.VISIBLE
+        safeBinding.btnSetBudget.visibility = View.VISIBLE
+        safeBinding.rvCategories.visibility = View.VISIBLE
+        safeBinding.layoutEmptyState.visibility = View.GONE
     }
 
     private fun showEmptyState() {
-        binding.chartContainer.visibility = View.GONE
-        binding.btnSetBudget.visibility = View.GONE
-        binding.rvCategories.visibility = View.GONE
-        binding.layoutEmptyState.visibility = View.VISIBLE
+        // Safety check: binding might be null if fragment is destroyed
+        val safeBinding = _binding ?: return
+        
+        safeBinding.chartContainer.visibility = View.GONE
+        safeBinding.btnSetBudget.visibility = View.GONE
+        safeBinding.rvCategories.visibility = View.GONE
+        safeBinding.layoutEmptyState.visibility = View.VISIBLE
     }
 
 

@@ -30,6 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.koshpal_android.koshpalapp.ui.profile.ProfileActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.FragmentHomeBinding
@@ -202,12 +203,12 @@ class HomeFragment : Fragment() {
     private fun loadBankSpending() {
         lifecycleScope.launch {
             try {
-                android.util.Log.d("HomeFragment", "💳 Loading bank spending data...")
+                android.util.Log.d("HomeFragment", "💳 ========== LOADING BANK SPENDING ==========")
                 
                 // Get ONLY real SMS transaction data for current month
                 val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
                 
-                android.util.Log.d("HomeFragment", "💳 Loaded ${bankSpending.size} bank cards with REAL data")
+                android.util.Log.d("HomeFragment", "💳 Loaded ${bankSpending.size} bank cards with spending data")
                 
                 // Log each bank's spending
                 bankSpending.forEach { bank ->
@@ -224,22 +225,41 @@ class HomeFragment : Fragment() {
                     )
                 )
                 
+                android.util.Log.d("HomeFragment", "💳 Submitting ${bankSpending.size} cards to adapter (including Cash)")
                 bankCardAdapter.submitList(bankSpending)
                 
-                // Hide section if no banks found
+                // Show/hide bank cards section based on data
                 if (bankSpending.size == 1) { // Only Cash card
-                    android.util.Log.d("HomeFragment", "⚠️ No bank transactions found for current month")
+                    android.util.Log.d("HomeFragment", "⚠️ No bank transactions found for current month - showing only Cash card")
+                    binding.rvBankCards.visibility = View.VISIBLE // Still show so user can add cash
+                } else {
+                    android.util.Log.d("HomeFragment", "✅ Found ${bankSpending.size - 1} banks with transactions")
+                    binding.rvBankCards.visibility = View.VISIBLE
                 }
                 
                 // Mark bank data as loaded
                 isBankDataLoaded = true
-                android.util.Log.d("HomeFragment", "✅ Bank data loaded")
+                android.util.Log.d("HomeFragment", "✅ Bank data loaded successfully")
                 
                 // Check if we can hide shimmer now
                 checkAndHideShimmer()
                 
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "❌ Failed to load bank spending: ${e.message}", e)
+                e.printStackTrace()
+                
+                // Still show Cash card on error
+                val fallbackList = mutableListOf(
+                    com.koshpal_android.koshpalapp.model.BankSpending(
+                        bankName = "Cash",
+                        totalSpending = 0.0,
+                        transactionCount = 0,
+                        isCash = true
+                    )
+                )
+                bankCardAdapter.submitList(fallbackList)
+                binding.rvBankCards.visibility = View.VISIBLE
+                
                 // Mark as loaded even on error to avoid stuck shimmer
                 isBankDataLoaded = true
                 checkAndHideShimmer()
@@ -332,6 +352,13 @@ class HomeFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.apply {
+            // Profile icon click - navigate to ProfileFragment
+            ivUserProfile.setOnClickListener {
+                android.util.Log.d("HomeFragment", "👤 Profile icon clicked - navigating to profile")
+                val intent = Intent(requireContext(), ProfileActivity::class.java)
+                startActivity(intent)
+            }
+            
             // Real SMS parsing button
             cardSmsParser.setOnClickListener {
                 android.util.Log.d(

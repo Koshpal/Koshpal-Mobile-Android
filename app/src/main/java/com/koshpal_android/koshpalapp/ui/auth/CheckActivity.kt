@@ -76,7 +76,7 @@ class CheckActivity : AppCompatActivity() {
     private fun navigateToLogin() {
         // Add a small delay to show success message
         binding.root.postDelayed({
-            val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, com.koshpal_android.koshpalapp.ui.login.DemoLoginActivity::class.java)
             startActivity(intent)
             finish()
         }, 1500)

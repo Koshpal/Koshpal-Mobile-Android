@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shimmer placeholder for Month Comparison Chart -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="24dp">
+
+    <!-- Header shimmer -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="20dp">
+
+        <View
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/shimmer_rounded_corner" />
+
+        <View
+            android:layout_width="140dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/shimmer_rounded_corner" />
+
+    </LinearLayout>
+
+    <!-- Chart area shimmer -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <!-- Legend shimmer -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:layout_width="80dp"
+                android:layout_height="12dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/shimmer_rounded_corner" />
+
+            <View
+                android:layout_width="80dp"
+                android:layout_height="12dp"
+                android:background="@drawable/shimmer_rounded_corner" />
+
+        </LinearLayout>
+
+        <!-- Bar chart shimmer (3 categories) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:paddingHorizontal="16dp">
+
+            <!-- Category 1 bars -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="bottom|center_horizontal"
+                android:layout_marginEnd="8dp">
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="140dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="160dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+            </LinearLayout>
+
+            <!-- Category 2 bars -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="bottom|center_horizontal"
+                android:layout_marginEnd="8dp">
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="100dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+            </LinearLayout>
+
+            <!-- Category 3 bars -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="bottom|center_horizontal">
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="180dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+                <View
+                    android:layout_width="20dp"
+                    android:layout_height="150dp"
+                    android:background="@drawable/shimmer_rounded_corner" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Category labels shimmer -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:paddingHorizontal="16dp">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/shimmer_rounded_corner" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/shimmer_rounded_corner" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/shimmer_rounded_corner" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Insight text shimmer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="14dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/shimmer_rounded_corner" />
+
+    <View
+        android:layout_width="240dp"
+        android:layout_height="14dp"
+        android:background="@drawable/shimmer_rounded_corner" />
+
+</LinearLayout>

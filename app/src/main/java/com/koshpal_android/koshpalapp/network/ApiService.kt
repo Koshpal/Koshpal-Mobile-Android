@@ -1,11 +1,7 @@
 package com.koshpal_android.koshpalapp.network
 
-import com.koshpal_android.koshpalapp.data.remote.dto.CreateUserRequest
-import com.koshpal_android.koshpalapp.data.remote.dto.CreateUserResponse
-import com.koshpal_android.koshpalapp.data.remote.dto.CreateEmailUserRequest
-import com.koshpal_android.koshpalapp.data.remote.dto.CreateEmailUserResponse
+import com.koshpal_android.koshpalapp.data.remote.dto.*
 import com.koshpal_android.koshpalapp.model.OnboardingResponse
-import com.koshpal_android.koshpalapp.data.remote.dto.OnboardingApiResponse
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -36,4 +32,45 @@ interface ApiService {
         @Path("userId") userId: String,
         @Body request: Map<String, Any>
     ): Response<CreateUserResponse>
+
+    // Transaction Sync Endpoints
+    
+    /**
+     * Bulk upload transactions (first-time sync)
+     */
+    @POST("api/transactions/bulk")
+    suspend fun uploadBulkTransactions(
+        @Body request: BulkTransactionRequest
+    ): Response<BulkTransactionResponse>
+    
+    /**
+     * Upload single transaction (new or updated)
+     */
+    @POST("api/transactions/")
+    suspend fun uploadSingleTransaction(
+        @Body transaction: TransactionDto
+    ): Response<SingleTransactionResponse>
+
+    @PUT("api/transactions/{transactionId}")
+    suspend fun updateTransaction(
+        @Path("transactionId") transactionId: String,
+        @Body transaction: TransactionDto
+    ): Response<TransactionSyncResponse>
+
+    @DELETE("api/transactions/{transactionId}")
+    suspend fun deleteTransaction(
+        @Path("transactionId") transactionId: String
+    ): Response<TransactionSyncResponse>
+
+    @GET("api/transactions/sync-status")
+    suspend fun getSyncStatus(
+        @Query("employeeId") employeeId: String,
+        @Query("deviceId") deviceId: String
+    ): Response<Map<String, Any>>
+
+    // Employee Login Endpoint
+    @POST("api/employee/login")
+    suspend fun employeeLogin(
+        @Body request: EmployeeLoginRequest
+    ): Response<EmployeeLoginResponse>
 }
