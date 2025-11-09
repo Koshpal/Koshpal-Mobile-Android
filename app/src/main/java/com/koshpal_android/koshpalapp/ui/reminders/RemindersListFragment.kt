@@ -62,15 +62,23 @@ class RemindersListFragment : Fragment() {
 
     private fun setStatusBarColor() {
         activity?.window?.let { window ->
-            // Set status bar color to primary blue
-            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary)
-            
-            // Make status bar icons white (for dark background)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
+            // Set status bar and navigation bar to dark/black for dark theme
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                window.navigationBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
             }
             
-            android.util.Log.d("RemindersListFragment", "🎨 Status bar color set to primary blue")
+            // Make status bar and navigation bar icons light (white) for dark background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                var flags = window.decorView.systemUiVisibility
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
+                }
+                window.decorView.systemUiVisibility = flags
+            }
+            
+            android.util.Log.d("RemindersListFragment", "🎨 Status bar and navigation bar set to dark")
         }
     }
 
@@ -267,16 +275,24 @@ class RemindersListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore status bar color to white when leaving RemindersListFragment
+        // Restore status bar and navigation bar to dark when leaving RemindersListFragment
         activity?.window?.let { window ->
-            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.white)
-            
-            // Make status bar icons dark (for light background)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                window.navigationBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
             }
             
-            android.util.Log.d("RemindersListFragment", "🎨 Status bar color restored to white")
+            // Make status bar and navigation bar icons light (white) for dark background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                var flags = window.decorView.systemUiVisibility
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
+                }
+                window.decorView.systemUiVisibility = flags
+            }
+            
+            android.util.Log.d("RemindersListFragment", "🎨 Status bar and navigation bar restored to dark")
         }
         _binding = null
     }

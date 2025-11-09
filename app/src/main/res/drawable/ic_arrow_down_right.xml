@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Diagonal arrow pointing down-right at ~75 degrees (southeast) -->
+    <!-- Arrow line from top-left to bottom-right (thick line using filled path) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5,5 L17,17 L16.5,17.5 L4.5,5.5 Z"/>
+    <!-- Arrow head triangle pointing down-right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M15,17 L17,17 L16,15 Z"/>
+</vector>
+

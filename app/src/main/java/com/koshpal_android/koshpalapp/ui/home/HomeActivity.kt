@@ -44,10 +44,20 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val window = window
-        window.statusBarColor = ContextCompat.getColor(this, android.R.color.white)
+        // Set status bar and navigation bar to dark/black for dark theme
+        window.statusBarColor = ContextCompat.getColor(this, android.R.color.black)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            window.navigationBarColor = ContextCompat.getColor(this, android.R.color.black)
+        }
 
+        // Make status bar and navigation bar icons light (white) for dark background
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            var flags = window.decorView.systemUiVisibility
+            flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
+            }
+            window.decorView.systemUiVisibility = flags
         }
         // Pre-add all primary fragments and show Home by default for faster nav
         supportFragmentManager.beginTransaction()

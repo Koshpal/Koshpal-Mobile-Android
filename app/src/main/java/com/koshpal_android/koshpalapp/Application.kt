@@ -1,8 +1,10 @@
 package com.koshpal_android.koshpalapp
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import com.koshpal_android.koshpalapp.service.TransactionSyncScheduler
@@ -14,6 +16,12 @@ class Application : Application(), Configuration.Provider {
     
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+    
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        // Initialize multidex to ensure all classes are available
+        MultiDex.install(this)
+    }
     
     override fun onCreate() {
         super.onCreate()

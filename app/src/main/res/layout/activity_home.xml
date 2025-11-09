@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/black"
     tools:context=".ui.home.HomeActivity">
 
     <!-- Main Content Container -->
@@ -21,7 +21,7 @@
         android:layout_height="60dp"
         app:fabAlignmentMode="center"
         app:fabCradleRoundedCornerRadius="40dp"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="@color/dark_card"
         app:fabCradleMargin="7dp"
         android:layout_gravity="bottom">
 
@@ -38,7 +38,9 @@
         app:itemRippleColor="@android:color/transparent"
         android:background="#00FFFFFF"
         app:menu="@menu/bottom_navigation_menu"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/bottom_nav_dark_icon_color"
+        app:itemTextColor="@color/bottom_nav_dark_text_color" />
 
 
     <!-- Floating Action Button -->
@@ -46,7 +48,7 @@
         android:id="@+id/fabCenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/primary"
+        android:backgroundTint="@color/accent_blue"
         android:src="@drawable/white_home"
         app:tint="@android:color/white"
         app:layout_anchorGravity="center"
