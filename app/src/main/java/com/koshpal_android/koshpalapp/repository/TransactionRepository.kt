@@ -540,13 +540,23 @@ class TransactionRepository @Inject constructor(
             .groupBy { extractBankName(it) }
             .map { (bankName, transactions) ->
                 val totalSpending = transactions.sumOf { it.amount }
-                android.util.Log.d("TransactionRepository", "💳 $bankName: ₹$totalSpending (${transactions.size} transactions)")
+                
+                // Get most recent transaction for account number, balance, and timestamp
+                val mostRecentTransaction = transactions.maxByOrNull { it.date }
+                val accountNumber = mostRecentTransaction?.smsBody?.let { extractAccountNumber(it) }
+                val balance = mostRecentTransaction?.smsBody?.let { extractBalance(it) }
+                val lastUpdated = mostRecentTransaction?.date
+                
+                android.util.Log.d("TransactionRepository", "💳 $bankName: ₹$totalSpending (${transactions.size} transactions), Account: $accountNumber, Balance: $balance")
                 
                 com.koshpal_android.koshpalapp.model.BankSpending(
                     bankName = bankName,
                     totalSpending = totalSpending,
                     transactionCount = transactions.size,
-                    isCash = bankName == "Cash"
+                    isCash = bankName == "Cash",
+                    accountNumber = accountNumber,
+                    balance = balance,
+                    lastUpdated = lastUpdated
                 )
             }
             .filter { it.totalSpending > 0 } // Only show banks with actual spending
@@ -583,6 +593,61 @@ class TransactionRepository @Inject constructor(
             text.contains("YES BANK") -> "Yes Bank"
             else -> "Other Banks"
         }
+    }
+    
+    /**
+     * Extract account number (last 4 digits) from SMS body
+     * Patterns: "A/c X3695", "a/c X3695", "A/C XX3695", "account X3695"
+     */
+    private fun extractAccountNumber(smsBody: String): String? {
+        if (smsBody.isBlank()) return null
+        
+        // Pattern: A/c, a/c, A/C followed by optional X/XX and 4 digits
+        val patterns = listOf(
+            Regex("(?:A/c|a/c|A/C|account|ac)\\s*X*([0-9]{4})", RegexOption.IGNORE_CASE),
+            Regex("(?:A/c|a/c|A/C|account|ac)\\s*([0-9]{4})", RegexOption.IGNORE_CASE),
+            Regex("X([0-9]{4})", RegexOption.IGNORE_CASE) // Direct pattern like "X3695"
+        )
+        
+        for (pattern in patterns) {
+            val match = pattern.find(smsBody)
+            if (match != null) {
+                val last4 = match.groupValues.lastOrNull { it.length == 4 && it.all { char -> char.isDigit() } }
+                if (last4 != null) {
+                    return last4
+                }
+            }
+        }
+        
+        return null
+    }
+    
+    /**
+     * Extract balance from SMS body
+     * Patterns: "Avl Bal: Rs.11246", "Bal: Rs.11246", "Available balance Rs.11246"
+     */
+    private fun extractBalance(smsBody: String): Double? {
+        if (smsBody.isBlank()) return null
+        
+        // Pattern: Balance keywords followed by amount
+        val patterns = listOf(
+            Regex("(?:Avl\\s*Bal|Available\\s*balance|Bal|Balance)[:.]?\\s*(?:Rs\\.?|₹|INR)?\\s*([0-9,]+(?:\\.[0-9]{1,2})?)", RegexOption.IGNORE_CASE),
+            Regex("(?:Avl\\s*Bal|Available\\s*balance|Bal|Balance)[:.]?\\s*([0-9,]+(?:\\.[0-9]{1,2})?)", RegexOption.IGNORE_CASE)
+        )
+        
+        for (pattern in patterns) {
+            val match = pattern.find(smsBody)
+            if (match != null) {
+                val amountStr = match.groupValues[1].replace(",", "")
+                try {
+                    return amountStr.toDouble()
+                } catch (e: NumberFormatException) {
+                    // Continue to next pattern
+                }
+            }
+        }
+        
+        return null
     }
 
     /**

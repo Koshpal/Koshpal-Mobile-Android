@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/home"
+        android:title="Home"
+        android:icon="@drawable/ic_home" />
+
+    <item
         android:id="@+id/transactions"
         android:title="Payments"
         android:icon="@drawable/ic_rup" />
-
-    <item
-        android:id="@+id/reminders"
-        android:title="Reminders"
-        android:icon="@drawable/ic_notifications" />
-
-    <item
-        android:id="@+id/placeholder"
-        android:title=""
-        android:checkable="false" />
 
     <item
         android:id="@+id/categories"
@@ -24,4 +19,9 @@
         android:id="@+id/insights"
         android:title="Insights"
         android:icon="@drawable/ic_insig" />
+
+    <item
+        android:id="@+id/reminders"
+        android:title="Reminders"
+        android:icon="@drawable/ic_notifications" />
 </menu>

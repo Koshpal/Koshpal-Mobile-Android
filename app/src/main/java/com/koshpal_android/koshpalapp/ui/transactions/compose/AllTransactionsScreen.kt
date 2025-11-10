@@ -15,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -389,11 +387,11 @@ private fun SummaryCard(
             ) {
                 // Icon
                 Icon(
-                    imageVector = if (isIncome) {
-                        Icons.Default.TrendingUp
+                    painter = painterResource(id = if (isIncome) {
+                        com.koshpal_android.koshpalapp.R.drawable.arrowdown
                     } else {
-                        Icons.Default.TrendingDown
-                    },
+                        com.koshpal_android.koshpalapp.R.drawable.arrowup
+                    }),
                     contentDescription = label,
                     tint = iconColor,
                     modifier = Modifier.size(20.dp)
@@ -770,8 +768,8 @@ private fun TransactionItem(
             },
             categoryIcon = category?.icon ?: com.koshpal_android.koshpalapp.R.drawable.ic_category_default,
             arrowIcon = when (type) {
-                TransactionTypeInfo.Income -> com.koshpal_android.koshpalapp.R.drawable.ic_arrow_up_right
-                TransactionTypeInfo.Expense -> com.koshpal_android.koshpalapp.R.drawable.ic_arrow_down_right
+                TransactionTypeInfo.Income -> com.koshpal_android.koshpalapp.R.drawable.arrowdown
+                TransactionTypeInfo.Expense -> com.koshpal_android.koshpalapp.R.drawable.arrowup
                 TransactionTypeInfo.Transfer -> com.koshpal_android.koshpalapp.R.drawable.ic_arrow_swap_horizontal
             },
             displayText = transaction.merchant.ifEmpty { transaction.description },

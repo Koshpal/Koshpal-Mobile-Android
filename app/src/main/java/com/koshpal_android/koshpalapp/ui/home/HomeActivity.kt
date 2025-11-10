@@ -19,6 +19,13 @@ import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsD
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.ui.reminders.RemindersListFragment
+import com.koshpal_android.koshpalapp.ui.home.compose.CustomBottomNavigation
+import com.koshpal_android.koshpalapp.ui.home.compose.NavigationItem
+import com.koshpal_android.koshpalapp.ui.theme.KoshpalTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +44,7 @@ class HomeActivity : AppCompatActivity() {
     private val fregmentReminders = RemindersListFragment()
 
     private var activeFragment: Fragment = homeFragment
+    private var selectedNavItemId by mutableStateOf(R.id.home)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,50 +77,8 @@ class HomeActivity : AppCompatActivity() {
             .commit()
         activeFragment = homeFragment
 
-        // Set bottom navigation background to null (required for BottomAppBar)
-        binding.bottomNavigation.background = null
-        
-        // Disable the placeholder menu item (center position for FAB cradle)
-        binding.bottomNavigation.menu.getItem(2).isEnabled = false
-        // While Home is showing, make group not checkable and clear selection
-        binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
-        for (i in 0 until binding.bottomNavigation.menu.size()) {
-            binding.bottomNavigation.menu.getItem(i).isChecked = false
-        }
-        
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            // Re-enable selection when user picks a tab
-            binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
-            when (item.itemId) {
-                R.id.transactions -> {
-                    showFragment(transactionsFragment)
-                    true
-                }
-                R.id.reminders -> {
-                    showFragment(fregmentReminders)
-                    true
-                }
-                R.id.categories -> {
-                    showFragment(categoriesFragment)
-                    true
-                }
-                R.id.insights -> {
-                    showFragment(insightsFragment)
-                    true
-                }
-                else -> false
-            }
-        }
-
-        binding.fabCenter.setOnClickListener {
-            // Center FAB goes Home
-            showFragment(homeFragment)
-            // Clear selection highlight to reflect Home (not in bottom nav)
-            binding.bottomNavigation.menu.setGroupCheckable(0, false, true)
-            for (i in 0 until binding.bottomNavigation.menu.size()) {
-                binding.bottomNavigation.menu.getItem(i).isChecked = false
-            }
-        }
+        // Setup custom Compose bottom navigation
+        setupBottomNavigation()
 
         // Check if coming from SMS processing - refresh categories data
         val smsProcessingCompleted = intent.getBooleanExtra("SMS_PROCESSING_COMPLETED", false)
@@ -158,6 +124,36 @@ class HomeActivity : AppCompatActivity() {
 
             // Navigate to budget fragment
             showFragment(categoriesFragment)
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        val navigationItems = listOf(
+            NavigationItem(R.id.home, R.drawable.ic_home, "Home"),
+            NavigationItem(R.id.transactions, R.drawable.ic_rup, "Payments"),
+            NavigationItem(R.id.categories, R.drawable.ic_categ, "Categories"),
+            NavigationItem(R.id.insights, R.drawable.ic_insig, "Insights"),
+            NavigationItem(R.id.reminders, R.drawable.ic_notifications, "Reminders")
+        )
+
+        val composeView = binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)
+        composeView?.setContent {
+            KoshpalTheme {
+                CustomBottomNavigation(
+                    items = navigationItems,
+                    selectedItemId = selectedNavItemId,
+                    onItemSelected = { itemId ->
+                        selectedNavItemId = itemId
+                        when (itemId) {
+                            R.id.home -> showFragment(homeFragment)
+                            R.id.transactions -> showFragment(transactionsFragment)
+                            R.id.categories -> showFragment(categoriesFragment)
+                            R.id.insights -> showFragment(insightsFragment)
+                            R.id.reminders -> showFragment(fregmentReminders)
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -216,7 +212,7 @@ class HomeActivity : AppCompatActivity() {
             year = year
         )
 
-        binding.bottomNavigation.visibility = android.view.View.GONE
+        binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.GONE
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, categoryDetailsFragment)
@@ -227,9 +223,7 @@ class HomeActivity : AppCompatActivity() {
     fun navigateBackFromCategoryDetails() {
         android.util.Log.d("HomeActivity", "🔙 Navigating back from category details")
 
-        binding.bottomAppBar.visibility = android.view.View.VISIBLE
-        binding.bottomNavigation.visibility = android.view.View.VISIBLE
-        binding.fabCenter.visibility = android.view.View.VISIBLE
+        binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.VISIBLE
         supportFragmentManager.popBackStack()
         refreshCategoriesData()
     }
@@ -244,7 +238,7 @@ class HomeActivity : AppCompatActivity() {
             .addToBackStack("bank_transactions")
             .commit()
 
-        binding.bottomNavigation.visibility = android.view.View.GONE
+        binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.GONE
     }
 
     fun showSetMonthlyBudgetFragment() {
@@ -257,12 +251,10 @@ class HomeActivity : AppCompatActivity() {
             .addToBackStack("set_monthly_budget")
             .commit()
 
-        // Hide bottom app bar, bottom nav and FAB after fragment transaction
+        // Hide bottom nav after fragment transaction
         binding.root.post {
-            binding.bottomAppBar.visibility = android.view.View.GONE
-            binding.bottomNavigation.visibility = android.view.View.GONE
-            binding.fabCenter.visibility = android.view.View.GONE
-            android.util.Log.d("HomeActivity", "🚫 Bottom app bar, nav and FAB hidden")
+            binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.GONE
+            android.util.Log.d("HomeActivity", "🚫 Bottom navigation hidden")
         }
     }
 
@@ -271,7 +263,7 @@ class HomeActivity : AppCompatActivity() {
 
         val remindersListFragment = com.koshpal_android.koshpalapp.ui.reminders.RemindersListFragment.newInstance()
 
-        binding.bottomNavigation.visibility = android.view.View.GONE
+        binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.GONE
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, remindersListFragment)
@@ -328,9 +320,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
-            binding.bottomAppBar.visibility = android.view.View.VISIBLE
-            binding.bottomNavigation.visibility = android.view.View.VISIBLE
-            binding.fabCenter.visibility = android.view.View.VISIBLE
+            binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)?.visibility = android.view.View.VISIBLE
             supportFragmentManager.popBackStack()
         } else {
             super.onBackPressed()

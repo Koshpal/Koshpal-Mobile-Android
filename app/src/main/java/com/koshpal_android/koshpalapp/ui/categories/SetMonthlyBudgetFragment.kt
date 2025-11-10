@@ -30,9 +30,7 @@ class SetMonthlyBudgetFragment : Fragment() {
     ): View {
         // Hide bottom app bar, bottom navigation and FAB
         (activity as? HomeActivity)?.let { homeActivity ->
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.GONE
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.GONE
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.GONE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigationCompose)?.visibility = View.GONE
         }
         
         return ComposeView(requireContext()).apply {
@@ -153,9 +151,7 @@ class SetMonthlyBudgetFragment : Fragment() {
         
         // Show bottom app bar, bottom navigation and FAB again when leaving this fragment
         (activity as? HomeActivity)?.let { homeActivity ->
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomAppBar)?.visibility = View.VISIBLE
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigation)?.visibility = View.VISIBLE
-            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.fabCenter)?.visibility = View.VISIBLE
+            homeActivity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigationCompose)?.visibility = View.VISIBLE
         }
     }
 }
