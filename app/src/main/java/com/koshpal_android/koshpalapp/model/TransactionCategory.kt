@@ -37,7 +37,7 @@ data class TransactionCategory(
                 TransactionCategory(
                     id = "grocery",
                     name = "Grocery",
-                    icon = R.drawable.ic_shopping,
+                    icon = R.drawable.ic_home_category,
                     color = "#4CAF50",
                     keywords = listOf("bigbasket", "grofers", "blinkit", "zepto", "dmart", "grocery", "supermarket", "vegetables", "fruits")
                 ),
@@ -79,14 +79,14 @@ data class TransactionCategory(
                 TransactionCategory(
                     id = "shopping",
                     name = "Shopping",
-                    icon = R.drawable.ic_shopping,
+                    icon = R.drawable.ic_category_default,
                     color = "#795548",
                     keywords = listOf("amazon", "flipkart", "myntra", "ajio", "shopping", "clothes", "fashion", "electronics", "gadgets")
                 ),
                 TransactionCategory(
                     id = "salary",
                     name = "Salary & Income",
-                    icon = R.drawable.ic_wallet,
+                    icon = R.drawable.ic_trending_up,
                     color = "#4CAF50",
                     keywords = listOf("salary", "credited", "income", "bonus", "incentive", "refund", "cashback")
                 ),
