@@ -17,6 +17,14 @@ import android.widget.ImageView
 import android.widget.Toast
 import java.util.Calendar
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -33,23 +41,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.koshpal_android.koshpalapp.ui.profile.ProfileActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.koshpal_android.koshpalapp.R
-import com.koshpal_android.koshpalapp.databinding.FragmentHomeBinding
-import com.koshpal_android.koshpalapp.ui.home.adapter.FeatureAdapter
-import com.koshpal_android.koshpalapp.ui.home.adapter.RecentTransactionAdapter
-import com.koshpal_android.koshpalapp.ui.home.adapter.BankCardAdapter
+import com.koshpal_android.koshpalapp.ui.home.compose.HomeScreen
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
 import com.koshpal_android.koshpalapp.ui.home.model.FeatureItem
 import com.koshpal_android.koshpalapp.ui.home.model.HomeUiState
 import com.koshpal_android.koshpalapp.ui.home.model.MonthlySpendingData
+import com.koshpal_android.koshpalapp.ui.theme.KoshpalTheme
 import com.koshpal_android.koshpalapp.utils.SMSReader
 import com.koshpal_android.koshpalapp.utils.SMSTestHelper
 import com.koshpal_android.koshpalapp.utils.DebugHelper
 import com.koshpal_android.koshpalapp.utils.SMSManager
 import com.koshpal_android.koshpalapp.utils.DebugDataManager
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
+import com.koshpal_android.koshpalapp.model.BankSpending
 import com.koshpal_android.koshpalapp.model.PaymentSms
+import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.service.TransactionProcessingService
 import dagger.hilt.android.AndroidEntryPoint
 import com.github.mikephil.charting.charts.LineChart
@@ -67,12 +75,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
     private val viewModel: HomeViewModel by viewModels()
     private var isFirstLoad = true
-    private var isBankDataLoaded = false
-    private var isViewModelDataLoaded = false
 
     @Inject
     lateinit var smsReader: SMSReader
@@ -83,9 +87,6 @@ class HomeFragment : Fragment() {
     @Inject
     lateinit var transactionRepository: TransactionRepository
     
-    private lateinit var recentTransactionsAdapter: RecentTransactionAdapter
-    private lateinit var bankCardAdapter: BankCardAdapter
-    
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -93,8 +94,6 @@ class HomeFragment : Fragment() {
         val receivePermissionGranted = permissions[Manifest.permission.RECEIVE_SMS] == true
 
         if (smsPermissionGranted && receivePermissionGranted) {
-            binding.cardPermissions.visibility = View.GONE
-            showManualSmsParsingOption()
             viewModel.onPermissionsGranted()
         } else {
             showPermissionDeniedDialog()
@@ -106,102 +105,39 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Set status bar color to primary blue
+        // Set status bar color
         setStatusBarColor()
-
-        // Start shimmer loading
-        showShimmer()
-
-        setupRecyclerViews()
-        setupClickListeners()
-        setupRecentTransactionsRecyclerView()
-
-        // REMOVED: Reset logic that was interfering with automatic categorization
-        // Transactions are now correctly categorized during SMS parsing and don't need reset
-        android.util.Log.d("HomeFragment", "✅ onViewCreated - skipping reset logic (transactions auto-categorize correctly)")
-
-        // FIXED: Use single data source - ViewModel only
-        android.util.Log.d("HomeFragment", "🚀 Setting up ViewModel observation...")
-        observeViewModel()
-
-        val greetingText = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-            in 0..11 -> "Good Morning ☀️"
-            in 12..16 -> "Good Afternoon 🌤️"
-            else -> "Good Evening 🌙"
-        }
-        binding.tvGreeting.text = greetingText
-
-    }
-
-    private fun setStatusBarColor() {
-        activity?.window?.let { window ->
-            // Set status bar color to primary blue
-            window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.primary)
-            
-            // Make status bar icons white (for dark background)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
-            }
-            
-            android.util.Log.d("HomeFragment", "🎨 Status bar color set to primary blue")
-        }
-    }
-
-    private fun setupRecyclerViews() {
-        // RecyclerViews removed for new Figma design
-        // Features are now integrated into the main layout
-    }
-
-    private fun setupRecentTransactionsRecyclerView() {
-        recentTransactionsAdapter = RecentTransactionAdapter { transaction ->
-            // Handle transaction click - show full transaction details dialog (like TransactionsFragment)
-            android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
-            // Show transaction details dialog when transaction is clicked
-            showTransactionDetailsDialog(transaction)
-        }
-
-        binding.rvRecentTransactions.apply {
-            adapter = recentTransactionsAdapter
-            layoutManager = LinearLayoutManager(requireContext())
-            isNestedScrollingEnabled = false
-        }
-
-        android.util.Log.d("HomeFragment", "📱 Recent transactions RecyclerView setup complete")
         
-        // Setup bank cards
-        setupBankCards()
-    }
-
-    private fun setupBankCards() {
-        bankCardAdapter = BankCardAdapter(
-            onAddCashClick = {
-                // Handle add cash button click
-                showAddCashDialog()
-            },
-            onBankCardClick = { bankName ->
-                // Handle bank card click - navigate to bank transactions
-                (activity as? HomeActivity)?.showBankTransactionsFragment(bankName)
+        return ComposeView(requireContext()).apply {
+            setContent {
+                KoshpalTheme {
+                    HomeScreenContent()
+                }
             }
-        )
-
-        binding.rvBankCards.apply {
-            adapter = bankCardAdapter
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         }
-
-        // Load bank spending data
-        loadBankSpending()
     }
 
-    private fun loadBankSpending() {
-        lifecycleScope.launch {
+    @Composable
+    private fun HomeScreenContent() {
+        // Observe ViewModel state
+        val uiState by viewModel.uiState.collectAsState()
+        val recentTransactions by viewModel.recentTransactions.collectAsState()
+        
+        // Bank spending state
+        var bankCards by remember { mutableStateOf<List<BankSpending>>(emptyList()) }
+        var isLoadingBankData by remember { mutableStateOf(true) }
+        
+        // Calculate greeting text
+        val greetingText = remember {
+            when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+                in 0..11 -> "Good Morning"
+                in 12..16 -> "Good Afternoon"
+                else -> "Good Evening"
+            }
+        }
+        
+        // Load bank spending data
+        LaunchedEffect(Unit) {
             try {
                 android.util.Log.d("HomeFragment", "💳 ========== LOADING BANK SPENDING ==========")
                 
@@ -217,7 +153,7 @@ class HomeFragment : Fragment() {
                 
                 // Add Cash card at the end (always show for manual entry)
                 bankSpending.add(
-                    com.koshpal_android.koshpalapp.model.BankSpending(
+                    BankSpending(
                         bankName = "Cash",
                         totalSpending = 0.0,
                         transactionCount = 0,
@@ -225,47 +161,165 @@ class HomeFragment : Fragment() {
                     )
                 )
                 
-                android.util.Log.d("HomeFragment", "💳 Submitting ${bankSpending.size} cards to adapter (including Cash)")
-                bankCardAdapter.submitList(bankSpending)
-                
-                // Show/hide bank cards section based on data
-                if (bankSpending.size == 1) { // Only Cash card
-                    android.util.Log.d("HomeFragment", "⚠️ No bank transactions found for current month - showing only Cash card")
-                    binding.rvBankCards.visibility = View.VISIBLE // Still show so user can add cash
-                } else {
-                    android.util.Log.d("HomeFragment", "✅ Found ${bankSpending.size - 1} banks with transactions")
-                    binding.rvBankCards.visibility = View.VISIBLE
-                }
-                
-                // Mark bank data as loaded
-                isBankDataLoaded = true
-                android.util.Log.d("HomeFragment", "✅ Bank data loaded successfully")
-                
-                // Check if we can hide shimmer now
-                checkAndHideShimmer()
+                android.util.Log.d("HomeFragment", "💳 Submitting ${bankSpending.size} cards (including Cash)")
+                bankCards = bankSpending
+                isLoadingBankData = false
                 
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "❌ Failed to load bank spending: ${e.message}", e)
                 e.printStackTrace()
                 
                 // Still show Cash card on error
-                val fallbackList = mutableListOf(
-                    com.koshpal_android.koshpalapp.model.BankSpending(
+                bankCards = listOf(
+                    BankSpending(
                         bankName = "Cash",
                         totalSpending = 0.0,
                         transactionCount = 0,
                         isCash = true
                     )
                 )
-                bankCardAdapter.submitList(fallbackList)
-                binding.rvBankCards.visibility = View.VISIBLE
-                
-                // Mark as loaded even on error to avoid stuck shimmer
-                isBankDataLoaded = true
-                checkAndHideShimmer()
+                isLoadingBankData = false
             }
         }
+        
+        // Reload bank data when transactions change
+        LaunchedEffect(recentTransactions.size) {
+            if (!isLoadingBankData && recentTransactions.isNotEmpty()) {
+                try {
+                    val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
+                    bankSpending.add(
+                        BankSpending(
+                            bankName = "Cash",
+                            totalSpending = 0.0,
+                            transactionCount = 0,
+                            isCash = true
+                        )
+                    )
+                    bankCards = bankSpending
+                } catch (e: Exception) {
+                    android.util.Log.e("HomeFragment", "❌ Failed to reload bank spending: ${e.message}", e)
+                }
+            }
+        }
+        
+        // Calculate percentage changes (simplified - you can enhance this)
+        val incomeChangePercentage = remember(uiState.currentMonthIncome) {
+            // TODO: Calculate actual percentage change from last month
+            if (uiState.currentMonthIncome > 0) "+12%" else null
+        }
+        
+        val expenseChangePercentage = remember(uiState.currentMonthExpenses) {
+            // TODO: Calculate actual percentage change from last month
+            if (uiState.currentMonthExpenses > 0) "-8%" else null
+        }
+        
+        // Memoize callbacks
+        val context = requireContext()
+        val onProfileClick: () -> Unit = remember {
+            {
+                android.util.Log.d("HomeFragment", "👤 Profile icon clicked - navigating to profile")
+                val intent = Intent(context, ProfileActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        
+        val onNotificationClick: () -> Unit = remember {
+            {
+                // TODO: Navigate to notifications
+                Toast.makeText(context, "Notifications coming soon", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        val onViewDetailsClick: () -> Unit = remember {
+            {
+                // Show monthly spending details
+                showMonthlySpendingDetails(uiState.last3MonthsData)
+            }
+        }
+        
+        val onBankCardClick: (String) -> Unit = remember {
+            { bankName ->
+                (activity as? HomeActivity)?.showBankTransactionsFragment(bankName)
+            }
+        }
+        
+        val onAddCashClick: () -> Unit = remember {
+            {
+                showAddCashDialog()
+            }
+        }
+        
+        val onAddPaymentClick: () -> Unit = remember {
+            {
+                showAddTransactionDialog()
+            }
+        }
+        
+        val onRemindersClick: () -> Unit = remember {
+            {
+                android.util.Log.d("HomeFragment", "🔔 Reminders button clicked")
+                (activity as? HomeActivity)?.showRemindersListFragment()
+            }
+        }
+        
+        val onTransactionClick: (Transaction) -> Unit = remember {
+            { transaction ->
+                android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
+                showTransactionDetailsDialog(transaction)
+            }
+        }
+        
+        val onViewAllTransactionsClick: () -> Unit = remember {
+            {
+                (activity as? HomeActivity)?.showTransactionsFragment()
+            }
+        }
+        
+        // Show HomeScreen
+        HomeScreen(
+            greetingText = greetingText,
+            userName = uiState.userName,
+            currentMonthIncome = uiState.currentMonthIncome,
+            currentMonthExpenses = uiState.currentMonthExpenses,
+            incomeChangePercentage = incomeChangePercentage,
+            expenseChangePercentage = expenseChangePercentage,
+            bankCards = bankCards,
+            recentTransactions = recentTransactions.take(5), // Limit to 5 for display
+            onProfileClick = onProfileClick,
+            onNotificationClick = onNotificationClick,
+            onViewDetailsClick = onViewDetailsClick,
+            onBankCardClick = onBankCardClick,
+            onAddCashClick = onAddCashClick,
+            onAddPaymentClick = onAddPaymentClick,
+            onRemindersClick = onRemindersClick,
+            onTransactionClick = onTransactionClick,
+            onViewAllTransactionsClick = onViewAllTransactionsClick
+        )
     }
+    
+
+    private fun setStatusBarColor() {
+        activity?.window?.let { window ->
+            // Set status bar and navigation bar to dark/black for dark theme
+            window.statusBarColor = ContextCompat.getColor(requireContext(), android.R.color.black)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                window.navigationBarColor = ContextCompat.getColor(requireContext(), android.R.color.black)
+            }
+            
+            // Make status bar and navigation bar icons light (white) for dark background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                var flags = window.decorView.systemUiVisibility
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
+                }
+                window.decorView.systemUiVisibility = flags
+            }
+            
+            android.util.Log.d("HomeFragment", "🎨 Status bar and navigation bar set to dark")
+        }
+    }
+
 
     private fun showAddCashDialog() {
         // TODO: Implement add cash transaction dialog
@@ -350,384 +404,6 @@ class HomeFragment : Fragment() {
 
 
 
-    private fun setupClickListeners() {
-        binding.apply {
-            // Profile icon click - navigate to ProfileFragment
-            ivUserProfile.setOnClickListener {
-                android.util.Log.d("HomeFragment", "👤 Profile icon clicked - navigating to profile")
-                val intent = Intent(requireContext(), ProfileActivity::class.java)
-                startActivity(intent)
-            }
-            
-            // Real SMS parsing button
-            cardSmsParser.setOnClickListener {
-                android.util.Log.d(
-                    "HomeFragment",
-                    "📱 SMS Parser card clicked - starting real SMS parsing"
-                )
-                createSampleTransactions()
-            }
-
-            // Import button click - CLEAR DATA FIRST then parse real SMS
-            btnImport.setOnClickListener {
-                clearAllDataAndParseRealSMS()
-            }
-
-
-            tvViewAllTransactions.setOnClickListener {
-                // Navigate to transactions screen
-                (activity as? HomeActivity)?.showTransactionsFragment()
-            }
-
-            // Add Transaction button
-            btnAddTransaction.setOnClickListener {
-                showAddTransactionDialog()
-            }
-
-            // Reminders button
-            btnReminders.setOnClickListener {
-                android.util.Log.d("HomeFragment", "🔔 Reminders button clicked")
-                (activity as? HomeActivity)?.showRemindersListFragment()
-            }
-
-            // Feedback card
-            cardFeedback.setOnClickListener {
-                showFeedbackDialog()
-            }
-
-            btnEnablePermissions.setOnClickListener {
-                requestSmsPermissions()
-            }
-
-            btnParseSms.setOnClickListener {
-                createSampleTransactions()
-            }
-            
-            btnTestBudget.setOnClickListener {
-                testBudgetNotifications()
-            }
-            
-            btnCheckBudget.setOnClickListener {
-                checkBudgetNow()
-            }
-            
-            btnTestNotification.setOnClickListener {
-                testBudgetNotification()
-            }
-            
-            btnTestAllThresholds.setOnClickListener {
-                testAllThresholdsAndCategories()
-            }
-
-            // LONG PRESS financial card to trigger auto-categorization + show debug info
-            layoutFinancialOverview.setOnLongClickListener {
-                android.util.Log.d("HomeFragment", "🤖 Long press detected - showing transaction debug info")
-                lifecycleScope.launch {
-                    try {
-                        // First show what transactions exist
-                        val allTransactions = transactionRepository.getAllTransactionsOnce()
-                        android.util.Log.d("HomeFragment", "📊 ===== TRANSACTION DEBUG =====")
-                        android.util.Log.d("HomeFragment", "📊 Total transactions: ${allTransactions.size}")
-                        
-                        allTransactions.take(10).forEach { txn ->
-                            android.util.Log.d("HomeFragment", "💳 Merchant: '${txn.merchant}' | Category: ${txn.categoryId} | Amount: ₹${txn.amount}")
-                        }
-                        
-                        // Now auto-categorize
-                        val count = transactionRepository.autoCategorizeExistingTransactions()
-                        
-                        Toast.makeText(
-                            requireContext(),
-                            "🤖 Auto-categorized $count transactions\nCheck logcat for details",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        
-                        viewModel.refreshData()
-                        loadBankSpending()
-                        
-                        // Refresh categories fragment data
-                        (activity as? HomeActivity)?.refreshCategoriesData()
-                    } catch (e: Exception) {
-                        android.util.Log.e("HomeFragment", "❌ Error: ${e.message}", e)
-                        Toast.makeText(
-                            requireContext(),
-                            "❌ Error: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-                true
-            }
-
-            layoutFinancialOverview.setOnClickListener {
-                // Perform comprehensive debugging check
-                lifecycleScope.launch {
-                    try {
-                        val debugManager = DebugDataManager(requireContext())
-                        val checkResult = debugManager.performCompleteDataCheck()
-                        val homeDebugResult = debugManager.debugHomeScreenData()
-
-                        val message = buildString {
-                            append("🔍 COMPREHENSIVE DEBUG STATUS:\n\n")
-                            append("📊 DATABASE STATUS:\n")
-                            append("Connected: ${checkResult.databaseConnected}\n")
-                            append("Categories: ${checkResult.categoriesCount}\n")
-                            append("Transactions: ${checkResult.transactionsCount}\n")
-                            append("Orphaned: ${checkResult.orphanedTransactions}\n\n")
-                            append("💰 FINANCIAL DATA:\n")
-                            append(
-                                "Income: ₹${
-                                    String.format(
-                                        "%.2f",
-                                        homeDebugResult.totalIncome
-                                    )
-                                }\n"
-                            )
-                            append(
-                                "Expenses: ₹${
-                                    String.format(
-                                        "%.2f",
-                                        homeDebugResult.totalExpenses
-                                    )
-                                }\n"
-                            )
-                            append(
-                                "Balance: ₹${
-                                    String.format(
-                                        "%.2f",
-                                        homeDebugResult.balance
-                                    )
-                                }\n\n"
-                            )
-                            append("🔍 ACTIONS:\n")
-                            append("• Long press: Create sample data\n")
-                            append("• Import button: Process SMS/Create data")
-                        }
-
-                        showMessage(message)
-                    } catch (e: Exception) {
-                        showMessage("❌ Debug check failed: ${e.message}")
-                    }
-                }
-            }
-
-            // Month selector removed - no longer in layout
-            // layoutMonthSelector.setOnClickListener {
-            //     showMonthSelectionDialog()
-            // }
-        }
-    }
-
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.uiState.collect { uiState ->
-                android.util.Log.d(
-                    "HomeFragment",
-                    "🔄 UI State received: isLoading=${uiState.isLoading}, hasTransactions=${uiState.hasTransactions}, balance=₹${uiState.currentBalance}"
-                )
-                
-                // Show shimmer when loading
-                if (uiState.isLoading) {
-                    android.util.Log.d("HomeFragment", "⏳ ViewModel data is loading - shimmer should be visible")
-                    isViewModelDataLoaded = false
-                    // Shimmer already visible from onViewCreated or will be shown
-                } else {
-                    android.util.Log.d("HomeFragment", "✅ ViewModel data loaded")
-                    isViewModelDataLoaded = true
-                    // Check if all data is loaded before hiding shimmer
-                    checkAndHideShimmer()
-                }
-                
-                updateUI(uiState)
-                updateCurrentMonthDisplay()
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.recentTransactions.collect { transactions ->
-                    android.util.Log.d(
-                        "HomeFragment",
-                        "📱 Recent transactions received: ${transactions.size}"
-                    )
-
-                    // Update the "View All" text to show transaction count
-                    // Note: tvViewAllTransactions is now a LinearLayout, text updates handled in layout
-
-                    // Show recent transactions (limit to 4)
-                    val recentTransactions = transactions.take(4)
-                    recentTransactionsAdapter.submitList(recentTransactions)
-
-                    // Show/hide recent transactions card and no transactions card
-                    if (transactions.isNotEmpty()) {
-                        binding.cardRecentTransactions.visibility = View.VISIBLE
-                        binding.cardNoTransactions.visibility = View.GONE
-                    } else {
-                        binding.cardRecentTransactions.visibility = View.GONE
-                        binding.cardNoTransactions.visibility = View.VISIBLE
-                    }
-
-                    android.util.Log.d(
-                        "HomeFragment",
-                        "📱 Displaying ${recentTransactions.size} recent transactions"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun showShimmer() {
-        _binding?.let { binding ->
-            binding.shimmerLayout.visibility = View.VISIBLE
-            binding.shimmerLayout.startShimmer()
-            binding.contentLayout.visibility = View.GONE
-            binding.contentLayout.alpha = 0f
-            
-            // Reset loading flags
-            isBankDataLoaded = false
-            isViewModelDataLoaded = false
-            
-            android.util.Log.d("HomeFragment", "✨ Shimmer started - waiting for all data to load")
-        }
-    }
-
-    private fun checkAndHideShimmer() {
-        android.util.Log.d("HomeFragment", "🔍 Checking data load status: ViewModel=$isViewModelDataLoaded, Bank=$isBankDataLoaded")
-        
-        // Only hide shimmer when ALL data sources are loaded
-        if (isViewModelDataLoaded && isBankDataLoaded) {
-            android.util.Log.d("HomeFragment", "✅ ALL data loaded - hiding shimmer now")
-            hideShimmer()
-        } else {
-            android.util.Log.d("HomeFragment", "⏳ Still waiting for data: ViewModel=$isViewModelDataLoaded, Bank=$isBankDataLoaded")
-        }
-    }
-
-    private fun hideShimmer() {
-        _binding?.let { binding ->
-            // Only hide shimmer once
-            if (binding.shimmerLayout.visibility == View.VISIBLE) {
-                binding.shimmerLayout.stopShimmer()
-                
-                // Fade out shimmer and fade in content
-                binding.shimmerLayout.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .withEndAction {
-                        binding.shimmerLayout.visibility = View.GONE
-                        binding.shimmerLayout.alpha = 1f
-                    }
-                    .start()
-                
-                // Show and fade in content
-                binding.contentLayout.visibility = View.VISIBLE
-                binding.contentLayout.animate()
-                    .alpha(1f)
-                    .setDuration(400)
-                    .setStartDelay(150)
-                    .start()
-                
-                android.util.Log.d("HomeFragment", "✅ Shimmer hidden with smooth fade animation, content displayed")
-            }
-        }
-    }
-
-
-
-    private fun updateCurrentMonthDisplay() {
-        val calendar = java.util.Calendar.getInstance()
-        val monthNames = arrayOf(
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        )
-        val currentMonth = monthNames[calendar.get(java.util.Calendar.MONTH)]
-        val currentYear = calendar.get(java.util.Calendar.YEAR)
-
-        // tvCurrentMonth removed from layout - no longer displaying month selector
-        // _binding?.tvCurrentMonth?.text = "$currentMonth $currentYear"
-        android.util.Log.d("HomeFragment", "📅 Month display removed from new design")
-    }
-
-
-    private fun updateUI(state: HomeUiState) {
-        android.util.Log.d("HomeFragment", "🎯 updateUI called with state:")
-        android.util.Log.d("HomeFragment", "   hasTransactions: ${state.hasTransactions}")
-        android.util.Log.d("HomeFragment", "   totalIncome: ₹${state.totalIncome}")
-        android.util.Log.d("HomeFragment", "   totalExpenses: ₹${state.totalExpenses}")
-        android.util.Log.d("HomeFragment", "   transactionCount: ${state.transactionCount}")
-
-        binding.apply {
-            // User name removed from UI - using logo with headline instead
-
-            // Show real balance data or prompt to import SMS
-            if (state.hasTransactions) {
-                // Show current month data prominently (removed balance display)
-                tvTotalIncome.text = "₹${String.format("%.0f", state.currentMonthIncome)}"
-                tvTotalExpenses.text = "₹${String.format("%.0f", state.currentMonthExpenses)}"
-
-                // Month display removed from new design
-                // val selectedDate = java.util.Calendar.getInstance()
-                // selectedDate.set(state.selectedYear, state.selectedMonth, 1)
-                // val monthFormat = java.text.SimpleDateFormat("MMM", java.util.Locale.getDefault())
-                // tvCurrentMonth.text = "${monthFormat.format(selectedDate.time)} ${state.selectedYear}"
-
-                // Debug logging
-                android.util.Log.d(
-                    "HomeFragment",
-                    "📊 UI UPDATED - Month Income: ₹${state.currentMonthIncome}, Month Expenses: ₹${state.currentMonthExpenses}"
-                )
-                android.util.Log.d("HomeFragment", "📊 UI Elements Set:")
-                android.util.Log.d("HomeFragment", "   tvTotalIncome.text = ${tvTotalIncome.text}")
-                android.util.Log.d(
-                    "HomeFragment",
-                    "   tvTotalExpenses.text = ${tvTotalExpenses.text}"
-                )
-                android.util.Log.d(
-                    "HomeFragment",
-                    "📊 Has transactions: ${state.hasTransactions}, Transaction count: ${state.transactionCount}"
-                )
-
-
-                // Hide no transactions card, show transaction data
-                cardNoTransactions.visibility = View.GONE
-                cardSmsParser.visibility = View.GONE
-
-                // Update monthly spending card with real data
-                updateMonthlySpendingCard(state.last3MonthsData)
-
-            } else {
-                // First time user - show import SMS prompt (removed balance display)
-                tvTotalIncome.text = "₹0.00"
-                tvTotalExpenses.text = "₹0.00"
-
-                // Show SMS import card
-                cardSmsParser.visibility = View.VISIBLE
-                cardNoTransactions.visibility = View.VISIBLE
-            }
-
-            // Show error if any
-            state.errorMessage?.let { error ->
-                showMessage(error)
-            }
-        }
-    }
-
-    private fun updateMonthlySpendingCard(monthlyData: List<MonthlySpendingData>) {
-        if (monthlyData.isNotEmpty()) {
-            val currentMonth = monthlyData.lastOrNull()
-            currentMonth?.let { month ->
-                binding.apply {
-                    // Month display removed from new design
-                    // tvCurrentMonth.text = "${month.month} ${month.year}"
-
-                    // Make the financial overview card clickable to show detailed view
-                    layoutFinancialOverview.setOnClickListener {
-                        showMonthlySpendingDetails(monthlyData)
-                    }
-                }
-            }
-        }
-    }
 
     private fun showMonthlySpendingDetails(monthlyData: List<MonthlySpendingData>) {
         val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -814,26 +490,10 @@ class HomeFragment : Fragment() {
         if (smsPermission != PackageManager.PERMISSION_GRANTED ||
             receivePermission != PackageManager.PERMISSION_GRANTED
         ) {
-            binding.cardPermissions.visibility = View.VISIBLE
+            // Permissions not granted - user can request them when needed
+            android.util.Log.d("HomeFragment", "⚠️ SMS permissions not granted")
         } else {
-            binding.cardPermissions.visibility = View.GONE
-            // Show manual SMS parsing option
-            showManualSmsParsingOption()
-        }
-    }
-
-    private fun showManualSmsParsingOption() {
-        // Only show if no transactions exist yet
-        viewLifecycleOwner.lifecycleScope.launch {
-            val transactionCount = viewModel.getTransactionCount()
-            // Check if binding is still available before accessing it
-            _binding?.let { binding ->
-                if (transactionCount == 0) {
-                    binding.cardSmsParser.visibility = View.VISIBLE
-                } else {
-                    binding.cardSmsParser.visibility = View.GONE
-                }
-            }
+            viewModel.onPermissionsGranted()
         }
     }
 
@@ -885,9 +545,6 @@ class HomeFragment : Fragment() {
             try {
                 android.util.Log.d("HomeFragment", "📱 ===== STARTING REAL SMS PARSING =====")
                 
-                // Show shimmer during data loading
-                showShimmer()
-
                 val debugManager = DebugDataManager(requireContext())
 
                 // Step 1: Perform complete data check
@@ -990,79 +647,23 @@ class HomeFragment : Fragment() {
 
     private fun refreshUIWithDebugData(debugResult: com.koshpal_android.koshpalapp.utils.HomeScreenDebugResult) {
         android.util.Log.d("HomeFragment", "🔄 Refreshing UI with debug data...")
-
-        _binding?.let { binding ->
-            binding.apply {
-                // Do not overwrite ViewModel-driven month figures here.
-                // Let HomeViewModel compute and bind current month income/expenses/balance.
-
-                // Update transaction count
-                // Note: tvViewAllTransactions is now a LinearLayout, text updates handled in layout
-
-                // Show/hide appropriate cards
-                if (debugResult.hasTransactions) {
-                    cardRecentTransactions.visibility = View.VISIBLE
-                    cardNoTransactions.visibility = View.GONE
-                    cardSmsParser.visibility = View.GONE
-                    layoutFinancialOverview.visibility = View.VISIBLE
-                } else {
-                    cardRecentTransactions.visibility = View.GONE
-                    cardNoTransactions.visibility = View.VISIBLE
-                    cardSmsParser.visibility = View.VISIBLE
-                    layoutFinancialOverview.visibility = View.VISIBLE
-                }
-
-                android.util.Log.d(
-                    "HomeFragment",
-                    "✅ UI refreshed with debug data (counts/visibility only) - Transactions: ${debugResult.transactionCount}"
-                )
-            }
-        }
-
-        // Also refresh ViewModel to keep it in sync
+        // Compose UI will automatically update via ViewModel state
         viewModel.forceRefreshNow()
     }
 
     override fun onResume() {
         super.onResume()
         
-        // Skip refresh on first load (already handled in onViewCreated)
+        // Skip refresh on first load
         if (isFirstLoad) {
             isFirstLoad = false
             android.util.Log.d("HomeFragment", "⏭️ Skipping onResume refresh (first load)")
             return
         }
         
-        android.util.Log.d("HomeFragment", "🔄 onResume - performing comprehensive data refresh...")
-        
-        // Show shimmer when returning to fragment
-        showShimmer()
-
-        // Perform comprehensive data check and refresh
-        lifecycleScope.launch {
-            try {
-                // Reload bank data
-                loadBankSpending()
-                
-                val debugManager = DebugDataManager(requireContext())
-                val homeDebugResult = debugManager.debugHomeScreenData()
-
-                if (homeDebugResult.success) {
-                    refreshUIWithDebugData(homeDebugResult)
-                } else {
-                    android.util.Log.e(
-                        "HomeFragment",
-                        "Home screen debug failed: ${homeDebugResult.error}"
-                    )
-                    // Fallback to ViewModel refresh
-                    viewModel.refreshData()
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("HomeFragment", "onResume data refresh failed: ${e.message}", e)
-                // Fallback to ViewModel refresh
-                viewModel.refreshData()
-            }
-        }
+        android.util.Log.d("HomeFragment", "🔄 onResume - refreshing data...")
+        // Refresh ViewModel - Compose UI will automatically update
+        viewModel.refreshData()
     }
 
     private fun showMonthSelectionDialog() {
@@ -1158,7 +759,7 @@ class HomeFragment : Fragment() {
             // Reload data to show updated transaction
             android.util.Log.d("HomeFragment", "🔄 Refreshing data after transaction update...")
             viewModel.refreshData()
-            loadBankSpending()
+            // Bank cards will auto-refresh via LaunchedEffect when transactions change
         }
         
         dialog.show(parentFragmentManager, "TransactionDetailsDialog")
@@ -1351,9 +952,6 @@ class HomeFragment : Fragment() {
             try {
                 android.util.Log.d("HomeFragment", "🧽 ===== CLEARING ALL DATA AND PARSING REAL SMS =====")
                 
-                // Show shimmer during data loading
-                showShimmer()
-                
                 // Step 1: Clear all existing data
                 val database = com.koshpal_android.koshpalapp.data.local.KoshpalDatabase.getDatabase(requireContext())
                 database.transactionDao().deleteAllTransactions()
@@ -1418,9 +1016,9 @@ class HomeFragment : Fragment() {
                     ).show()
                 }
                 
-                // Refresh UI
+                // Refresh UI - Compose will auto-update via ViewModel
                 viewModel.refreshData()
-                loadBankSpending() // Refresh bank cards
+                // Bank cards will auto-refresh via LaunchedEffect when transactions change
                 
                 // Refresh categories fragment data
                 (activity as? HomeActivity)?.refreshCategoriesData()
@@ -1437,7 +1035,7 @@ class HomeFragment : Fragment() {
         dialog.setOnTransactionAddedListener {
             // Refresh data after transaction is added
             viewModel.refreshData()
-            loadBankSpending() // Refresh bank cards to show updated amounts
+            // Bank cards will auto-refresh via LaunchedEffect when transactions change
             
             // Refresh categories fragment data
             (activity as? HomeActivity)?.refreshCategoriesData()
@@ -1453,17 +1051,24 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore status bar color to white when leaving HomeFragment
+        // Restore status bar and navigation bar to dark when leaving HomeFragment
         activity?.window?.let { window ->
-            window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.white)
-            
-            // Make status bar icons dark (for light background)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            window.statusBarColor = ContextCompat.getColor(requireContext(), android.R.color.black)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                window.navigationBarColor = ContextCompat.getColor(requireContext(), android.R.color.black)
             }
             
-            android.util.Log.d("HomeFragment", "🎨 Status bar color restored to white")
+            // Make status bar and navigation bar icons light (white) for dark background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                var flags = window.decorView.systemUiVisibility
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
+                }
+                window.decorView.systemUiVisibility = flags
+            }
+            
+            android.util.Log.d("HomeFragment", "🎨 Status bar and navigation bar restored to dark")
         }
-        _binding = null
     }
 }

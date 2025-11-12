@@ -5,53 +5,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/black"
     tools:context=".ui.home.HomeActivity">
 
-    <!-- Main Content Container -->
+    <!-- Main Content Container - Constrained above bottom navigation -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="56dp" />
 
-    <!-- Bottom App Bar with FAB Cradle -->
-    <com.google.android.material.bottomappbar.BottomAppBar
-        android:id="@+id/bottomAppBar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        app:fabAlignmentMode="center"
-        app:fabCradleRoundedCornerRadius="40dp"
-        android:backgroundTint="@color/white"
-        app:fabCradleMargin="7dp"
-        android:layout_gravity="bottom">
-
-
-
-    </com.google.android.material.bottomappbar.BottomAppBar>
-
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
+    <!-- Custom Compose Bottom Navigation -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/bottomNavigationCompose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        app:itemRippleColor="@android:color/transparent"
-        android:background="#00FFFFFF"
-        app:menu="@menu/bottom_navigation_menu"
-        app:labelVisibilityMode="labeled" />
-
-
-    <!-- Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCenter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/primary"
-        android:src="@drawable/white_home"
-        app:tint="@android:color/white"
-        app:layout_anchorGravity="center"
-        app:maxImageSize="20dp"
-        app:layout_anchor="@id/bottomAppBar" />
-
+        android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

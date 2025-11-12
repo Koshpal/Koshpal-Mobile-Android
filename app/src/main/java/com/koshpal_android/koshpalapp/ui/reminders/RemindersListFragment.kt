@@ -5,206 +5,120 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.koshpal_android.koshpalapp.R
-import com.koshpal_android.koshpalapp.databinding.FragmentRemindersListBinding
 import com.koshpal_android.koshpalapp.model.Reminder
-import com.koshpal_android.koshpalapp.model.ReminderType
-import com.koshpal_android.koshpalapp.model.getColorResource
-import com.koshpal_android.koshpalapp.model.getDisplayName
+import com.koshpal_android.koshpalapp.model.ReminderStatus
 import com.koshpal_android.koshpalapp.ui.home.HomeActivity
+import com.koshpal_android.koshpalapp.ui.reminders.compose.ReminderFilter
+import com.koshpal_android.koshpalapp.ui.reminders.compose.RemindersScreen
+import com.koshpal_android.koshpalapp.ui.theme.KoshpalTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 @AndroidEntryPoint
 class RemindersListFragment : Fragment() {
 
-    private var _binding: FragmentRemindersListBinding? = null
-    private val binding get() = _binding!!
-
     private val viewModel: ReminderViewModel by viewModels()
-    private lateinit var reminderAdapter: ReminderAdapter
-
-    private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-    private val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    private var selectedFilter by mutableStateOf(ReminderFilter.ALL)
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentRemindersListBinding.inflate(inflater, container, false)
-        return binding.root
+        setStatusBarColor()
+        
+        return ComposeView(requireContext()).apply {
+            setContent {
+                KoshpalTheme {
+                    RemindersScreenContent()
+                }
+            }
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Set status bar color to primary blue
-        setStatusBarColor()
-
-        setupRecyclerView()
-        setupClickListeners()
+    @Composable
+    private fun RemindersScreenContent() {
+        val allReminders by viewModel.allReminders.collectAsState()
+        val uiState by viewModel.uiState.collectAsState()
         
-        // Defer data loading to allow view to render first
-        view.post {
-            observeViewModel()
+        // Filter reminders based on selected filter
+        val filteredReminders = remember(allReminders, selectedFilter) {
+            when (selectedFilter) {
+                ReminderFilter.ALL -> allReminders.filter { it.status == ReminderStatus.PENDING }
+                ReminderFilter.TO_PAY -> allReminders.filter { 
+                    it.type == com.koshpal_android.koshpalapp.model.ReminderType.GIVE && 
+                    it.status == ReminderStatus.PENDING 
+                }
+                ReminderFilter.TO_RECEIVE -> allReminders.filter { 
+                    it.type == com.koshpal_android.koshpalapp.model.ReminderType.RECEIVE && 
+                    it.status == ReminderStatus.PENDING 
+                }
+                ReminderFilter.PENDING -> allReminders.filter { it.status == ReminderStatus.PENDING }
+            }
         }
-
-        android.util.Log.d("RemindersListFragment", "✅ Reminders List Fragment created")
+        
+        // Show messages
+        LaunchedEffect(uiState.successMessage, uiState.errorMessage) {
+            uiState.successMessage?.let { message ->
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                viewModel.clearMessages()
+            }
+            
+            uiState.errorMessage?.let { message ->
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                viewModel.clearMessages()
+            }
+        }
+        
+        RemindersScreen(
+            reminders = filteredReminders,
+            uiState = uiState,
+            selectedFilter = selectedFilter,
+            onAddReminderClick = {
+                navigateToSetReminder(null)
+            },
+            onReminderClick = { reminder ->
+                navigateToSetReminder(reminder)
+            },
+            onDeleteReminder = { reminder ->
+                showDeleteDialog(reminder)
+            },
+            onMarkAsPaid = { reminder ->
+                showMarkCompleteDialog(reminder)
+            },
+            onFilterSelected = { filter ->
+                selectedFilter = filter
+            }
+        )
     }
 
     private fun setStatusBarColor() {
         activity?.window?.let { window ->
-            // Set status bar color to primary blue
-            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.primary)
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                window.navigationBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.black)
+            }
             
-            // Make status bar icons white (for dark background)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = 0 // Clear light status bar flag for white icons
-            }
-            
-            android.util.Log.d("RemindersListFragment", "🎨 Status bar color set to primary blue")
-        }
-    }
-
-    private fun setupRecyclerView() {
-        reminderAdapter = ReminderAdapter(
-            onReminderClick = { reminder ->
-                // Open reminder details or edit
-                navigateToSetReminder(reminder)
-            },
-            onMarkCompleteClick = { reminder ->
-                showMarkCompleteDialog(reminder)
-            },
-            onEditClick = { reminder ->
-                navigateToSetReminder(reminder)
-            },
-            onDeleteClick = { reminder ->
-                showDeleteDialog(reminder)
-            }
-        )
-
-        binding.rvReminders.apply {
-            adapter = reminderAdapter
-            layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
-
-    private fun setupClickListeners() {
-        binding.apply {
-            // FAB - Add new reminder
-            fabAddReminder.setOnClickListener {
-                navigateToSetReminder(null)
-            }
-
-            // Mark next reminder complete
-            btnMarkNextComplete.setOnClickListener {
-                viewModel.nextReminder.value?.let { reminder ->
-                    showMarkCompleteDialog(reminder)
+                var flags = window.decorView.systemUiVisibility
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
                 }
+                window.decorView.systemUiVisibility = flags
             }
-        }
-    }
-
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Observe all reminders
-            viewModel.allReminders.collect { reminders ->
-                android.util.Log.d("RemindersListFragment", "📋 Reminders loaded: ${reminders.size}")
-                reminderAdapter.submitList(reminders)
-
-                // Show/hide empty state
-                if (reminders.isEmpty()) {
-                    binding.layoutEmptyState.visibility = View.VISIBLE
-                    binding.rvReminders.visibility = View.GONE
-                } else {
-                    binding.layoutEmptyState.visibility = View.GONE
-                    binding.rvReminders.visibility = View.VISIBLE
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Observe next reminder
-            viewModel.nextReminder.collect { nextReminder ->
-                if (nextReminder != null) {
-                    binding.cardNextReminder.visibility = View.VISIBLE
-                    binding.cardNoNextReminder.visibility = View.GONE
-                    displayNextReminder(nextReminder)
-                } else {
-                    binding.cardNextReminder.visibility = View.GONE
-                    binding.cardNoNextReminder.visibility = View.VISIBLE
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Observe UI state for statistics
-            viewModel.uiState.collect { uiState ->
-                updateStatistics(uiState)
-
-                // Show messages
-                uiState.successMessage?.let { message ->
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                    viewModel.clearMessages()
-                }
-
-                uiState.errorMessage?.let { message ->
-                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-                    viewModel.clearMessages()
-                }
-            }
-        }
-    }
-
-    private fun displayNextReminder(reminder: Reminder) {
-        binding.apply {
-            tvNextPersonName.text = reminder.personName
-            tvNextAmount.text = "₹${String.format("%.0f", reminder.amount)}"
-            tvNextPurpose.text = reminder.purpose
-
-            // Type badge (now a TextView)
-            val typeEmoji = if (reminder.type == ReminderType.GIVE) "💸" else "💰"
-            tvNextTypeText.text = "$typeEmoji ${reminder.type.getDisplayName()}"
-
-            // Due date time
-            val dueDateTime = Calendar.getInstance().apply {
-                timeInMillis = reminder.dueDate + reminder.dueTime
-            }
-
-            val now = Calendar.getInstance()
-            val dueDateStr = when {
-                isSameDay(now, dueDateTime) -> "Today"
-                isTomorrow(now, dueDateTime) -> "Tomorrow"
-                else -> dateFormat.format(dueDateTime.time)
-            }
-
-            tvNextDueDateTime.text = "$dueDateStr at ${timeFormat.format(dueDateTime.time)}"
-        }
-    }
-
-    private fun updateStatistics(uiState: ReminderUiState) {
-        binding.apply {
-            tvPendingCount.text = uiState.pendingCount.toString()
-
-            // Format amounts
-            tvToGive.text = formatAmount(uiState.totalAmountToGive)
-            tvToReceive.text = formatAmount(uiState.totalAmountToReceive)
-        }
-    }
-
-    private fun formatAmount(amount: Double): String {
-        return when {
-            amount >= 100000 -> "₹${String.format("%.1f", amount / 100000)}L"
-            amount >= 1000 -> "₹${String.format("%.1f", amount / 1000)}K"
-            else -> "₹${String.format("%.0f", amount)}"
         }
     }
 
@@ -214,7 +128,6 @@ class RemindersListFragment : Fragment() {
             .setMessage("Mark reminder for ${reminder.personName} (₹${String.format("%.0f", reminder.amount)}) as completed?")
             .setPositiveButton("Mark Paid") { _, _ ->
                 viewModel.markReminderCompleted(reminder.id)
-                // Cancel notification
                 ReminderNotificationHelper.cancelNotification(requireContext(), reminder.notificationId)
                 Toast.makeText(requireContext(), "✅ Reminder completed!", Toast.LENGTH_SHORT).show()
             }
@@ -228,7 +141,6 @@ class RemindersListFragment : Fragment() {
             .setMessage("Are you sure you want to delete this reminder?")
             .setPositiveButton("Delete") { _, _ ->
                 viewModel.deleteReminder(reminder)
-                // Cancel notification
                 ReminderNotificationHelper.cancelNotification(requireContext(), reminder.notificationId)
                 Toast.makeText(requireContext(), "🗑️ Reminder deleted", Toast.LENGTH_SHORT).show()
             }
@@ -240,45 +152,19 @@ class RemindersListFragment : Fragment() {
         val fragment = SetReminderFragment.newInstance(reminder)
         (activity as? HomeActivity)?.let { activity ->
             activity.supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
+                .replace(com.koshpal_android.koshpalapp.R.id.fragmentContainer, fragment)
                 .addToBackStack("set_reminder")
                 .commit()
             
-            // Hide bottom app bar, navigation and FAB after fragment transaction
             view?.post {
-                activity.findViewById<android.view.View>(R.id.bottomAppBar)?.visibility = android.view.View.GONE
-                activity.findViewById<android.view.View>(R.id.bottomNavigation)?.visibility = android.view.View.GONE
-                activity.findViewById<android.view.View>(R.id.fabCenter)?.visibility = android.view.View.GONE
-                android.util.Log.d("RemindersListFragment", "🚫 Bottom elements hidden for Set Reminder")
+                activity.findViewById<View>(com.koshpal_android.koshpalapp.R.id.bottomNavigationCompose)?.visibility = View.GONE
             }
         }
-    }
-
-    private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
-        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
-    }
-
-    private fun isTomorrow(today: Calendar, date: Calendar): Boolean {
-        val tomorrow = today.clone() as Calendar
-        tomorrow.add(Calendar.DAY_OF_YEAR, 1)
-        return isSameDay(tomorrow, date)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore status bar color to white when leaving RemindersListFragment
-        activity?.window?.let { window ->
-            window.statusBarColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.white)
-            
-            // Make status bar icons dark (for light background)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
-            
-            android.util.Log.d("RemindersListFragment", "🎨 Status bar color restored to white")
-        }
-        _binding = null
+        setStatusBarColor()
     }
 
     companion object {

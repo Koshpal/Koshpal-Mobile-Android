@@ -130,4 +130,8 @@
     <color name="background_primary">#F8F9FA</color>
     <color name="background_secondary">#E9ECEF</color>
     <color name="primary_color">#334EAC</color>
+    
+    <!-- Dark Theme Navigation Colors -->
+    <color name="dark_card">#1C1C1E</color>
+    <color name="text_secondary_light">#AEAEB2</color>
 </resources>

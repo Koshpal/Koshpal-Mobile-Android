@@ -10,11 +10,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.koshpal_android.koshpalapp.databinding.ItemSetBudgetCategoryBinding
 import com.koshpal_android.koshpalapp.model.BudgetCategory
-import com.koshpal_android.koshpalapp.ui.categories.SetMonthlyBudgetFragment
+import com.koshpal_android.koshpalapp.ui.categories.compose.CategoryBudgetItem
 
 class SetBudgetCategoryAdapter(
     private val onBudgetChanged: () -> Unit = {}
-) : ListAdapter<SetMonthlyBudgetFragment.CategoryBudgetItem, SetBudgetCategoryAdapter.ViewHolder>(DiffCallback()) {
+) : ListAdapter<CategoryBudgetItem, SetBudgetCategoryAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemSetBudgetCategoryBinding.inflate(
@@ -29,7 +29,7 @@ class SetBudgetCategoryAdapter(
         holder.bind(getItem(position))
     }
 
-    fun getCategoryBudgets(): List<SetMonthlyBudgetFragment.CategoryBudgetItem> {
+    fun getCategoryBudgets(): List<CategoryBudgetItem> {
         return currentList.toList()
     }
 
@@ -52,7 +52,7 @@ class SetBudgetCategoryAdapter(
 
         private var textWatcher: TextWatcher? = null
 
-        fun bind(item: SetMonthlyBudgetFragment.CategoryBudgetItem) {
+        fun bind(item: CategoryBudgetItem) {
             // Remove previous text watcher
             textWatcher?.let { binding.etBudgetAmount.removeTextChangedListener(it) }
 
@@ -100,17 +100,17 @@ class SetBudgetCategoryAdapter(
         }
     }
 
-    private class DiffCallback : DiffUtil.ItemCallback<SetMonthlyBudgetFragment.CategoryBudgetItem>() {
+    private class DiffCallback : DiffUtil.ItemCallback<CategoryBudgetItem>() {
         override fun areItemsTheSame(
-            oldItem: SetMonthlyBudgetFragment.CategoryBudgetItem,
-            newItem: SetMonthlyBudgetFragment.CategoryBudgetItem
+            oldItem: CategoryBudgetItem,
+            newItem: CategoryBudgetItem
         ): Boolean {
             return oldItem.categoryId == newItem.categoryId
         }
 
         override fun areContentsTheSame(
-            oldItem: SetMonthlyBudgetFragment.CategoryBudgetItem,
-            newItem: SetMonthlyBudgetFragment.CategoryBudgetItem
+            oldItem: CategoryBudgetItem,
+            newItem: CategoryBudgetItem
         ): Boolean {
             return oldItem == newItem
         }
