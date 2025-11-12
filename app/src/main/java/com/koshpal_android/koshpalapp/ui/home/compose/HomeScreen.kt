@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -90,12 +92,22 @@ fun HomeScreen(
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(AppColors.PureBlack)
-            .verticalScroll(rememberScrollState())
+    Box(
+        modifier = modifier.fillMaxSize()
     ) {
+        // Background Image
+        Image(
+            painter = painterResource(id = R.drawable.backgroundstrucure2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
         // Top App Bar
         TopAppBarSection(
             greetingText = greetingText,
@@ -202,6 +214,7 @@ fun HomeScreen(
         
         // Bottom padding for navigation bar
         Spacer(modifier = Modifier.height(80.dp))
+        }
     }
 }
 

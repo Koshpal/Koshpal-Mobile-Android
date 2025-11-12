@@ -45,11 +45,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
+import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
@@ -113,6 +115,7 @@ fun AllTransactionsScreen(
     onTransactionClick: (Transaction) -> Unit,
     onLoadMore: () -> Unit = {},
     onMonthSelected: (Int?, Int?) -> Unit = { _, _ -> },
+    onProfileClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Memoize the transactions list to prevent unnecessary recompositions
@@ -133,18 +136,49 @@ fun AllTransactionsScreen(
         }
     }
     
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(AppColors.PureBlack)
+    Box(
+        modifier = modifier.fillMaxSize()
     ) {
-        // Top App Bar - stable, doesn't need recomposition
-        TopAppBar(
-            selectedMonth = selectedMonth,
-            onBackClicked = onBackClicked,
-            onSearchClicked = onSearchClicked,
-            onMonthSelected = onMonthSelected
+        // Background Image
+        Image(
+            painter = painterResource(id = R.drawable.backgroundstrucure2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
+        
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+        // Common App Bar
+        com.koshpal_android.koshpalapp.ui.common.CommonAppBar(
+            userName = "Chaitany", // TODO: Get from ViewModel or UserPreferences
+            onProfileClick = onProfileClick,
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Screen Title and Controls
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Transactions",
+                color = AppColors.TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = onSearchClicked) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = AppColors.TextPrimary
+                )
+            }
+        }
         
         // Summary Cards (Income & Expense) - only recompose when totals change
         SummaryCards(
@@ -169,6 +203,7 @@ fun AllTransactionsScreen(
             onLoadMore = onLoadMore,
             modifier = Modifier.fillMaxSize()
         )
+        }
     }
 }
 

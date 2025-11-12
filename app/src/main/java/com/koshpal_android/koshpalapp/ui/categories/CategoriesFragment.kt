@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import com.koshpal_android.koshpalapp.ui.categories.compose.CategoriesScreen
@@ -22,6 +23,14 @@ class CategoriesFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 KoshpalTheme {
+                    val context = requireContext()
+                    val onProfileClick: () -> Unit = remember {
+                        {
+                            val intent = android.content.Intent(context, com.koshpal_android.koshpalapp.ui.profile.ProfileActivity::class.java)
+                            startActivity(intent)
+                        }
+                    }
+                    
                     CategoriesScreen(
                         onSetBudgetClick = {
                             (activity as? HomeActivity)?.showSetMonthlyBudgetFragment()
@@ -34,7 +43,8 @@ class CategoriesFragment : Fragment() {
                                 month = month,
                                 year = year
                             )
-                        }
+                        },
+                        onProfileClick = onProfileClick
                     )
                 }
             }

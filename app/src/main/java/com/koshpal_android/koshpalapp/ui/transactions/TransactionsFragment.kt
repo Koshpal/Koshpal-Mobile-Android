@@ -61,6 +61,12 @@ class TransactionsFragment : Fragment() {
         val onTransactionClick: (Transaction) -> Unit = remember { { transaction -> showTransactionDetailsDialog(transaction) } }
         val onLoadMore: () -> Unit = remember { { viewModel.loadMoreTransactions() } }
         val onMonthSelected: (Int?, Int?) -> Unit = remember { { month, year -> viewModel.setSelectedMonth(month, year) } }
+        val onProfileClick: () -> Unit = remember {
+            {
+                val intent = android.content.Intent(context, com.koshpal_android.koshpalapp.ui.profile.ProfileActivity::class.java)
+                startActivity(intent)
+            }
+        }
         
         AllTransactionsScreen(
             transactions = transactions,
@@ -74,7 +80,8 @@ class TransactionsFragment : Fragment() {
             onFilterSelected = onFilterSelected,
             onTransactionClick = onTransactionClick,
             onLoadMore = onLoadMore,
-            onMonthSelected = onMonthSelected
+            onMonthSelected = onMonthSelected,
+            onProfileClick = onProfileClick
         )
     }
 

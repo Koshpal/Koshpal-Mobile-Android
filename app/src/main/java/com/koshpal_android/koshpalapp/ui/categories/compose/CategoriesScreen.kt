@@ -1,5 +1,6 @@
 package com.koshpal_android.koshpalapp.ui.categories.compose
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
@@ -31,6 +34,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.material.icons.filled.Add
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.model.CategorySpending
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.ui.categories.compose.viewmodel.CategoriesViewModel
@@ -46,6 +50,7 @@ import java.util.*
 fun CategoriesScreen(
     onSetBudgetClick: () -> Unit = {},
     onCategoryClick: (String, String, Int, Int, Int) -> Unit = { _, _, _, _, _ -> },
+    onProfileClick: () -> Unit = {},
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,69 +77,92 @@ fun CategoriesScreen(
         )
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColors.PureBlack)
-            .padding(16.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Top Header
-        TopHeader(
-            monthDisplay = monthDisplay,
-            onMonthClick = { viewModel.showMonthPicker() }
+        // Background Image
+        Image(
+            painter = painterResource(id = R.drawable.backgroundstrucure2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+        // Common App Bar
+        com.koshpal_android.koshpalapp.ui.common.CommonAppBar(
+            userName = "Chaitany", // TODO: Get from ViewModel or UserPreferences
+            onProfileClick = onProfileClick,
+            modifier = Modifier.fillMaxWidth()
+        )
         
-        // Content based on state
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppColors.AccentBlue)
-                }
-            }
-            uiState.categorySpending.isEmpty() -> {
-                EmptyState()
-            }
-            else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Total Spends Donut Chart Card
-                    item {
-                        TotalSpendsCard(
-                            totalSpending = uiState.totalSpending,
-                            categorySpending = uiState.categorySpending,
-                            categoriesById = uiState.categoriesById
-                        )
-                    }
-                    
-                    // Set Monthly Budget Button
-                    item {
-                        SetBudgetButton(
-                            onClick = onSetBudgetClick,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    
-                    // Category List Card
-                    item {
-                        CategoryListCard(
-                            categorySpending = uiState.categorySpending,
-                            categoriesById = uiState.categoriesById,
-                            budgetCategories = uiState.budgetCategories,
-                            transactionCounts = uiState.transactionCounts,
-                            onCategoryClick = onCategoryClick,
-                            selectedMonth = selectedMonth,
-                            selectedYear = selectedYear
-                        )
+        // Content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Top Header
+            TopHeader(
+                monthDisplay = monthDisplay,
+                onMonthClick = { viewModel.showMonthPicker() }
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Content based on state
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = AppColors.AccentBlue)
                     }
                 }
+                uiState.categorySpending.isEmpty() -> {
+                    EmptyState()
+                }
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        // Total Spends Donut Chart Card
+                        item {
+                            TotalSpendsCard(
+                                totalSpending = uiState.totalSpending,
+                                categorySpending = uiState.categorySpending,
+                                categoriesById = uiState.categoriesById
+                            )
+                        }
+                        
+                        // Set Monthly Budget Button
+                        item {
+                            SetBudgetButton(
+                                onClick = onSetBudgetClick,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        
+                        // Category List Card
+                        item {
+                            CategoryListCard(
+                                categorySpending = uiState.categorySpending,
+                                categoriesById = uiState.categoriesById,
+                                budgetCategories = uiState.budgetCategories,
+                                transactionCounts = uiState.transactionCounts,
+                                onCategoryClick = onCategoryClick,
+                                selectedMonth = selectedMonth,
+                                selectedYear = selectedYear
+                            )
+                        }
+                    }
+                }
             }
+        }
         }
     }
 }
