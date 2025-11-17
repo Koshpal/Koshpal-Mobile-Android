@@ -134,4 +134,8 @@
     <!-- Dark Theme Navigation Colors -->
     <color name="dark_card">#1C1C1E</color>
     <color name="text_secondary_light">#AEAEB2</color>
+    
+    <!-- Switch Colors -->
+    <color name="switch_track_color">#2563EB</color>
+    <color name="switch_thumb_color">#FFFFFF</color>
 </resources>

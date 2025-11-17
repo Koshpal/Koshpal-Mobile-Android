@@ -132,7 +132,7 @@ class HomeActivity : AppCompatActivity() {
             NavigationItem(R.id.home, R.drawable.ic_home, "Home"),
             NavigationItem(R.id.transactions, R.drawable.ic_rup, "Payments"),
             NavigationItem(R.id.categories, R.drawable.ic_categ, "Categories"),
-            NavigationItem(R.id.insights, R.drawable.ic_insig, "Insights"),
+            //NavigationItem(R.id.insights, R.drawable.ic_insig, "Insights"),
             NavigationItem(R.id.reminders, R.drawable.ic_notifications, "Reminders")
         )
 
@@ -148,7 +148,7 @@ class HomeActivity : AppCompatActivity() {
                             R.id.home -> showFragment(homeFragment)
                             R.id.transactions -> showFragment(transactionsFragment)
                             R.id.categories -> showFragment(categoriesFragment)
-                            R.id.insights -> showFragment(insightsFragment)
+                            //R.id.insights -> showFragment(insightsFragment)
                             R.id.reminders -> showFragment(fregmentReminders)
                         }
                     }

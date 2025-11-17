@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="#0F1419">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Transaction"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -25,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Enter transaction details"
-            android:textColor="@color/text_secondary"
+            android:textColor="#A0AEC0"
             android:textSize="14sp"
             android:layout_marginBottom="24dp" />
 
@@ -34,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Payment Method"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -72,14 +73,20 @@
             android:hint="Select Bank"
             android:visibility="gone"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:hintTextColor="#A0AEC0"
+            android:textColorHint="#A0AEC0"
+            app:boxStrokeColor="#5A6B7F"
+            app:boxStrokeWidth="2dp">
 
             <AutoCompleteTextView
                 android:id="@+id/actvBank"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="none"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#A0AEC0" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -88,7 +95,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Transaction Type"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -127,6 +134,11 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp"
             app:prefixText="₹ "
+            app:prefixTextColor="@color/white"
+            app:hintTextColor="#A0AEC0"
+            android:textColorHint="#A0AEC0"
+            app:boxStrokeColor="#5A6B7F"
+            app:boxStrokeWidth="2dp"
             app:errorEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -134,7 +146,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#A0AEC0" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -145,14 +159,20 @@
             android:layout_height="wrap_content"
             android:hint="Description"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:hintTextColor="#A0AEC0"
+            android:textColorHint="#A0AEC0"
+            app:boxStrokeColor="#5A6B7F"
+            app:boxStrokeWidth="2dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapSentences"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#A0AEC0" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -163,14 +183,20 @@
             android:layout_height="wrap_content"
             android:hint="Merchant/Payee (Optional)"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            app:hintTextColor="#A0AEC0"
+            android:textColorHint="#A0AEC0"
+            app:boxStrokeColor="#5A6B7F"
+            app:boxStrokeWidth="2dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etMerchant"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapWords"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#A0AEC0" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -181,14 +207,19 @@
             android:layout_height="wrap_content"
             android:hint="Category"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="24dp"
+            app:hintTextColor="#A0AEC0"
+            android:textColorHint="#A0AEC0"
+            app:boxStrokeColor="#3A4456">
 
             <AutoCompleteTextView
                 android:id="@+id/actvCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="none"
-                android:padding="16dp" />
+                android:padding="16dp"
+                android:textColor="@color/white"
+                android:textColorHint="#A0AEC0" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -207,9 +238,10 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:text="Cancel"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/white"
                 app:cornerRadius="12dp"
-                app:strokeColor="@color/text_secondary" />
+                app:strokeColor="#3A4456"
+                android:backgroundTint="#1A1F2E" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
@@ -217,10 +249,10 @@
                 android:layout_height="56dp"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Add Transaction"
+                android:text="Add"
                 android:textColor="@color/white"
                 app:cornerRadius="12dp"
-                app:backgroundTint="@color/primary" />
+                app:backgroundTint="#2563EB" />
 
         </LinearLayout>
 

@@ -3,21 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="#0F1419">
 
     <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:elevation="4dp">
+        android:background="#0F1419"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/white"
-            app:titleTextColor="@color/text_primary"
+            android:background="#0F1419"
+            app:titleTextColor="@color/white"
+            app:navigationIconTint="@color/white"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:title="Bank Transactions" />
 
@@ -41,8 +42,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#1A1F2E"
+                app:strokeColor="#2A3142"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -97,7 +100,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="State Bank of India"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@color/white"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
@@ -106,7 +109,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="25 transactions"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="#A0AEC0"
                             android:textSize="14sp"
                             android:layout_marginTop="4dp" />
 
@@ -122,7 +125,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Total Spent"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="#A0AEC0"
                             android:textSize="12sp" />
 
                         <TextView
@@ -151,7 +154,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Period:"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_gravity="center_vertical" />
@@ -170,10 +173,12 @@
                         android:layout_height="36dp"
                         android:text="This Month"
                         android:textSize="12sp"
+                        android:textColor="@color/white"
                         android:layout_marginEnd="8dp"
                         app:cornerRadius="18dp"
-                        app:strokeColor="@color/primary"
-                        app:strokeWidth="1dp"
+                        app:strokeColor="#5A6B7F"
+                        app:strokeWidth="2dp"
+                        android:backgroundTint="#1A1F2E"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     <!-- All Time Filter -->
@@ -183,9 +188,11 @@
                         android:layout_height="36dp"
                         android:text="All Time"
                         android:textSize="12sp"
+                        android:textColor="@color/white"
                         app:cornerRadius="18dp"
-                        app:strokeColor="@color/primary"
-                        app:strokeWidth="1dp"
+                        app:strokeColor="#5A6B7F"
+                        app:strokeWidth="2dp"
+                        android:backgroundTint="#1A1F2E"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 </LinearLayout>
@@ -203,7 +210,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Type:"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_gravity="center_vertical" />
@@ -222,10 +229,12 @@
                         android:layout_height="36dp"
                         android:text="All"
                         android:textSize="12sp"
+                        android:textColor="@color/white"
                         android:layout_marginEnd="8dp"
                         app:cornerRadius="18dp"
-                        app:strokeColor="@color/primary"
-                        app:strokeWidth="1dp"
+                        app:strokeColor="#5A6B7F"
+                        app:strokeWidth="2dp"
+                        android:backgroundTint="#1A1F2E"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     <!-- Credit Filter -->
@@ -235,10 +244,12 @@
                         android:layout_height="36dp"
                         android:text="Credit"
                         android:textSize="12sp"
+                        android:textColor="@color/white"
                         android:layout_marginEnd="8dp"
                         app:cornerRadius="18dp"
-                        app:strokeColor="@color/income"
-                        app:strokeWidth="1dp"
+                        app:strokeColor="#4CAF50"
+                        app:strokeWidth="2dp"
+                        android:backgroundTint="#1A1F2E"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     <!-- Debit Filter -->
@@ -248,9 +259,11 @@
                         android:layout_height="36dp"
                         android:text="Debit"
                         android:textSize="12sp"
+                        android:textColor="@color/white"
                         app:cornerRadius="18dp"
-                        app:strokeColor="@color/expense"
-                        app:strokeWidth="1dp"
+                        app:strokeColor="#F44336"
+                        app:strokeWidth="2dp"
+                        android:backgroundTint="#1A1F2E"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 </LinearLayout>
@@ -270,13 +283,13 @@
                 <ProgressBar
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:indeterminateTint="@color/primary" />
+                    android:indeterminateTint="#2563EB" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Loading transactions..."
-                    android:textColor="@color/text_secondary"
+                    android:textColor="#A0AEC0"
                     android:textSize="16sp"
                     android:layout_marginTop="16dp" />
 
@@ -297,21 +310,21 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="40dp"
+                android:padding="10dp"
                 android:visibility="gone">
 
                 <ImageView
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:src="@drawable/ic_receipt"
-                    android:tint="@color/text_secondary"
+                    android:tint="#A0AEC0"
                     android:alpha="0.5" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="No transactions found"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/white"
                     android:textSize="16sp"
                     android:layout_marginTop="16dp" />
 
@@ -319,7 +332,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Try adjusting your filters"
-                    android:textColor="@color/text_tertiary"
+                    android:textColor="#A0AEC0"
                     android:textSize="14sp"
                     android:layout_marginTop="8dp" />
 

@@ -121,6 +121,9 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata")
     debugImplementation("androidx.compose.ui:ui-tooling")
     
+    // Image loading for Compose
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")

@@ -16,11 +16,6 @@
         android:icon="@drawable/ic_categ" />
 
     <item
-        android:id="@+id/insights"
-        android:title="Insights"
-        android:icon="@drawable/ic_insig" />
-
-    <item
         android:id="@+id/reminders"
         android:title="Reminders"
         android:icon="@drawable/ic_notifications" />

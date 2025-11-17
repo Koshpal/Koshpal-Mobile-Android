@@ -69,7 +69,11 @@ data class Transaction(
     @ColumnInfo(name = "isSynced")
     val isSynced: Boolean = false, // Track if transaction is synced to server
     @ColumnInfo(name = "lastSyncAttempt")
-    val lastSyncAttempt: Long? = null // Track last sync attempt timestamp
+    val lastSyncAttempt: Long? = null, // Track last sync attempt timestamp
+    @ColumnInfo(name = "receiptUri")
+    val receiptUri: String? = null, // URI for receipt photo
+    @ColumnInfo(name = "includedInCashFlow")
+    val includedInCashFlow: Boolean = true // Whether to include in cash flow analysis
 ) {
     val timestamp: Long
         get() = date

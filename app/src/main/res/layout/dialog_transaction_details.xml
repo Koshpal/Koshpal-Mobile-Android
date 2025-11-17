@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_background">
+    android:background="#0F1419">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,19 +22,20 @@
 
             <ImageView
                 android:id="@+id/btnClose"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_close"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_arrow_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="4dp"
-                android:contentDescription="Close" />
+                android:contentDescription="Back"
+                android:tint="@color/white" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Transaction Details"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginStart="16dp" />
@@ -67,8 +68,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/primary">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -120,6 +123,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:layout_marginTop="-13dp"
                         app:boxBackgroundMode="none"
                         android:layout_marginStart="2dp">
 
@@ -129,6 +133,7 @@
                             android:layout_height="wrap_content"
                             android:textColor="@color/white"
                             android:textSize="18sp"
+                            android:text="30"
                             android:textStyle="bold"
                             android:background="@android:color/transparent"
                             android:inputType="numberDecimal"
@@ -145,8 +150,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     app:cardCornerRadius="8dp"
-                    app:cardElevation="1dp"
-                    app:cardBackgroundColor="@color/white_20"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#252D3D"
+                    app:strokeColor="#3A4456"
+                    app:strokeWidth="1dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
@@ -220,8 +227,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -240,13 +249,13 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_note"
-                        android:tint="@color/text_secondary" />
+                        android:tint="#A0AEC0" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Notes"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginStart="8dp" />
@@ -257,7 +266,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Add notes..."
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    app:hintTextColor="#A0AEC0"
+                    android:textColorHint="#A0AEC0">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etNotes"
@@ -267,7 +278,9 @@
                         android:maxLines="3"
                         android:gravity="top|start"
                         android:inputType="textMultiLine|textCapSentences"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:textColor="@color/white"
+                        android:textColorHint="#A0AEC0" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -283,8 +296,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground">
@@ -300,13 +315,13 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_image"
-                    android:tint="@color/primary" />
+                    android:tint="#2563EB" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Attach Photo"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:textSize="14sp"
                     android:layout_marginStart="12dp" />
 
@@ -322,8 +337,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp"
             android:visibility="gone">
 
             <LinearLayout
@@ -352,7 +369,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Receipt Photo"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -361,7 +378,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="2.3 MB"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="#A0AEC0"
                         android:textSize="12sp" />
 
                 </LinearLayout>
@@ -386,8 +403,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -406,14 +425,14 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_tag"
-                        android:tint="@color/text_secondary" />
+                        android:tint="#A0AEC0" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Tags"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginStart="8dp" />
@@ -422,8 +441,8 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="@color/primary"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#2563EB"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground">
@@ -460,8 +479,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -480,13 +501,13 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_info"
-                        android:tint="@color/text_secondary" />
+                        android:tint="#A0AEC0" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Other info"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:layout_marginStart="8dp" />
@@ -504,7 +525,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="UPI Ref No"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="#A0AEC0"
                         android:textSize="12sp" />
 
                     <TextView
@@ -512,7 +533,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="530375090208"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textIsSelectable="true" />
 
@@ -528,7 +549,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="SMS"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="#A0AEC0"
                         android:textSize="12sp" />
 
                     <TextView
@@ -536,7 +557,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="[VK-SBIUPI-S] Dear UPI user A/C X5334 debited by 2000.0 on date 06Oct25 trf to CHAITANY SANDIP Refno 530375090208 If not u? call-18001111109 for other services-18001234-SBI"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textIsSelectable="true"
                         android:maxLines="3"
@@ -555,8 +576,10 @@
             android:layout_marginHorizontal="20dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/surface_light">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1F2E"
+            app:strokeColor="#2A3142"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -569,7 +592,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_trending_up"
-                    android:tint="@color/text_secondary" />
+                    android:tint="#A0AEC0" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -582,7 +605,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Cash Flow"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -590,7 +613,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Include in cash flow analysis"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="#A0AEC0"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -599,7 +622,9 @@
                     android:id="@+id/switchCashFlow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="false" />
+                    android:checked="true"
+                    app:trackTint="@color/switch_track_tint"
+                    app:thumbTint="@color/switch_thumb_color" />
 
             </LinearLayout>
 
@@ -614,7 +639,7 @@
             android:layout_marginBottom="20dp"
             android:text="Save Changes"
             android:textColor="@color/white"
-            android:backgroundTint="@color/primary"
+            android:backgroundTint="#2563EB"
             app:cornerRadius="12dp"
             android:padding="16dp" />
 
