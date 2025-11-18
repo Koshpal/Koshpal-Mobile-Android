@@ -252,35 +252,71 @@ private fun SetReminderAppBar(
 /**
  * Reminder Type Toggle (Animated)
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ReminderTypeToggle(
     selectedType: ReminderType,
     onTypeChange: (ReminderType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(AppColors.DarkCard)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // "I Need to Pay" Button
-        ReminderTypeButton(
-            text = "I Need to Pay",
-            isSelected = selectedType == ReminderType.GIVE,
-            onClick = { onTypeChange(ReminderType.GIVE) },
-            modifier = Modifier.weight(1f)
+        Text(
+            text = "Reminder Type",
+            color = AppColors.TextSecondary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
         )
         
-        // "Someone Owes Me" Button
-        ReminderTypeButton(
-            text = "Someone Owes Me",
-            isSelected = selectedType == ReminderType.RECEIVE,
-            onClick = { onTypeChange(ReminderType.RECEIVE) },
-            modifier = Modifier.weight(1f)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // "I Need to Pay" Chip
+            FilterChip(
+                selected = selectedType == ReminderType.GIVE,
+                onClick = { onTypeChange(ReminderType.GIVE) },
+                label = {
+                    Text(
+                        text = "I Need to Pay",
+                        color = if (selectedType == ReminderType.GIVE) Color.White else AppColors.TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = if (selectedType == ReminderType.GIVE) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = AppColors.AccentBlue,
+                    containerColor = AppColors.DarkCard,
+                    selectedLabelColor = Color.White,
+                    labelColor = AppColors.TextSecondary
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            
+            // "I Need to Receive" Chip
+            FilterChip(
+                selected = selectedType == ReminderType.RECEIVE,
+                onClick = { onTypeChange(ReminderType.RECEIVE) },
+                label = {
+                    Text(
+                        text = "I Need to Receive",
+                        color = if (selectedType == ReminderType.RECEIVE) Color.White else AppColors.TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = if (selectedType == ReminderType.RECEIVE) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = AppColors.AccentBlue,
+                    containerColor = AppColors.DarkCard,
+                    selectedLabelColor = Color.White,
+                    labelColor = AppColors.TextSecondary
+                ),
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 

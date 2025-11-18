@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface_medium">
+    android:background="@color/surface_dark">
 
     <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface_medium"
+        android:background="@color/surface_dark"
         app:elevation="0dp">
 
         <!-- Toolbar -->
@@ -19,11 +19,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/surface_medium"
+            android:background="@color/surface_dark"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/text_primary"
             app:title="Category Details"
-            app:titleTextColor="@color/text_primary"
+            app:titleTextColor="@color/white"
             app:layout_scrollFlags="scroll|enterAlways" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -51,8 +51,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         app:cardCornerRadius="20dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@android:color/white">
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="@color/surface_dark">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                     android:layout_height="56dp"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/primary_lightest">
+                    app:cardBackgroundColor="@color/surface_dark">
 
                     <ImageView
                         android:id="@+id/ivCategoryIcon"
@@ -96,7 +96,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Food &amp; Dining"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@android:color/white"
                         android:textSize="22sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium" />
@@ -107,7 +107,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="October 2025"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@android:color/white"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -135,7 +135,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TOTAL SPENT"
-                        android:textColor="@color/text_tertiary"
+                        android:textColor="@android:color/white"
                         android:textSize="11sp"
                         android:letterSpacing="0.05" />
 
@@ -167,7 +167,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TRANSACTIONS"
-                        android:textColor="@color/text_tertiary"
+                        android:textColor="@android:color/white"
                         android:textSize="11sp"
                         android:letterSpacing="0.05" />
 
@@ -177,7 +177,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="12"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@android:color/white"
                         android:textSize="28sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium" />
@@ -192,7 +192,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="All Transactions"
-        android:textColor="@color/text_primary"
+        android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-medium"
@@ -215,13 +215,13 @@
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
-        android:padding="32dp"
+        android:padding="322dp"
         android:layout_marginTop="40dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="100dp"
             android:layout_height="100dp"
-            app:cardBackgroundColor="@color/primary_lightest"
+            app:cardBackgroundColor="@color/surface_medium"
             app:cardCornerRadius="50dp"
             app:cardElevation="0dp"
             android:layout_marginBottom="20dp">
@@ -240,7 +240,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No Transactions"
-            android:textColor="@color/text_primary"
+            android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
@@ -249,7 +249,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Transactions in this category\nwill appear here"
-            android:textColor="@color/text_secondary"
+            android:textColor="@android:color/white"
             android:textSize="14sp"
             android:gravity="center"
             android:lineSpacingExtra="4dp"

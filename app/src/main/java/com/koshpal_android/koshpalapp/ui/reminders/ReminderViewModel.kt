@@ -80,6 +80,7 @@ class ReminderViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 reminderRepository.insertReminder(reminder)
+                loadStatistics() // Refresh statistics after inserting
                 _uiState.value = _uiState.value.copy(
                     successMessage = "Reminder created successfully!",
                     errorMessage = null
@@ -97,6 +98,7 @@ class ReminderViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 reminderRepository.updateReminder(reminder)
+                loadStatistics() // Refresh statistics after updating
                 _uiState.value = _uiState.value.copy(
                     successMessage = "Reminder updated successfully!",
                     errorMessage = null
@@ -114,6 +116,7 @@ class ReminderViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 reminderRepository.deleteReminder(reminder)
+                loadStatistics() // Refresh statistics after deleting
                 _uiState.value = _uiState.value.copy(
                     successMessage = "Reminder deleted successfully!",
                     errorMessage = null

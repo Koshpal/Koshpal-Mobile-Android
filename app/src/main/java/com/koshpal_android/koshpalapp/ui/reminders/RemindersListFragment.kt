@@ -82,6 +82,11 @@ class RemindersListFragment : Fragment() {
             }
         }
         
+        // Get pending reminders for summary cards
+        val pendingReminders = remember(allReminders) {
+            allReminders.filter { it.status == ReminderStatus.PENDING }
+        }
+        
         RemindersScreen(
             reminders = filteredReminders,
             uiState = uiState,
@@ -100,7 +105,8 @@ class RemindersListFragment : Fragment() {
             },
             onFilterSelected = { filter ->
                 selectedFilter = filter
-            }
+            },
+            pendingReminders = pendingReminders
         )
     }
 

@@ -46,6 +46,7 @@ fun RemindersScreen(
     onDeleteReminder: (Reminder) -> Unit,
     onMarkAsPaid: (Reminder) -> Unit,
     onFilterSelected: (ReminderFilter) -> Unit,
+    pendingReminders: List<Reminder> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -73,6 +74,7 @@ fun RemindersScreen(
             uiState = uiState,
             selectedFilter = selectedFilter,
             onFilterSelected = onFilterSelected,
+            reminders = pendingReminders,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -158,8 +160,13 @@ fun SummaryCardsRow(
     uiState: ReminderUiState,
     selectedFilter: ReminderFilter,
     onFilterSelected: (ReminderFilter) -> Unit,
+    reminders: List<Reminder> = emptyList(),
     modifier: Modifier = Modifier
 ) {
+    // Calculate counts based on reminder type
+    val toPayCount = reminders.count { it.type == com.koshpal_android.koshpalapp.model.ReminderType.GIVE }
+    val toReceiveCount = reminders.count { it.type == com.koshpal_android.koshpalapp.model.ReminderType.RECEIVE }
+    
     LazyRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -168,7 +175,7 @@ fun SummaryCardsRow(
         item {
             SummaryCard(
                 title = "To Pay",
-                count = uiState.pendingCount,
+                count = toPayCount,
                 amount = uiState.totalAmountToGive,
                 iconColor = Color(0xFFFF3B30), // Red
                 iconContent = "↓",
@@ -180,7 +187,7 @@ fun SummaryCardsRow(
         item {
             SummaryCard(
                 title = "To Receive",
-                count = uiState.pendingCount,
+                count = toReceiveCount,
                 amount = uiState.totalAmountToReceive,
                 iconColor = Color(0xFF34C759), // Green
                 iconContent = "↑",
@@ -192,7 +199,7 @@ fun SummaryCardsRow(
         item {
             SummaryCard(
                 title = "Pending",
-                count = uiState.pendingCount,
+                count = toPayCount + toReceiveCount,
                 amount = uiState.totalAmountToGive + uiState.totalAmountToReceive,
                 iconColor = Color(0xFFFFCC00), // Yellow
                 iconContent = "⏰",

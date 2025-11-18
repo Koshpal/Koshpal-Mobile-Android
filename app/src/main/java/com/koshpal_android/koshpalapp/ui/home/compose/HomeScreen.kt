@@ -208,7 +208,8 @@ fun HomeScreen(
                 transactions = recentTransactions,
                 onTransactionClick = onTransactionClick,
                 currencyFormatter = currencyFormatter,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
             )
         }
         
