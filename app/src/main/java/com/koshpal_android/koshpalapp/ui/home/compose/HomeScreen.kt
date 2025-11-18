@@ -1153,8 +1153,8 @@ private fun TransactionItem(
     // For transfers, use purple; otherwise use category color
     val indicatorBgColor = if (isTransfer) Color(0xFF9C27B0) else categoryColor
     
-    // Amount color: Red for expenses, White for transfers/income
-    val amountColor = if (isExpense) Color(0xFFF44336) else AppColors.TextPrimary
+    // Amount color: White for all transaction types
+    val amountColor = AppColors.TextPrimary
     
     // Each transaction item is in its own card with slightly lighter background
     Card(

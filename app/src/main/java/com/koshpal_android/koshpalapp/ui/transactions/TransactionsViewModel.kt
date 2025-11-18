@@ -51,6 +51,8 @@ class TransactionsViewModel @Inject constructor(
     private val _selectedMonth = MutableStateFlow<Pair<Int, Int>?>(null) // Month, Year (null = All)
     val selectedMonth: StateFlow<Pair<Int, Int>?> = _selectedMonth.asStateFlow()
     
+    private val _cashFlowTransactionIds = MutableStateFlow<Set<String>>(emptySet())
+    
     private var currentPage = 0
     private var hasMoreData = true
 
@@ -94,6 +96,10 @@ class TransactionsViewModel @Inject constructor(
             _displayedTransactions.value = emptyList() // Clear previous data
             
             try {
+                // Load cashflow transaction IDs from database
+                val cashFlowTransactions = transactionRepository.getCashFlowTransactions()
+                _cashFlowTransactionIds.value = cashFlowTransactions.map { it.id }.toSet()
+                
                 // Get first emission from Flow (all transactions from DB)
                 val allTransactions = transactionRepository.getAllTransactions().first()
                 _allTransactions.value = allTransactions
@@ -289,6 +295,7 @@ class TransactionsViewModel @Inject constructor(
                 }
             }
             "starred" -> filtered.filter { it.isStarred }
+            "cashflow" -> filtered.filter { it.id in _cashFlowTransactionIds.value }
             else -> filtered // "All"
         }
 
@@ -305,18 +312,36 @@ class TransactionsViewModel @Inject constructor(
     }
 
     private fun updateSummary(transactions: List<Transaction>) {
-        // Calculate totals from filtered transactions
-        // Transactions are already filtered by month (if month filter is set)
+        // Calculate totals for THIS MONTH ONLY
         var totalIncome = 0.0
         var totalExpense = 0.0
         
+        // Get current month boundaries
+        val calendar = Calendar.getInstance()
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentYear = calendar.get(Calendar.YEAR)
+        
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfMonth = calendar.timeInMillis
+        
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        val endOfMonth = calendar.timeInMillis
+        
+        // Filter transactions for this month and calculate totals
         transactions.forEach { transaction ->
-            when (transaction.type) {
-                TransactionType.CREDIT -> {
-                    totalIncome += transaction.amount
-                }
-                TransactionType.DEBIT, TransactionType.TRANSFER -> {
-                    totalExpense += transaction.amount
+            if (transaction.timestamp in startOfMonth..endOfMonth) {
+                when (transaction.type) {
+                    TransactionType.CREDIT -> {
+                        totalIncome += transaction.amount
+                    }
+                    TransactionType.DEBIT, TransactionType.TRANSFER -> {
+                        totalExpense += transaction.amount
+                    }
                 }
             }
         }

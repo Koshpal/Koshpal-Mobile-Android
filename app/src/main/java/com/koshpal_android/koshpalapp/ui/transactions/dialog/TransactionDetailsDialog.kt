@@ -139,7 +139,38 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 // Set cash flow toggle - check if transaction is in cash flow table
                 lifecycleScope.launch {
                     val isCashFlow = transactionRepository.isCashFlowTransaction(txn.id)
+                    // Temporarily remove listener to avoid triggering toast on initial load
+                    switchCashFlow.setOnCheckedChangeListener(null)
                     switchCashFlow.isChecked = isCashFlow
+                    // Re-attach listener after setting initial state
+                    switchCashFlow.setOnCheckedChangeListener { _, isChecked ->
+                        transaction?.let { txn ->
+                            lifecycleScope.launch {
+                                try {
+                                    if (isChecked) {
+                                        // Add to cash flow database
+                                        transactionRepository.addToCashFlow(txn.id)
+                                        android.util.Log.d("TransactionDetailsDialog", "💰 Added transaction ${txn.id} to cash flow")
+                                        Toast.makeText(requireContext(), "Added to Cash Flow", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        // Remove from cash flow database
+                                        transactionRepository.removeFromCashFlow(txn.id)
+                                        android.util.Log.d("TransactionDetailsDialog", "💰 Removed transaction ${txn.id} from cash flow")
+                                        Toast.makeText(requireContext(), "Removed from Cash Flow", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update cash flow status: ${e.message}")
+                                    // Revert the switch state
+                                    switchCashFlow.setOnCheckedChangeListener(null)
+                                    switchCashFlow.isChecked = !isChecked
+                                    switchCashFlow.setOnCheckedChangeListener { _, isChecked ->
+                                        // Re-attach listener
+                                    }
+                                    Toast.makeText(requireContext(), "Failed to update cash flow status", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 // Set star status
@@ -288,30 +319,6 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 showAddTagDialog()
             }
             
-            switchCashFlow.setOnCheckedChangeListener { _, isChecked ->
-                transaction?.let { txn ->
-                    lifecycleScope.launch {
-                        try {
-                            if (isChecked) {
-                                // Add to cash flow database
-                                transactionRepository.addToCashFlow(txn.id)
-                                android.util.Log.d("TransactionDetailsDialog", "💰 Added transaction ${txn.id} to cash flow")
-                                Toast.makeText(requireContext(), "Added to Cash Flow", Toast.LENGTH_SHORT).show()
-                            } else {
-                                // Remove from cash flow database
-                                transactionRepository.removeFromCashFlow(txn.id)
-                                android.util.Log.d("TransactionDetailsDialog", "💰 Removed transaction ${txn.id} from cash flow")
-                                Toast.makeText(requireContext(), "Removed from Cash Flow", Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update cash flow status: ${e.message}")
-                            // Revert the switch state
-                            switchCashFlow.isChecked = !isChecked
-                            Toast.makeText(requireContext(), "Failed to update cash flow status", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
             
             btnSave.setOnClickListener {
                 saveTransaction()

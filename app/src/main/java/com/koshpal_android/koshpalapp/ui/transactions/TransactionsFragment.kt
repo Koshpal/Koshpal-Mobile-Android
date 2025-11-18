@@ -55,7 +55,7 @@ class TransactionsFragment : Fragment() {
         val context = requireContext()
         val onBackClicked: () -> Unit = remember { { (activity as? HomeActivity)?.onBackPressed() } }
         val onSearchClicked: () -> Unit = remember(context) { 
-            { Toast.makeText(context, "Search coming soon", Toast.LENGTH_SHORT).show() }
+            { showSearchDialog() }
         }
         val onFilterSelected: (String) -> Unit = remember { { filter -> viewModel.filterTransactions(filter) } }
         val onTransactionClick: (Transaction) -> Unit = remember { { transaction -> showTransactionDetailsDialog(transaction) } }
@@ -119,6 +119,37 @@ class TransactionsFragment : Fragment() {
         }
         
         dialog.show(parentFragmentManager, "TransactionDetailsDialog")
+    }
+    
+    private fun showSearchDialog() {
+        val context = requireContext()
+        val editText = android.widget.EditText(context).apply {
+            hint = "Search by merchant, description, or amount"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            setTextColor(android.graphics.Color.WHITE)
+            setHintTextColor(android.graphics.Color.GRAY)
+            setBackgroundColor(android.graphics.Color.parseColor("#1A1F2E"))
+            setPadding(32, 24, 32, 24)
+        }
+        
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setTitle("Search Transactions")
+            .setView(editText)
+            .setPositiveButton("Search") { _, _ ->
+                val query = editText.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    viewModel.searchTransactions(query)
+                    Toast.makeText(context, "Searching for: $query", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Clear") { _, _ ->
+                viewModel.searchTransactions("")
+                Toast.makeText(context, "Search cleared", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
     
     override fun onDestroyView() {

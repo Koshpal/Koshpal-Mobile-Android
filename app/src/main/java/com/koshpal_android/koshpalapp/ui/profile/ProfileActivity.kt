@@ -41,9 +41,9 @@ class ProfileActivity : AppCompatActivity() {
         Log.d("ProfileActivity", "🔧 Setting up UI components")
         
         binding.apply {
-            btnSyncSms.setOnClickListener {
-                Log.d("ProfileActivity", "🔄 Sync SMS button clicked")
-                startSyncActivity()
+            ivBack.setOnClickListener {
+                Log.d("ProfileActivity", "⬅️ Back button clicked")
+                finish()
             }
             
             btnLogout.setOnClickListener {
@@ -65,7 +65,6 @@ class ProfileActivity : AppCompatActivity() {
                 val inProgress = status == ProfileViewModel.SyncStatus.SYNCING
                 binding.apply {
                     progressBar.visibility = if (inProgress) View.VISIBLE else View.GONE
-                    btnSyncSms.isEnabled = !inProgress
                 }
                 
                 // Show toast on completion
@@ -103,10 +102,9 @@ class ProfileActivity : AppCompatActivity() {
             Log.d("ProfileActivity", "📊 User info - Email: $email, EmployeeId: $staticEmployeeId, LoggedIn: $isLoggedIn, SyncCompleted: $isSyncCompleted")
             
             binding.apply {
+                tvPhone.text = "+919307879687"
                 tvEmail.text = email
-                tvUserId.text = "Employee ID: ${staticEmployeeId.take(8)}..."
-                tvLoginStatus.text = "✅ App Registered (Static ID)"
-                tvSyncStatus.text = if (isSyncCompleted) "✅ Sync Completed" else "⏳ Sync Pending"
+                tvVersion.text = "Version 8.8.8v888r59f163d126rdt3"
             }
         } catch (e: Exception) {
             Log.e("ProfileActivity", "❌ Error loading user info: ${e.message}", e)
@@ -114,17 +112,6 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
     
-    private fun startSyncActivity() {
-        Log.d("ProfileActivity", "🔄 Starting sync activity")
-        try {
-            val intent = Intent(this, SyncActivity::class.java)
-            startActivity(intent)
-            Log.d("ProfileActivity", "✅ Sync activity started")
-        } catch (e: Exception) {
-            Log.e("ProfileActivity", "❌ Error starting sync activity: ${e.message}", e)
-            Toast.makeText(this, "Error starting sync: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
     
     private fun logout() {
         Log.d("ProfileActivity", "🚪 Logging out user")

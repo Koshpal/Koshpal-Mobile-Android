@@ -20,23 +20,50 @@
         android:gravity="center_vertical">
 
         <!-- Category Icon with Colorful Background -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardCategoryIcon"
+        <FrameLayout
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/primary_light">
+            android:layout_height="48dp">
 
-            <ImageView
-                android:id="@+id/ivTransactionIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_category_default"
-                android:tint="@color/white" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCategoryIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/primary_light">
 
-        </com.google.android.material.card.MaterialCardView>
+                <ImageView
+                    android:id="@+id/ivTransactionIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_category_default"
+                    android:tint="@color/white" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Payment Method Badge -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPaymentMethodBadge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="bottom|end"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/ivPaymentMethodIcon"
+                    android:layout_width="22dp"
+                    android:layout_height="16dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_cash" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </FrameLayout>
 
         <!-- Transaction Details -->
         <LinearLayout

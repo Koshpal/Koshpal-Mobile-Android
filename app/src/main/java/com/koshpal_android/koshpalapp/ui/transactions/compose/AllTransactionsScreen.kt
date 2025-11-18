@@ -394,7 +394,7 @@ private fun SummaryCard(
         if (isIncome) Color(0xFF4CAF50) else Color(0xFFF44336)
     }
     val amountColor = remember(isIncome) {
-        if (isIncome) Color(0xFF4CAF50) else Color(0xFFF44336)
+        if (isIncome) Color(0xFF4CAF50) else AppColors.TextPrimary
     }
     val glowColor = remember(isIncome) {
         if (isIncome) Color(0xFF4CAF50) else Color(0xFFF44336)
@@ -461,7 +461,7 @@ private fun FilterChips(
     onFilterSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val filters = listOf("All", "Income", "Expense", "This Month", "Last Month", "Starred")
+    val filters = listOf("All", "Income", "Expense", "This Month", "Last Month", "Starred", "Cashflow")
     val scrollState = rememberScrollState()
     
     Row(
@@ -788,7 +788,7 @@ private fun TransactionItem(
             iconColor = categoryColor,
             amountColor = when (type) {
                 TransactionTypeInfo.Income -> Color(0xFF4CAF50)
-                TransactionTypeInfo.Expense -> Color(0xFFF44336)
+                TransactionTypeInfo.Expense -> AppColors.TextPrimary
                 TransactionTypeInfo.Transfer -> AppColors.TextPrimary
             },
             amountPrefix = when (type) {

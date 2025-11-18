@@ -126,16 +126,13 @@ class HomeViewModel @Inject constructor(
             
             val currentMonthBalance = currentMonthIncome - currentMonthExpenses
             
-            // CRITICAL: If no current month data, show total data as fallback
-            val hasCurrentMonthData = currentMonthIncome > 0 || currentMonthExpenses > 0
-            
-            val displayIncome = if (hasCurrentMonthData) currentMonthIncome else totalIncome
-            val displayExpenses = if (hasCurrentMonthData) currentMonthExpenses else totalExpenses
-            val displayBalance = if (hasCurrentMonthData) currentMonthBalance else (totalIncome - totalExpenses)
+            // Always display CURRENT MONTH data (not total)
+            val displayIncome = currentMonthIncome
+            val displayExpenses = currentMonthExpenses
+            val displayBalance = currentMonthBalance
             
             android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION:")
-            android.util.Log.d("HomeViewModel", "   Has current month data: $hasCurrentMonthData")
-            android.util.Log.d("HomeViewModel", "   Using ${if (hasCurrentMonthData) "CURRENT MONTH" else "TOTAL"} data for display")
+            android.util.Log.d("HomeViewModel", "   Always showing CURRENT MONTH data")
             
             android.util.Log.d("HomeViewModel", "📅 CURRENT MONTH DATA:")
             android.util.Log.d("HomeViewModel", "   Income: ₹$displayIncome")

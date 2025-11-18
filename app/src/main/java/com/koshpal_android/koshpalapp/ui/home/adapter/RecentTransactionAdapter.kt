@@ -64,6 +64,9 @@ class RecentTransactionAdapter(
                 // Load and display category info using TransactionCategory system
                 loadCategoryInfo(transaction.categoryId)
                 
+                // Set payment method badge icon (Cash or Online)
+                setPaymentMethodBadge(transaction)
+                
                 // Add visual indicator only for truly uncategorized transactions (empty categoryId)
                 if (transaction.categoryId.isNullOrEmpty()) {
                     tvMerchantName.text = "${transaction.merchant ?: "Unknown Merchant"} • Tap to categorize"
@@ -117,6 +120,36 @@ class RecentTransactionAdapter(
                 binding.cardCategoryIcon.setCardBackgroundColor(
                     ContextCompat.getColor(binding.root.context, R.color.surface_gray)
                 )
+            }
+        }
+        
+        private fun setPaymentMethodBadge(transaction: Transaction) {
+            try {
+                // Determine if transaction is cash or online:
+                // - If smsId is NOT null → It's from SMS (scanned/online) → Show online icon
+                // - If smsId is null → It's manually added (cash) → Show cash icon
+                val isCash = transaction.smsId == null
+                
+                // Set the payment method icon
+                val paymentMethodIcon = if (isCash) {
+                    R.drawable.ic_cash  // Cash icon for manually added transactions
+                } else {
+                    R.drawable.ic_online  // Online/Card icon for SMS scanned transactions
+                }
+                
+                binding.ivPaymentMethodIcon.setImageResource(paymentMethodIcon)
+                
+                // Optional: Set tint color based on payment method
+                val tintColor = if (isCash) {
+                    ContextCompat.getColor(binding.root.context, R.color.success)  // Green for cash
+                } else {
+                    ContextCompat.getColor(binding.root.context, R.color.primary)  // Blue for online
+                }
+                binding.ivPaymentMethodIcon.setColorFilter(tintColor)
+                
+            } catch (e: Exception) {
+                // Error handling - hide badge on error
+                binding.cardPaymentMethodBadge.visibility = android.view.View.GONE
             }
         }
         
