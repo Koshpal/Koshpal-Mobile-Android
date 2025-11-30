@@ -31,31 +31,9 @@ class SplashViewModel @Inject constructor(
             Log.d("SplashViewModel", "🚀 Starting splash timer")
             delay(1000) // 1 second delay for splash screen
             
-            // 🔐 AUTO-LOGIN: Always use static employee ID (no login required)
-            val staticEmployeeId = "68ee28ce2f3fd392ea436576"
-            if (!userPreferences.isLoggedIn()) {
-                Log.d("SplashViewModel", "🔐 Auto-logging in with static employee ID: $staticEmployeeId")
-                userPreferences.setLoggedIn(true)
-                userPreferences.saveUserId(staticEmployeeId)
-                userPreferences.saveEmail("koshpal.user@app.com") // Default email
-            }
-            
-            val isSmsProcessed = userPreferences.isInitialSmsProcessed()
-            val isLoggedIn = userPreferences.isLoggedIn()
-            val isSyncCompleted = userPreferences.isInitialSyncCompleted()
-            
-            Log.d("SplashViewModel", "📊 User state - SMS Processed: $isSmsProcessed, Logged In: $isLoggedIn, Sync Completed: $isSyncCompleted")
-            
-            // 🧪 SIMPLIFIED FLOW: Auto-login enabled, just check SMS processing
-            if (!isSmsProcessed) {
-                Log.d("SplashViewModel", "📱 SMS not processed - navigating to SMS_PROCESSING")
-                // First time - process all SMS
-                _navigationEvent.emit(NavigationDestination.SMS_PROCESSING)
-            } else {
-                Log.d("SplashViewModel", "🏠 SMS processed and auto-logged in - navigating to HOME")
-                // User is auto-logged in - go to home
-                _navigationEvent.emit(NavigationDestination.HOME)
-            }
+            Log.d("SplashViewModel", "🔐 One-time login required - navigating to SIGNUP")
+            // Always go to login screen (one-time login every app open)
+            _navigationEvent.emit(NavigationDestination.SIGNUP)
             
             /* PRODUCTION FLOW (Uncomment for production):
             // Check if user is already logged in
@@ -95,6 +73,7 @@ class SplashViewModel @Inject constructor(
         EMPLOYEE_LOGIN,
         ONBOARDING,
         SMS_PROCESSING,
-        SYNC
+        SYNC,
+        SIGNUP
     }
 }

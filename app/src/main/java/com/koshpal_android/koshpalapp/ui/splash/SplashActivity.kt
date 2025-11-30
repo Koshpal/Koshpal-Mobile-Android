@@ -21,6 +21,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.databinding.ActivitySplashBinding
 import com.koshpal_android.koshpalapp.ui.auth.CheckActivity
+import com.koshpal_android.koshpalapp.ui.auth.SignupActivity
 import com.koshpal_android.koshpalapp.ui.login.DemoLoginActivity
 import com.koshpal_android.koshpalapp.ui.auth.EmployeeLoginActivity
 import com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity
@@ -106,6 +107,11 @@ class SplashActivity : AppCompatActivity() {
                         }
                         SplashViewModel.NavigationDestination.SYNC -> {
                             startActivity(Intent(this@SplashActivity, SyncActivity::class.java))
+                            finish()
+                        }
+                        SplashViewModel.NavigationDestination.SIGNUP -> {
+                            Log.d("SplashActivity", "➡️ Navigating to SignupActivity")
+                            startActivity(Intent(this@SplashActivity, SignupActivity::class.java))
                             finish()
                         }
                     }
