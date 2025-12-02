@@ -18,7 +18,7 @@ class LoginActivity : AppCompatActivity() {
     @Inject
     lateinit var userPreferences: UserPreferences
 
-    // Whitelist of allowed emails
+
     private val allowedEmails = setOf(
         "muditsharmaanjana2203@gmail.com",
         "guptasankalp2004@gmail.com",
