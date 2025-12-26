@@ -1,0 +1,17 @@
+{
+  "label2id": {
+    "debit_transaction": 0,
+    "credit_transaction": 1,
+    "otp": 2,
+    "promo": 3,
+    "other": 4
+  },
+  "id2label": {
+    "0": "debit_transaction",
+    "1": "credit_transaction",
+    "2": "otp",
+    "3": "promo",
+    "4": "other"
+  },
+  "confidence_threshold": 0.6
+}

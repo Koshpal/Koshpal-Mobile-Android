@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.koshpal_android.koshpalapp"
-        minSdk = 24
+        minSdk = 26  // Increased to 26 for TensorFlow Lite compatibility
         targetSdk = 35
         versionCode = 3
         versionName = "3.0"
@@ -127,6 +127,9 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
+    
+    // TensorFlow Lite for MobileBERT inference
+    implementation("org.tensorflow:tensorflow-lite:2.15.0")
     
     // Testing
     testImplementation(libs.junit)

@@ -38,7 +38,7 @@ abstract class KoshpalDatabase : RoomDatabase() {
     
     companion object {
         @Volatile
-        private var INSTANCE: KoshpalDatabase? = null
+         private var INSTANCE: KoshpalDatabase? = null
         
         /**
          * Migration from version 8 to 9

@@ -15,6 +15,7 @@ import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import com.koshpal_android.koshpalapp.service.TransactionSyncServiceEntryPoint
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
+import com.koshpal_android.koshpalapp.ml.MobileBERTInference
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,10 @@ import java.util.UUID
 class TransactionSMSReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
+        Log.d("TransactionSMS", "📨 SMS Broadcast received - Action: ${intent?.action}")
+        
         if (intent?.action == "android.provider.Telephony.SMS_RECEIVED") {
+            Log.d("TransactionSMS", "✅ SMS_RECEIVED action confirmed")
             val bundle = intent.extras
             if (bundle != null) {
                 try {
@@ -79,6 +83,29 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                             paymentSmsDao.insertSms(paymentSms)
                                             Log.d("TransactionSMS", "✅ SMS saved to database")
                                             
+                                            // [PHASE-1 ML INTEGRATION] MobileBERT Inference
+                                            val mlInference = MobileBERTInference.getInstance(ctx)
+                                            val mlResult = try {
+                                                mlInference.predict(messageBody)
+                                            } catch (e: Exception) {
+                                                Log.e("TransactionSMS", "⚠️ ML inference failed, using fallback: ${e.message}", e)
+                                                null
+                                            }
+                                            
+                                            // Decision: Use ML result if available and confident, otherwise fallback
+                                            if (mlResult != null) {
+                                                Log.d("TransactionSMS", "🤖 ML Result: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=${mlResult.isTransaction}")
+                                                
+                                                // If ML says NOT a transaction, stop processing
+                                                if (!mlResult.isTransaction) {
+                                                    Log.d("TransactionSMS", "⏭️ ML classified as non-transaction (${mlResult.label}), marking SMS as processed and skipping")
+                                                    paymentSmsDao.markAsProcessed(paymentSms.id)
+                                                    return@launch
+                                                }
+                                            } else {
+                                                Log.d("TransactionSMS", "⚠️ ML inference unavailable, using regex fallback")
+                                            }
+                                            
                                             // Process SMS immediately to create transaction
                                             val engine = TransactionCategorizationEngine()
                                             val details = engine.extractTransactionDetails(messageBody)
@@ -103,14 +130,32 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 // Extract bank name from SMS
                                                 val bankName = extractBankNameFromSMS(messageBody, paymentSms.sender)
                                                 
+                                                // Determine transaction type from ML if available
+                                                val finalType = if (mlResult != null && mlResult.isTransaction) {
+                                                    when (mlResult.label) {
+                                                        "debit_transaction" -> TransactionType.DEBIT
+                                                        "credit_transaction" -> TransactionType.CREDIT
+                                                        else -> details.type // Fallback to regex-extracted type
+                                                    }
+                                                } else {
+                                                    details.type // Use regex-extracted type
+                                                }
+                                                
+                                                // Use ML confidence if available, otherwise default
+                                                val finalConfidence = if (mlResult != null && mlResult.isTransaction) {
+                                                    mlResult.confidence * 100f // Convert 0.0-1.0 to 0-100
+                                                } else {
+                                                    85.0f // Default confidence for regex-based extraction
+                                                }
+                                                
                                                 // Create transaction
                                                 val transaction = Transaction(
                                                     id = UUID.randomUUID().toString(),
                                                     amount = details.amount,
-                                                    type = details.type,
+                                                    type = finalType,
                                                     merchant = details.merchant,
                                                     categoryId = categoryId,
-                                                    confidence = 85.0f,
+                                                    confidence = finalConfidence,
                                                     date = currentTime,
                                                     description = details.description,
                                                     smsBody = messageBody,

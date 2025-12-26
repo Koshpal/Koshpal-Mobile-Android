@@ -28,6 +28,7 @@ import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import com.koshpal_android.koshpalapp.ui.sync.SyncActivity
 import com.koshpal_android.koshpalapp.utils.NotificationPermissionHelper
+import com.koshpal_android.koshpalapp.ml.MobileBERTInference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -40,7 +41,19 @@ class SplashActivity : AppCompatActivity() {
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { _ ->
+    ) { permissions ->
+        // Check if SMS permissions were actually granted
+        val readSmsGranted = permissions[Manifest.permission.READ_SMS] == true
+        val receiveSmsGranted = permissions[Manifest.permission.RECEIVE_SMS] == true
+        
+        if (readSmsGranted && receiveSmsGranted) {
+            Log.d("SplashActivity", "✅ SMS permissions granted")
+            // Initialize MobileBERT early now that permissions are granted
+            initializeMobileBERT()
+        } else {
+            Log.w("SplashActivity", "⚠️ SMS permissions denied - READ_SMS: $readSmsGranted, RECEIVE_SMS: $receiveSmsGranted")
+        }
+        
         // After SMS permissions result, proceed to notifications or splash
         requestNotificationPermissionIfNeeded()
     }
@@ -125,10 +138,31 @@ class SplashActivity : AppCompatActivity() {
             toRequest.add(Manifest.permission.RECEIVE_SMS)
         }
         if (toRequest.isNotEmpty()) {
+            Log.d("SplashActivity", "📱 Requesting SMS permissions: ${toRequest.joinToString()}")
             permissionLauncher.launch(toRequest.toTypedArray())
         } else {
+            // Permissions already granted, initialize MobileBERT
+            Log.d("SplashActivity", "✅ SMS permissions already granted")
+            initializeMobileBERT()
             // No SMS permission needed, proceed to notifications
             requestNotificationPermissionIfNeeded()
+        }
+    }
+    
+    /**
+     * Initialize MobileBERT model early so it's ready when SMS arrives
+     */
+    private fun initializeMobileBERT() {
+        try {
+            Log.d("SplashActivity", "🤖 Initializing MobileBERT model...")
+            val mlInference = MobileBERTInference.getInstance(this)
+            if (mlInference.isReady()) {
+                Log.d("SplashActivity", "✅ MobileBERT initialized and ready")
+            } else {
+                Log.w("SplashActivity", "⚠️ MobileBERT initialization in progress or failed")
+            }
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "❌ Failed to initialize MobileBERT: ${e.message}", e)
         }
     }
 

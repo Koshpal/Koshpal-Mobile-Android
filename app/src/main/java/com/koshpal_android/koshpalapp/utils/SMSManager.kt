@@ -12,6 +12,7 @@ import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.ml.MobileBERTInference
 import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -111,8 +112,31 @@ class SMSManager(private val context: Context) {
                 
                 Log.d("SMSManager", "📂 Found ${categoryList.size} categories for processing")
                 
+                // Initialize ML inference once
+                val mlInference = MobileBERTInference.getInstance(context)
+                
                 transactionSMS.forEach { sms ->
                     try {
+                        // [PHASE-1 ML INTEGRATION] MobileBERT Inference
+                        val mlResult = try {
+                            mlInference.predict(sms.smsBody)
+                        } catch (e: Exception) {
+                            Log.e("SMSManager", "⚠️ ML inference failed for SMS, using fallback: ${e.message}", e)
+                            null
+                        }
+                        
+                        if (mlResult != null) {
+                            Log.d("SMSManager", "🤖 ML Result for SMS: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=${mlResult.isTransaction}")
+                            
+                            // If ML says NOT a transaction, skip processing
+                            if (!mlResult.isTransaction) {
+                                Log.d("SMSManager", "⏭️ ML classified as non-transaction (${mlResult.label}), skipping SMS")
+                                return@forEach
+                            }
+                        } else {
+                            Log.d("SMSManager", "⚠️ ML inference unavailable for SMS, using regex fallback")
+                        }
+                        
                         val details = engine.extractTransactionDetails(sms.smsBody)
                         
                         if (details.amount > 0 && details.merchant.isNotBlank()) {
@@ -157,13 +181,31 @@ class SMSManager(private val context: Context) {
                                 // Extract bank name from SMS
                                 val bankName = extractBankNameFromSMS(sms.smsBody, sms.sender)
                                 
+                                // Determine transaction type from ML if available
+                                val finalType = if (mlResult != null && mlResult.isTransaction) {
+                                    when (mlResult.label) {
+                                        "debit_transaction" -> TransactionType.DEBIT
+                                        "credit_transaction" -> TransactionType.CREDIT
+                                        else -> details.type // Fallback to regex-extracted type
+                                    }
+                                } else {
+                                    details.type // Use regex-extracted type
+                                }
+                                
+                                // Use ML confidence if available, otherwise default
+                                val finalConfidence = if (mlResult != null && mlResult.isTransaction) {
+                                    mlResult.confidence * 100f // Convert 0.0-1.0 to 0-100
+                                } else {
+                                    85.0f // Default confidence for regex-based extraction
+                                }
+                                
                                 val transaction = Transaction(
                                     id = UUID.randomUUID().toString(),
                                     amount = details.amount,
-                                    type = details.type,
+                                    type = finalType,
                                     merchant = details.merchant,
                                     categoryId = validCategory,
-                                    confidence = 85.0f, // High confidence for SMS-based transactions
+                                    confidence = finalConfidence,
                                     date = sms.timestamp,
                                     description = details.description,
                                     smsBody = sms.smsBody,
@@ -236,12 +278,12 @@ class SMSManager(private val context: Context) {
             val uri = Uri.parse("content://sms")
             val projection = arrayOf("_id", "address", "body", "date")
             
-            // Read ALL SMS messages from last 6 months, ordered by date DESC
-            val sixMonthsAgo = System.currentTimeMillis() - (6 * 30 * 24 * 60 * 60 * 1000L)
+            // [TESTING] Read SMS from last 2 months only (will make it proper later)
+            val twoMonthsAgo = System.currentTimeMillis() - (2 * 30 * 24 * 60 * 60 * 1000L)
             val selection = "date >= ?"
-            val selectionArgs = arrayOf(sixMonthsAgo.toString())
+            val selectionArgs = arrayOf(twoMonthsAgo.toString())
             
-            Log.d("SMSManager", "🔍 Reading SMS from last 6 months (since ${java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(sixMonthsAgo))})")
+            Log.d("SMSManager", "🔍 [TESTING] Reading SMS from last 2 months only (since ${java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date(twoMonthsAgo))})")
             
             val cursor = context.contentResolver.query(
                 uri, 
