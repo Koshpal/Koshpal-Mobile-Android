@@ -16,21 +16,4 @@
     <string name="verify_phone">Verify Phone</string>
     <string name="otp_sent_to">Enter OTP sent to %s</string>
     <string name="resend_timer">Resend OTP in %ds</string>
-
-    <!-- Signup Screen -->
-    <string name="create_account">Create Account</string>
-    <string name="join_koshpal">Join Koshpal to manage your finances</string>
-    <string name="full_name">Full Name</string>
-    <string name="email_address">Email Address</string>
-    <string name="password">Password (min 6 characters)</string>
-    <string name="confirm_password">Confirm Password</string>
-    <string name="sign_up">Sign Up</string>
-    <string name="already_have_account">Already have an account?</string>
-    <string name="sign_in_here">Sign in here</string>
-    <string name="authorized_emails_only">Only authorized emails can access the app</string>
-    <string name="email_not_authorized">This email is not authorized to access the app. Please contact support.</string>
-    <string name="passwords_do_not_match">Passwords do not match</string>
-    <string name="password_min_length">Password must be at least 6 characters</string>
-    <string name="invalid_email">Please enter a valid email address</string>
-    <string name="signup_successful">Signup successful!</string>
 </resources>

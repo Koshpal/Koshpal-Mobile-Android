@@ -59,13 +59,13 @@ class HomeActivity : AppCompatActivity() {
         }
 
         // Make status bar and navigation bar icons light (white) for dark background
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            var flags = window.decorView.systemUiVisibility
-            flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() // Clear light status bar flag
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv() // Clear light nav bar flag
-            }
-            window.decorView.systemUiVisibility = flags
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.setSystemBarsBehavior(
+                android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            )
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = 0 // Clear all flags for dark background
         }
         // Pre-add all primary fragments and show Home by default for faster nav
         supportFragmentManager.beginTransaction()
@@ -285,7 +285,7 @@ class HomeActivity : AppCompatActivity() {
                     
                     // Switch to main thread to show dialog
                     runOnUiThread {
-                        val dialog = TransactionDetailsDialog.newInstance(transaction) { updatedTransaction ->
+                        val dialog = TransactionDetailsDialog.newInstance(transaction) { _ ->
                             android.util.Log.d("HomeActivity", "📝 Transaction updated from notification dialog")
                             // Optionally refresh the transactions fragment
                             if (transactionsFragment.isAdded) {
