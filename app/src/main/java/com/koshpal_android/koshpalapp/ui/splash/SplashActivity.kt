@@ -1,16 +1,9 @@
 package com.koshpal_android.koshpalapp.ui.splash
 
 import android.Manifest
-import android.animation.ArgbEvaluator
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Intent
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -28,7 +21,7 @@ import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import com.koshpal_android.koshpalapp.ui.sync.SyncActivity
 import com.koshpal_android.koshpalapp.utils.NotificationPermissionHelper
-import com.koshpal_android.koshpalapp.ml.MobileBERTInference
+import com.koshpal_android.koshpalapp.ml.SmsClassifier
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -48,8 +41,8 @@ class SplashActivity : AppCompatActivity() {
         
         if (readSmsGranted && receiveSmsGranted) {
             Log.d("SplashActivity", "✅ SMS permissions granted")
-            // Initialize MobileBERT early now that permissions are granted
-            initializeMobileBERT()
+            // Initialize SMS Classifier early now that permissions are granted
+            initializeSmsClassifier()
         } else {
             Log.w("SplashActivity", "⚠️ SMS permissions denied - READ_SMS: $readSmsGranted, RECEIVE_SMS: $receiveSmsGranted")
         }
@@ -66,17 +59,164 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private var hasStartedSplash = false
+    private var isLottieAnimationReady = false
+    private var lottieAnimationStartTime = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ============================================
+        // ADDED LOTTIE ANIMATION: Initialize and start Lottie animation
+        // Uses Lottie library to display animated logo on splash screen
+        // Animation is loaded from raw resources (logoaniamation.json)
+        // ============================================
+        setupLottieAnimation()
+        
         observeNavigation()
-        // Start animations immediately
-        startPremiumAnimations()
         // Request permissions in sequence to avoid overlapping dialogs
         requestSmsPermissionsIfNeeded()
+    }
+    
+    /**
+     * ADDED LOTTIE ANIMATION: Setup and configure Lottie animation for splash screen
+     * 
+     * This function:
+     * - Loads Lottie animation from raw resources
+     * - Configures animation properties (infinite loop, speed, rendering mode)
+     * - Handles animation lifecycle (play, pause, resume)
+     * - Provides fallback handling if animation fails to load
+     */
+    private fun setupLottieAnimation() {
+        try {
+            // Step 1: Verify resource exists
+            val resourceId = R.raw.logoaniamation
+            Log.d("SplashActivity", "🔍 Checking Lottie resource ID: $resourceId")
+            
+            // Step 2: Configure animation view properties first
+            binding.lottieAnimation.apply {
+                // Set visibility explicitly
+                visibility = android.view.View.VISIBLE
+                
+                // Set background color to match screen background
+                setBackgroundColor(ContextCompat.getColor(this@SplashActivity, R.color.primary_darkest))
+                
+                // Configure animation properties
+                repeatCount = -1 // Infinite loop
+                speed = 1.0f
+                
+                // Enable merge paths support (required for complex animations)
+                enableMergePathsForKitKatAndAbove(true)
+                
+                // Try software rendering first (hardware can sometimes cause issues)
+                // If needed, can switch to HARDWARE later
+                setRenderMode(com.airbnb.lottie.RenderMode.AUTOMATIC)
+                
+                Log.d("SplashActivity", "✅ LottieAnimationView configured")
+            }
+            
+            // Step 3: Load composition asynchronously using LottieCompositionFactory
+            Log.d("SplashActivity", "📥 Loading Lottie composition from raw resource...")
+            
+            com.airbnb.lottie.LottieCompositionFactory.fromRawRes(this, resourceId)
+                .addListener(object : com.airbnb.lottie.LottieListener<com.airbnb.lottie.LottieComposition> {
+                    override fun onResult(composition: com.airbnb.lottie.LottieComposition?) {
+                        if (composition != null) {
+                            Log.d("SplashActivity", "✅ Lottie composition loaded successfully")
+                            Log.d("SplashActivity", "   - Duration: ${composition.duration}ms")
+                            Log.d("SplashActivity", "   - Frame rate: ${composition.frameRate} fps")
+                            Log.d("SplashActivity", "   - Start frame: ${composition.startFrame}")
+                            Log.d("SplashActivity", "   - End frame: ${composition.endFrame}")
+                            
+                            // Check for warnings
+                            val warnings = composition.warnings
+                            if (warnings.isNotEmpty()) {
+                                Log.w("SplashActivity", "⚠️ Lottie composition warnings:")
+                                warnings.forEach { warning ->
+                                    Log.w("SplashActivity", "   - $warning")
+                                }
+                            }
+                            
+                            // Set composition and play animation
+                            binding.lottieAnimation.apply {
+                                // Ensure visibility first
+                                visibility = android.view.View.VISIBLE
+                                
+                                // Set composition
+                                setComposition(composition)
+                                
+                                // Set to first frame immediately to show something right away
+                                val startFrame = composition.startFrame.toInt()
+                                frame = startFrame
+                                Log.d("SplashActivity", "📸 Set to first frame: $startFrame")
+                                
+                                // Post to ensure view is fully laid out before playing
+                                post {
+                                    // Double-check visibility
+                                    visibility = android.view.View.VISIBLE
+                                    
+                                    // Start playing animation
+                                    playAnimation()
+                                    
+                                    // Mark animation as ready
+                                    isLottieAnimationReady = true
+                                    lottieAnimationStartTime = System.currentTimeMillis()
+                                    
+                                    // Log animation state
+                                    Log.d("SplashActivity", "🎬 Lottie animation started playing")
+                                    Log.d("SplashActivity", "   - Current frame: $frame")
+                                    Log.d("SplashActivity", "   - Is animating: $isAnimating")
+                                    Log.d("SplashActivity", "   - Progress: $progress")
+                                    Log.d("SplashActivity", "   - Speed: $speed")
+                                    Log.d("SplashActivity", "   - Repeat count: $repeatCount")
+                                    
+                                    // If splash timer hasn't started yet, trigger it now
+                                    if (!hasStartedSplash) {
+                                        Log.d("SplashActivity", "🚀 Lottie ready, triggering splash timer")
+                                        startSplashOnce()
+                                    }
+                                    
+                                    // Verify animation is actually playing after a short delay
+                                    postDelayed({
+                                        Log.d("SplashActivity", "🔍 Animation check after 500ms:")
+                                        Log.d("SplashActivity", "   - Is animating: $isAnimating")
+                                        Log.d("SplashActivity", "   - Current frame: $frame")
+                                        Log.d("SplashActivity", "   - Progress: $progress")
+                                        if (!isAnimating) {
+                                            Log.w("SplashActivity", "⚠️ Animation is not playing, trying to restart...")
+                                            playAnimation()
+                                        }
+                                    }, 500)
+                                }
+                            }
+                        } else {
+                            Log.e("SplashActivity", "❌ Lottie composition is null")
+                            handleAnimationLoadFailure("Composition is null")
+                        }
+                    }
+                })
+                .addFailureListener(object : com.airbnb.lottie.LottieListener<Throwable> {
+                    override fun onResult(result: Throwable) {
+                        Log.e("SplashActivity", "❌ Failed to load Lottie composition", result)
+                        handleAnimationLoadFailure(result.message ?: "Unknown error")
+                    }
+                })
+                
+        } catch (e: Exception) {
+            Log.e("SplashActivity", "❌ Exception during Lottie setup: ${e.message}", e)
+            handleAnimationLoadFailure(e.message ?: "Exception during setup")
+        }
+    }
+    
+    private fun handleAnimationLoadFailure(errorMessage: String) {
+        Log.e("SplashActivity", "❌ Animation load failed: $errorMessage")
+        // Keep view visible but log the error
+        // Animation view will remain visible but empty
+        binding.lottieAnimation.visibility = android.view.View.VISIBLE
+        
+        // Optionally, you could show a placeholder image here
+        // For now, we'll just log the error and keep the view visible
     }
 
     private fun observeNavigation() {
@@ -141,28 +281,24 @@ class SplashActivity : AppCompatActivity() {
             Log.d("SplashActivity", "📱 Requesting SMS permissions: ${toRequest.joinToString()}")
             permissionLauncher.launch(toRequest.toTypedArray())
         } else {
-            // Permissions already granted, initialize MobileBERT
+            // Permissions already granted, initialize SMS Classifier
             Log.d("SplashActivity", "✅ SMS permissions already granted")
-            initializeMobileBERT()
+            initializeSmsClassifier()
             // No SMS permission needed, proceed to notifications
             requestNotificationPermissionIfNeeded()
         }
     }
     
     /**
-     * Initialize MobileBERT model early so it's ready when SMS arrives
+     * Initialize SMS Classifier model early so it's ready when SMS arrives
      */
-    private fun initializeMobileBERT() {
+    private fun initializeSmsClassifier() {
         try {
-            Log.d("SplashActivity", "🤖 Initializing MobileBERT model...")
-            val mlInference = MobileBERTInference.getInstance(this)
-            if (mlInference.isReady()) {
-                Log.d("SplashActivity", "✅ MobileBERT initialized and ready")
-            } else {
-                Log.w("SplashActivity", "⚠️ MobileBERT initialization in progress or failed")
-            }
+            Log.d("SplashActivity", "🤖 Initializing SMS Classifier model...")
+            val classifier = SmsClassifier(this)
+            Log.d("SplashActivity", "✅ SMS Classifier initialized and ready")
         } catch (e: Exception) {
-            Log.e("SplashActivity", "❌ Failed to initialize MobileBERT: ${e.message}", e)
+            Log.e("SplashActivity", "❌ Failed to initialize SMS Classifier: ${e.message}", e)
         }
     }
 
@@ -182,143 +318,62 @@ class SplashActivity : AppCompatActivity() {
     private fun startSplashOnce() {
         if (hasStartedSplash) return
         hasStartedSplash = true
-        viewModel.startSplashTimer()
-    }
-
-    private fun startPremiumAnimations() {
-        // Phase 1: Logo scale and fade in with bounce (0-900ms)
-        animateLogoScaleAndFade()
         
-        // Phase 2: Character-by-character "Koshpal" animation (1000-2200ms)
-        animateKoshpalText()
-        
-        // Phase 3: Tagline fade in (2100-2600ms)
-        animateTagline()
-        
-        // Phase 4: Background color transition (0-2800ms)
-        animateBackgroundTransition()
-    }
-
-    private fun animateLogoScaleAndFade() {
-        // Scale animation with overshoot: from 0.2 to 1.0 with slight bounce
-        val scaleX = ObjectAnimator.ofFloat(binding.ivAppLogo, "scaleX", 0.2f, 1.1f, 1.0f).apply {
-            duration = 1000
-            interpolator = DecelerateInterpolator()
-        }
-        val scaleY = ObjectAnimator.ofFloat(binding.ivAppLogo, "scaleY", 0.2f, 1.1f, 1.0f).apply {
-            duration = 1000
-            interpolator = DecelerateInterpolator()
-        }
-        
-        // Fade animation: from 0 to 1
-        val fadeIn = ObjectAnimator.ofFloat(binding.ivAppLogo, "alpha", 0f, 1.0f).apply {
-            duration = 900
-            interpolator = DecelerateInterpolator()
-        }
-        
-        // Add subtle rotation for extra flair
-        val rotate = ObjectAnimator.ofFloat(binding.ivAppLogo, "rotation", -10f, 0f).apply {
-            duration = 1000
-            interpolator = DecelerateInterpolator()
-        }
-        
-        scaleX.start()
-        scaleY.start()
-        fadeIn.start()
-        rotate.start()
-    }
-
-
-    private fun animateKoshpalText() {
-        try {
-            // List of character TextViews
-            val characters = listOf(
-                binding.tvChar1,  // K
-                binding.tvChar2,  // o
-                binding.tvChar3,  // s
-                binding.tvChar4,  // h
-                binding.tvChar5,  // p
-                binding.tvChar6,  // a
-                binding.tvChar7   // l
-            )
-            
-            // Animate each character with staggered delay
-            characters.forEachIndexed { index, textView ->
-                val delay = 1100L + (index * 120L) // Start at 1100ms, each character 120ms apart
-                
-                // Slide up animation with bounce
-                val slideUp = ObjectAnimator.ofFloat(textView, "translationY", 30f, -5f, 0f).apply {
-                    duration = 400
-                    startDelay = delay
-                    interpolator = DecelerateInterpolator()
-                }
-                
-                // Fade in animation (from slightly visible to fully visible)
-                val fadeIn = ObjectAnimator.ofFloat(textView, "alpha", 0.1f, 1.0f).apply {
-                    duration = 400
-                    startDelay = delay
-                    interpolator = DecelerateInterpolator()
-                }
-                
-                // Scale animation for bounce effect
-                val scaleX = ObjectAnimator.ofFloat(textView, "scaleX", 0.5f, 1.2f, 1.0f).apply {
-                    duration = 400
-                    startDelay = delay
-                    interpolator = DecelerateInterpolator()
-                }
-                
-                val scaleY = ObjectAnimator.ofFloat(textView, "scaleY", 0.5f, 1.2f, 1.0f).apply {
-                    duration = 400
-                    startDelay = delay
-                    interpolator = DecelerateInterpolator()
-                }
-                
-                slideUp.start()
-                fadeIn.start()
-                scaleX.start()
-                scaleY.start()
-            }
-        } catch (e: Exception) {
-            // Binding not ready yet - will work after rebuild
-            e.printStackTrace()
-        }
+        // Wait for Lottie animation to be ready before starting timer
+        waitForLottieAndStartTimer()
     }
     
-    private fun animateTagline() {
-        try {
-            // Fade in tagline after text animation
-            val fadeIn = ObjectAnimator.ofFloat(binding.tvTagline, "alpha", 0f, 1.0f).apply {
-                duration = 600
-                startDelay = 2200
-                interpolator = DecelerateInterpolator()
-            }
-            
-            val slideUp = ObjectAnimator.ofFloat(binding.tvTagline, "translationY", 20f, 0f).apply {
-                duration = 600
-                startDelay = 2200
-                interpolator = DecelerateInterpolator()
-            }
-            
-            fadeIn.start()
-            slideUp.start()
-        } catch (e: Exception) {
-            // Binding not ready yet - will work after rebuild
-            e.printStackTrace()
+    private fun waitForLottieAndStartTimer() {
+        // Check if Lottie is already ready
+        if (isLottieAnimationReady) {
+            Log.d("SplashActivity", "✅ Lottie already ready, starting splash timer")
+            viewModel.startSplashTimer()
+            return
         }
+        
+        // Wait for Lottie animation to be ready (max 3 seconds)
+        val startTime = System.currentTimeMillis()
+        val maxWaitTime = 3000L // 3 seconds max wait
+        
+        // Check periodically if Lottie becomes ready
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        val checkRunnable = object : Runnable {
+            override fun run() {
+                val elapsed = System.currentTimeMillis() - startTime
+                if (isLottieAnimationReady) {
+                    Log.d("SplashActivity", "✅ Lottie ready after ${elapsed}ms, starting splash timer")
+                    viewModel.startSplashTimer()
+                } else if (elapsed < maxWaitTime) {
+                    // Keep checking every 100ms until max wait time
+                    handler.postDelayed(this, 100)
+                } else {
+                    // Max wait time reached, start timer anyway
+                    Log.w("SplashActivity", "⚠️ Lottie not ready after ${elapsed}ms, starting timer anyway")
+                    viewModel.startSplashTimer()
+                }
+            }
+        }
+        handler.post(checkRunnable)
     }
 
-    private fun animateBackgroundTransition() {
-        // Transition from primary color to white
-        val primaryColor = ContextCompat.getColor(this, R.color.primary)
-        val whiteColor = ContextCompat.getColor(this, R.color.white)
-        
-        val colorAnimator = ValueAnimator.ofObject(ArgbEvaluator(), primaryColor, whiteColor).apply {
-            duration = 2800
-            addUpdateListener { animator ->
-                binding.backgroundView.setBackgroundColor(animator.animatedValue as Int)
-            }
-            interpolator = AccelerateDecelerateInterpolator()
-        }
-        colorAnimator.start()
+
+    // Background color is set to dark blue in XML, no transition needed
+    
+    override fun onResume() {
+        super.onResume()
+        // Resume animation when activity resumes
+        binding.lottieAnimation.resumeAnimation()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Pause animation when activity pauses
+        binding.lottieAnimation.pauseAnimation()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Clean up animation resources
+        binding.lottieAnimation.cancelAnimation()
     }
 }

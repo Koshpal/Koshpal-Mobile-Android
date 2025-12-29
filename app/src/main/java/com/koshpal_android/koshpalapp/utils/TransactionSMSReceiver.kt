@@ -15,7 +15,7 @@ import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import com.koshpal_android.koshpalapp.service.TransactionSyncServiceEntryPoint
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
-import com.koshpal_android.koshpalapp.ml.MobileBERTInference
+import com.koshpal_android.koshpalapp.ml.SmsClassifier
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,16 +47,15 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                         val sender = smsMessage?.originatingAddress
                         
                         if (messageBody != null && sender != null) {
-                            // Check if this looks like a transaction SMS
-                            if (isTransactionSMS(messageBody, sender)) {
-                                Log.d("TransactionSMS", "🔔 Detected transaction SMS from $sender")
-                                Log.d("TransactionSMS", "📱 App State: ${if (isAppInForeground(context)) "FOREGROUND" else "BACKGROUND/CLOSED"}")
-                                
-                                // FIXED: Use goAsync() to ensure processing completes even when app is closed
-                                val pendingResult = goAsync()
-                                
-                                // Process SMS immediately in background
-                                CoroutineScope(Dispatchers.IO).launch {
+                            // Send ALL SMS to ML model (no rule-based filtering)
+                            Log.d("TransactionSMS", "📨 Received SMS from $sender - sending to ML model")
+                            Log.d("TransactionSMS", "📱 App State: ${if (isAppInForeground(context)) "FOREGROUND" else "BACKGROUND/CLOSED"}")
+                            
+                            // FIXED: Use goAsync() to ensure processing completes even when app is closed
+                            val pendingResult = goAsync()
+                            
+                            // Process SMS immediately in background
+                            CoroutineScope(Dispatchers.IO).launch {
                                     try {
                                         context?.let { ctx ->
                                             val database = KoshpalDatabase.getDatabase(ctx)
@@ -83,10 +82,15 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                             paymentSmsDao.insertSms(paymentSms)
                                             Log.d("TransactionSMS", "✅ SMS saved to database")
                                             
-                                            // [PHASE-1 ML INTEGRATION] MobileBERT Inference
-                                            val mlInference = MobileBERTInference.getInstance(ctx)
+                                            // ============================================
+                                            // INTEGRATED ML MODULE: SMS Classifier Inference
+                                            // Uses TensorFlow Lite INT8 model to classify SMS
+                                            // Determines if SMS is a transaction (debit/credit) or other type
+                                            // Falls back to regex-based detection if ML fails
+                                            // ============================================
+                                            val classifier = SmsClassifier(ctx)
                                             val mlResult = try {
-                                                mlInference.predict(messageBody)
+                                                classifier.classify(messageBody)
                                             } catch (e: Exception) {
                                                 Log.e("TransactionSMS", "⚠️ ML inference failed, using fallback: ${e.message}", e)
                                                 null
@@ -94,10 +98,11 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                             
                                             // Decision: Use ML result if available and confident, otherwise fallback
                                             if (mlResult != null) {
-                                                Log.d("TransactionSMS", "🤖 ML Result: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=${mlResult.isTransaction}")
+                                                val isTransaction = mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction"
+                                                Log.d("TransactionSMS", "🤖 ML Result: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=$isTransaction")
                                                 
                                                 // If ML says NOT a transaction, stop processing
-                                                if (!mlResult.isTransaction) {
+                                                if (!isTransaction) {
                                                     Log.d("TransactionSMS", "⏭️ ML classified as non-transaction (${mlResult.label}), marking SMS as processed and skipping")
                                                     paymentSmsDao.markAsProcessed(paymentSms.id)
                                                     return@launch
@@ -131,7 +136,8 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 val bankName = extractBankNameFromSMS(messageBody, paymentSms.sender)
                                                 
                                                 // Determine transaction type from ML if available
-                                                val finalType = if (mlResult != null && mlResult.isTransaction) {
+                                                val isTransaction = mlResult != null && (mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction")
+                                                val finalType = if (isTransaction && mlResult != null) {
                                                     when (mlResult.label) {
                                                         "debit_transaction" -> TransactionType.DEBIT
                                                         "credit_transaction" -> TransactionType.CREDIT
@@ -142,7 +148,7 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 }
                                                 
                                                 // Use ML confidence if available, otherwise default
-                                                val finalConfidence = if (mlResult != null && mlResult.isTransaction) {
+                                                val finalConfidence = if (isTransaction && mlResult != null) {
                                                     mlResult.confidence * 100f // Convert 0.0-1.0 to 0-100
                                                 } else {
                                                     85.0f // Default confidence for regex-based extraction
@@ -215,7 +221,6 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                 }
                             }
                         }
-                    }
                 } catch (e: Exception) {
                     Log.e("TransactionSMS", "Error receiving SMS", e)
                 }

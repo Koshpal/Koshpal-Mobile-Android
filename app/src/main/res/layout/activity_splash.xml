@@ -9,7 +9,7 @@
         android:id="@+id/backgroundView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/primary" />
+        android:background="@color/primary_darkest" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,76 +17,19 @@
         android:padding="32dp"
         android:clipToPadding="false">
 
-        <ImageView
-            android:id="@+id/ivAppLogo"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:contentDescription="App Logo"
-            android:src="@drawable/app_logo"
-            android:scaleType="centerInside"
-            android:scaleX="0.2"
-            android:scaleY="0.2"
-            android:alpha="0"
-            app:layout_constraintBottom_toTopOf="@+id/textContainer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <LinearLayout
-            android:id="@+id/textContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:padding="12dp"
-            android:orientation="horizontal"
-            android:gravity="center"
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieAnimation"
+            android:layout_width="400dp"
+            android:layout_height="400dp"
+            android:contentDescription="App Logo Animation"
+            android:visibility="visible"
+            android:background="@color/primary_darkest"
+            android:scaleX="2.25"
+            android:scaleY="2.25"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ivAppLogo">
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView android:id="@+id/tvChar1" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="K" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar2" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="o" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar3" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="s" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar4" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="h" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar5" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="p" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar6" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="a" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-            <TextView android:id="@+id/tvChar7" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="l" android:textSize="48sp" android:textStyle="bold" android:textColor="#FFFFFF"
-                android:alpha="0" android:translationY="30dp" android:fontFamily="sans-serif-black"
-                android:includeFontPadding="false" android:shadowColor="#33000000" android:shadowDy="2" android:shadowRadius="3" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tvTagline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Smart Finance Management"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:alpha="0"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textContainer" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

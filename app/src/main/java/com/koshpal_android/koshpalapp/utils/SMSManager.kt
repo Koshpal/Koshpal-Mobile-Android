@@ -12,7 +12,7 @@ import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionCategory
 import com.koshpal_android.koshpalapp.model.TransactionType
-import com.koshpal_android.koshpalapp.ml.MobileBERTInference
+import com.koshpal_android.koshpalapp.ml.SmsClassifier
 import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,22 +49,20 @@ class SMSManager(private val context: Context) {
                 result.smsFound = smsMessages.size
                 Log.d("SMSManager", "📱 Found ${smsMessages.size} SMS messages from device")
                 
-                // Step 2: Filter transaction SMS
-                Log.d("SMSManager", "🔍 Filtering transaction SMS...")
-                val transactionSMS = smsMessages.filter { sms ->
-                    isTransactionSMS(sms.body, sms.address)
-                }
-                result.transactionSmsFound = transactionSMS.size
-                Log.d("SMSManager", "💳 Found ${transactionSMS.size} transaction SMS out of ${smsMessages.size} total SMS")
+                // Step 2: Skip rule-based filtering - send ALL SMS to ML model
+                Log.d("SMSManager", "🤖 Sending ALL SMS to ML model for classification...")
+                val allSMS = smsMessages
+                result.transactionSmsFound = allSMS.size // Will be updated by model classification
+                Log.d("SMSManager", "📱 Processing ${allSMS.size} total SMS with ML model")
                 
                 // Log some examples for debugging
-                transactionSMS.take(3).forEach { sms ->
-                    Log.d("SMSManager", "📄 Example transaction SMS from ${sms.address}: ${sms.body.take(100)}...")
+                allSMS.take(3).forEach { sms ->
+                    Log.d("SMSManager", "📄 Example SMS from ${sms.address}: ${sms.body.take(100)}...")
                 }
                 
                 // Step 3: Save SMS to database (avoid duplicates)
                 Log.d("SMSManager", "💾 Saving SMS to database...")
-                transactionSMS.forEach { sms ->
+                allSMS.forEach { sms ->
                     try {
                         // Check if SMS already exists to avoid duplicates
                         val existing = paymentSmsDao.getSMSByBodyAndSender(sms.body, sms.address)
@@ -112,24 +110,33 @@ class SMSManager(private val context: Context) {
                 
                 Log.d("SMSManager", "📂 Found ${categoryList.size} categories for processing")
                 
-                // Initialize ML inference once
-                val mlInference = MobileBERTInference.getInstance(context)
+                // ============================================
+                // INTEGRATED ML MODULE: Initialize ML classifier
+                // Uses TensorFlow Lite INT8 model for SMS classification
+                // ============================================
+                val classifier = SmsClassifier(context)
                 
-                transactionSMS.forEach { sms ->
+                // Process ALL SMS with ML model (no rule-based filtering)
+                allSMS.forEach { sms ->
                     try {
-                        // [PHASE-1 ML INTEGRATION] MobileBERT Inference
+                        // ============================================
+                        // ML INTEGRATION: SMS Classifier Inference
+                        // Classifies SMS using ML model to determine if it's a transaction
+                        // Falls back to regex-based detection if ML inference fails
+                        // ============================================
                         val mlResult = try {
-                            mlInference.predict(sms.smsBody)
+                            classifier.classify(sms.smsBody)
                         } catch (e: Exception) {
                             Log.e("SMSManager", "⚠️ ML inference failed for SMS, using fallback: ${e.message}", e)
                             null
                         }
                         
                         if (mlResult != null) {
-                            Log.d("SMSManager", "🤖 ML Result for SMS: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=${mlResult.isTransaction}")
+                            val isTransaction = mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction"
+                            Log.d("SMSManager", "🤖 ML Result for SMS: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=$isTransaction")
                             
                             // If ML says NOT a transaction, skip processing
-                            if (!mlResult.isTransaction) {
+                            if (!isTransaction) {
                                 Log.d("SMSManager", "⏭️ ML classified as non-transaction (${mlResult.label}), skipping SMS")
                                 return@forEach
                             }
@@ -182,7 +189,8 @@ class SMSManager(private val context: Context) {
                                 val bankName = extractBankNameFromSMS(sms.smsBody, sms.sender)
                                 
                                 // Determine transaction type from ML if available
-                                val finalType = if (mlResult != null && mlResult.isTransaction) {
+                                val isTransaction = mlResult != null && (mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction")
+                                val finalType = if (isTransaction && mlResult != null) {
                                     when (mlResult.label) {
                                         "debit_transaction" -> TransactionType.DEBIT
                                         "credit_transaction" -> TransactionType.CREDIT
@@ -193,7 +201,7 @@ class SMSManager(private val context: Context) {
                                 }
                                 
                                 // Use ML confidence if available, otherwise default
-                                val finalConfidence = if (mlResult != null && mlResult.isTransaction) {
+                                val finalConfidence = if (isTransaction && mlResult != null) {
                                     mlResult.confidence * 100f // Convert 0.0-1.0 to 0-100
                                 } else {
                                     85.0f // Default confidence for regex-based extraction
@@ -255,8 +263,8 @@ class SMSManager(private val context: Context) {
                 Log.d("SMSManager", "✅ SMS processing completed successfully!")
                 Log.d("SMSManager", "📊 FINAL RESULTS:")
                 Log.d("SMSManager", "   📱 Total SMS found: ${result.smsFound}")
-                Log.d("SMSManager", "   💳 Transaction SMS: ${result.transactionSmsFound}")
-                Log.d("SMSManager", "   💾 SMS processed: ${result.smsProcessed}")
+                Log.d("SMSManager", "   🤖 SMS classified by ML model: ${result.transactionSmsFound}")
+                Log.d("SMSManager", "   💾 SMS saved to database: ${result.smsProcessed}")
                 Log.d("SMSManager", "   ✅ Transactions created: ${result.transactionsCreated}")
                 
                 result.success = true

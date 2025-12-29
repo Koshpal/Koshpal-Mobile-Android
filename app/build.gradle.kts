@@ -128,8 +128,17 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
     
-    // TensorFlow Lite for MobileBERT inference
+    // ============================================
+    // INTEGRATED ML MODULE: TensorFlow Lite for ML inference
+    // Used for SMS transaction classification using INT8 quantized model
+    // ============================================
     implementation("org.tensorflow:tensorflow-lite:2.15.0")
+    
+    // ============================================
+    // ADDED LOTTIE ANIMATION: Lottie library for splash screen animation
+    // Used to display animated logo on splash screen
+    // ============================================
+    implementation("com.airbnb.android:lottie:6.3.0")
     
     // Testing
     testImplementation(libs.junit)
