@@ -29,7 +29,13 @@ class SplashViewModel @Inject constructor(
     fun startSplashTimer() {
         viewModelScope.launch {
             Log.d("SplashViewModel", "🚀 Starting splash timer")
-            delay(2000) // 2 second delay for splash screen animation
+
+            // ============================================
+            // ADDED LOTTIE ANIMATION: Increased delay to allow animation to complete
+            // Animation duration is approximately 2.6 seconds
+            // 2.5s delay ensures at least one full cycle of the Lottie animation
+            // ============================================
+            delay(2500) // 2.5 seconds delay for splash screen
             
             // 🔐 AUTO-LOGIN: Always use static employee ID (no login required)
             val staticEmployeeId = "68ee28ce2f3fd392ea436576"

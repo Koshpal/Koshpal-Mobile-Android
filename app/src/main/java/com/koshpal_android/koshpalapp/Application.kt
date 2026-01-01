@@ -7,6 +7,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
+import com.koshpal_android.koshpalapp.ml.SmsClassifier
 import com.koshpal_android.koshpalapp.service.TransactionSyncScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -36,10 +37,19 @@ class Application : Application(), Configuration.Provider {
         } catch (e: Exception) {
             Log.e("Application", "❌ Failed to schedule background sync: ${e.message}", e)
         }
-        
-        // Note: SmsClassifier is initialized on-demand when SMS is received
-        // This avoids loading the ML model at app startup, improving launch time
-        // The model will be loaded automatically when TransactionSMSReceiver processes SMS
+
+        // ============================================
+        // INTEGRATED ML MODULE: Pre-initialize SMS Classifier model
+        // This ensures the TensorFlow Lite model is loaded and ready when SMS arrives
+        // Improves responsiveness by avoiding model loading delay during SMS processing
+        // ============================================
+        try {
+            Log.d("Application", "🤖 Pre-initializing SMS Classifier model...")
+            val classifier = SmsClassifier(this)
+            Log.d("Application", "✅ SMS Classifier instance created and initialized")
+        } catch (e: Exception) {
+            Log.e("Application", "❌ Failed to create SMS Classifier instance: ${e.message}", e)
+        }
     }
     
     override val workManagerConfiguration: Configuration
