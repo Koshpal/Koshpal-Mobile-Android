@@ -70,28 +70,55 @@ class SplashActivity : AppCompatActivity() {
         // ============================================
         // ADDED LOTTIE ANIMATION: Initialize and start Lottie animation
         // Uses Lottie library to display animated logo on splash screen
-        // Animation is loaded from raw resources (logoaniamation.json)
+        // Animation is loaded from raw resources (splasg_anim.json) - 2 seconds duration
         // ============================================
         setupLottieAnimation()
         
         observeNavigation()
         // Request permissions in sequence to avoid overlapping dialogs
         requestSmsPermissionsIfNeeded()
+        
+        // Check for app updates
+        checkForAppUpdate()
+    }
+    
+    /**
+     * Check for app updates in background
+     */
+    private fun checkForAppUpdate() {
+        lifecycleScope.launch {
+            try {
+                val updateManager = com.koshpal_android.koshpalapp.utils.UpdateManager(this@SplashActivity)
+                val updateInfo = updateManager.checkForUpdate()
+                
+                if (updateInfo != null) {
+                    // Show update dialog after a short delay to not interfere with splash
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        if (!isFinishing && !isDestroyed) {
+                            val updateDialog = com.koshpal_android.koshpalapp.ui.update.UpdateDialog.newInstance(updateInfo)
+                            updateDialog.show(supportFragmentManager, "UpdateDialog")
+                        }
+                    }, 2000) // Show after 2 seconds
+                }
+            } catch (e: Exception) {
+                Log.e("SplashActivity", "❌ Error checking for updates: ${e.message}", e)
+            }
+        }
     }
     
     /**
      * ADDED LOTTIE ANIMATION: Setup and configure Lottie animation for splash screen
      * 
      * This function:
-     * - Loads Lottie animation from raw resources
-     * - Configures animation properties (infinite loop, speed, rendering mode)
+     * - Loads Lottie animation from raw resources (splasg_anim.json)
+     * - Configures animation properties (plays once, 2 seconds duration, speed, rendering mode)
      * - Handles animation lifecycle (play, pause, resume)
      * - Provides fallback handling if animation fails to load
      */
     private fun setupLottieAnimation() {
         try {
             // Step 1: Verify resource exists
-            val resourceId = R.raw.logoaniamation
+            val resourceId = R.raw.splasg_anim
             Log.d("SplashActivity", "🔍 Checking Lottie resource ID: $resourceId")
             
             // Step 2: Configure animation view properties first
@@ -103,7 +130,7 @@ class SplashActivity : AppCompatActivity() {
                 setBackgroundColor(ContextCompat.getColor(this@SplashActivity, R.color.primary_darkest))
                 
                 // Configure animation properties
-                repeatCount = -1 // Infinite loop
+                repeatCount = 0 // Play once (2 seconds duration)
                 speed = 1.0f
                 
                 // Enable merge paths support (required for complex animations)

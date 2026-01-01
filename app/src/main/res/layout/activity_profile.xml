@@ -23,8 +23,8 @@
 
             <ImageView
                 android:id="@+id/iv_back"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@drawable/ic_arrow_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
@@ -80,7 +80,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/common_full_open_on_phone"
-                        android:tint="#2563EB"
+                        android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
                     <LinearLayout
@@ -119,7 +119,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_email"
-                        android:tint="#2563EB"
+                        android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
                     <TextView
@@ -136,104 +136,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Koshpal Pay Later Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Koshpal Pay Later"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"
-            android:layout_marginTop="8dp" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="#1A1F2E"
-            app:strokeColor="#2A3142"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Bills & Dues -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_bills_receipt"
-                        android:tint="#4CAF50"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Bills &amp; Dues"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3142" />
-
-                <!-- Koshpal Pay Later help & FAQ -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_help"
-                        android:tint="#2563EB"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Koshpal Pay Later help &amp; FAQ"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
 
         <!-- Expense tracking Section -->
         <TextView
@@ -262,82 +164,10 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Preferences -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_settings"
-                        android:tint="#2563EB"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Preferences"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3142" />
-
-                <!-- Weekly summary -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_chart"
-                        android:tint="#2563EB"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Weekly summary"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3142" />
 
                 <!-- Export statement -->
                 <LinearLayout
+                    android:id="@+id/btn_export_statement"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -349,7 +179,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_drop_down"
-                        android:tint="#2563EB"
+                        android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
                     <TextView
@@ -375,6 +205,7 @@
 
                 <!-- Report undetected SMS -->
                 <LinearLayout
+                    android:id="@+id/btn_report_sms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -386,7 +217,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_message"
-                        android:tint="#2563EB"
+                        android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
                     <TextView
@@ -405,42 +236,6 @@
 
                 </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3142" />
-
-                <!-- Help & FAQ -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_help"
-                        android:tint="#2563EB"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Help &amp; FAQ"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
 
             </LinearLayout>
 
@@ -475,12 +270,12 @@
                 android:padding="16dp"
                 android:background="?attr/selectableItemBackground">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_help"
-                    android:tint="#2563EB"
-                    android:layout_marginEnd="16dp" />
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_help"
+                        android:tint="#A0AEC0"
+                        android:layout_marginEnd="16dp" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -526,42 +321,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Theme -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_message"
-                        android:tint="#A0AEC0"
-                        android:layout_marginEnd="16dp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Theme"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_right"
-                        android:tint="#A0AEC0" />
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3142" />
 
                 <!-- Rate us -->
                 <LinearLayout
@@ -600,8 +359,9 @@
                     android:layout_height="1dp"
                     android:background="#2A3142" />
 
-                <!-- Invite friends & family -->
+                <!-- Terms and Conditions -->
                 <LinearLayout
+                    android:id="@+id/btn_terms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -612,7 +372,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_message"
+                        android:src="@drawable/ic_info"
                         android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
@@ -620,7 +380,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Invite friends &amp; family"
+                        android:text="Terms and Conditions"
                         android:textColor="@color/white"
                         android:textSize="16sp" />
 
@@ -637,8 +397,9 @@
                     android:layout_height="1dp"
                     android:background="#2A3142" />
 
-                <!-- Blog -->
+                <!-- Website -->
                 <LinearLayout
+                    android:id="@+id/btn_website"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -649,7 +410,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_message"
+                        android:src="@drawable/ic_arrow_up_right"
                         android:tint="#A0AEC0"
                         android:layout_marginEnd="16dp" />
 
@@ -657,7 +418,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Blog"
+                        android:text="Website"
                         android:textColor="@color/white"
                         android:textSize="16sp" />
 

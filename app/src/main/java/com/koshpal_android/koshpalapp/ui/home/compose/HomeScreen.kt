@@ -37,6 +37,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.koshpal_android.koshpalapp.R
@@ -65,7 +66,6 @@ import java.util.*
  * @param onBankCardClick Callback when a bank card is clicked (bank name as parameter)
  * @param onAddCashClick Callback when add cash button is clicked on Cash card
  * @param onAddPaymentClick Callback when "Add Payment" button is clicked
- * @param onRemindersClick Callback when "Reminders" button is clicked
  * @param onTransactionClick Callback when a transaction item is clicked
  * @param onViewAllTransactionsClick Callback when "View All" is clicked
  */
@@ -85,7 +85,6 @@ fun HomeScreen(
     onBankCardClick: (String) -> Unit,
     onAddCashClick: () -> Unit,
     onAddPaymentClick: () -> Unit,
-    onRemindersClick: () -> Unit,
     onTransactionClick: (Transaction) -> Unit,
     onViewAllTransactionsClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -147,7 +146,6 @@ fun HomeScreen(
         // Action Buttons Row
         ActionButtonsRow(
             onAddPaymentClick = onAddPaymentClick,
-            onRemindersClick = onRemindersClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -203,14 +201,22 @@ fun HomeScreen(
                 }
             }
             
-            // Recent Transactions Card (only list, no title)
-            RecentTransactionsCard(
-                transactions = recentTransactions,
-                onTransactionClick = onTransactionClick,
-                currencyFormatter = currencyFormatter,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
+            // Recent Transactions List (no outer card, individual cards only)
+            if (recentTransactions.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    recentTransactions.forEach { transaction ->
+                        TransactionItem(
+                            transaction = transaction,
+                            onClick = { onTransactionClick(transaction) },
+                            currencyFormatter = currencyFormatter
+                        )
+                    }
+                }
+            }
         }
         
         // Bottom padding for navigation bar
@@ -788,8 +794,8 @@ private fun BankCardItem(
         bankSpending.lastUpdated?.let { dateFormatter.format(Date(it)) } ?: ""
     }
     
-    // Get balance or use total spending as fallback
-    val displayBalance = bankSpending.balance ?: bankSpending.totalSpending
+    // Always show spending instead of balance
+    val displaySpending = bankSpending.totalSpending
     
     // Check if India Post for special styling
     val isIndiaPost = bankSpending.bankName.contains("IPPB", ignoreCase = true) || 
@@ -812,15 +818,15 @@ private fun BankCardItem(
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Left section (30% width) - Bank-specific color
+                // Left section (45% width) - Bank-specific color
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(84.dp) // ~30% of 280dp
+                        .width(126.dp) // ~45% of 280dp
                         .background(leftColor)
                 )
                 
-                // Right section (70% width) - Light gray/off-white
+                // Right section (55% width) - Light gray/off-white
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -944,29 +950,12 @@ private fun BankCardItem(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                     }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = currencyFormatter.format(displayBalance).replace(".00", ""),
-                            color = Color.Black,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        // Refresh icon
-                        IconButton(
-                            onClick = { /* Refresh balance */ },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_refresh),
-                                contentDescription = "Refresh",
-                                tint = Color(0xFF666666),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
+                    Text(
+                        text = currencyFormatter.format(displaySpending).replace(".00", ""),
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -979,81 +968,40 @@ private fun BankCardItem(
 @Composable
 private fun ActionButtonsRow(
     onAddPaymentClick: () -> Unit,
-    onRemindersClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    // Add Payment Button (Full Width)
+    Button(
+        onClick = onAddPaymentClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AppColors.DarkButtonBg
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 4.dp
+        )
     ) {
-        // Add Payment Button (Primary - like "Get started" button)
-        Button(
-            onClick = onAddPaymentClick,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.DarkButtonBg
-            ),
-            shape = RoundedCornerShape(12.dp),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 4.dp
-            )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_add_expense),
-                    contentDescription = "Add",
-                    tint = AppColors.TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Add Payment",
-                    color = AppColors.TextPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-        
-        // Reminders Button (Secondary - like "Send" button)
-        Button(
-            onClick = onRemindersClick,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.DarkButtonBg
-            ),
-            shape = RoundedCornerShape(12.dp),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 4.dp
+            Icon(
+                painter = painterResource(id = R.drawable.ic_add_expense),
+                contentDescription = "Add",
+                tint = AppColors.TextPrimary,
+                modifier = Modifier.size(20.dp)
             )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Reminders",
-                    tint = AppColors.AccentBlue,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Reminders",
-                    color = AppColors.AccentBlue,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Add Payment",
+                color = AppColors.TextPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
@@ -1122,10 +1070,10 @@ private fun TransactionItem(
     onClick: () -> Unit,
     currencyFormatter: NumberFormat
 ) {
-    // Date format: "02 Nov" (day + month abbreviation)
-    val dateFormat = remember { SimpleDateFormat("dd MMM", Locale.getDefault()) }
-    val formattedDate = remember(transaction.timestamp) {
-        dateFormat.format(Date(transaction.timestamp))
+    // Date format: "Dec 31, 22:09" (Month Day, HH:mm)
+    val dateFormat = remember { SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()) }
+    val formattedDate = remember(transaction.date) {
+        dateFormat.format(Date(transaction.date))
     }
     
     val isExpense = transaction.type == TransactionType.DEBIT
@@ -1145,40 +1093,44 @@ private fun TransactionItem(
             category?.color?.let { 
                 val androidColor = AndroidColor.parseColor(it)
                 Color(androidColor)
-            } ?: Color(0xFFF44336)
+            } ?: Color(0xFF757575) // Default grey if no category
         } catch (e: Exception) {
-            Color(0xFFF44336) // Default red if parsing fails
+            Color(0xFF757575) // Default grey if parsing fails
         }
     }
     
     // For transfers, use purple; otherwise use category color
     val indicatorBgColor = if (isTransfer) Color(0xFF9C27B0) else categoryColor
     
-    // Amount color: White for all transaction types
-    val amountColor = AppColors.TextPrimary
+    // Amount color: Green for income, White for expense
+    val amountColor = if (isIncome) Color(0xFF4CAF50) else AppColors.TextPrimary
+    val amountPrefix = if (isIncome) "+" else "-"
     
-    // Each transaction item is in its own card with slightly lighter background
+    // Transaction type label
+    val typeLabel = if (isIncome) "Income" else "Expense"
+    
+    // Each transaction item is in its own card matching the main card background
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2A2A2E) // Slightly lighter dark gray than main card
+            containerColor = AppColors.DarkCard // Match the main card background color
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Left: Category Icon in colored circle/square
+            // Left: Category Icon in colored circle
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(8.dp)) // Rounded square, not circle
+                    .clip(CircleShape)
                     .background(indicatorBgColor),
                 contentAlignment = Alignment.Center
             ) {
@@ -1204,44 +1156,62 @@ private fun TransactionItem(
                 }
             }
             
-            // Middle: Name and Date
+            // Middle: Name, Date, and Type - properly aligned
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = transaction.merchant.ifEmpty { transaction.description },
                     color = AppColors.TextPrimary,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = formattedDate,
-                    color = AppColors.TextSecondary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formattedDate,
+                        color = AppColors.TextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = "•",
+                        color = AppColors.TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = typeLabel,
+                        color = AppColors.TextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
             }
             
-            // Right: Amount with upward arrow
+            // Right: Amount with prefix and arrow - properly aligned
             Row(
+                modifier = Modifier.wrapContentWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = currencyFormatter.format(transaction.amount).replace(".00", ""),
+                    text = "$amountPrefix${currencyFormatter.format(transaction.amount)}",
                     color = amountColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                // Small arrow icon (up for expenses, down for income/transfers)
+                // Action icon (arrow pointing up-right)
                 Icon(
-                    painter = painterResource(
-                        id = if (isExpense) R.drawable.arrowup else R.drawable.arrowdown
-                    ),
-                    contentDescription = null,
-                    tint = amountColor.copy(alpha = 0.7f),
-                    modifier = Modifier.size(14.dp)
+                    painter = painterResource(id = R.drawable.ic_arrow_up_right),
+                    contentDescription = "View Details",
+                    tint = AppColors.TextSecondary,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

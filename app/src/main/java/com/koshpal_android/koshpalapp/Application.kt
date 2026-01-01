@@ -7,7 +7,6 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.multidex.MultiDex
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
-import com.koshpal_android.koshpalapp.ml.MobileBERTInference
 import com.koshpal_android.koshpalapp.service.TransactionSyncScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -38,16 +37,9 @@ class Application : Application(), Configuration.Provider {
             Log.e("Application", "❌ Failed to schedule background sync: ${e.message}", e)
         }
         
-        // Pre-initialize MobileBERT model (will load when first accessed)
-        // This ensures model is ready when SMS arrives
-        try {
-            Log.d("Application", "🤖 Pre-initializing MobileBERT model...")
-            val mlInference = MobileBERTInference.getInstance(this)
-            // Model loads asynchronously in init block, so we just trigger initialization
-            Log.d("Application", "✅ MobileBERT instance created (loading in background)")
-        } catch (e: Exception) {
-            Log.e("Application", "❌ Failed to create MobileBERT instance: ${e.message}", e)
-        }
+        // Note: SmsClassifier is initialized on-demand when SMS is received
+        // This avoids loading the ML model at app startup, improving launch time
+        // The model will be loaded automatically when TransactionSMSReceiver processes SMS
     }
     
     override val workManagerConfiguration: Configuration

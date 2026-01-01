@@ -803,6 +803,11 @@ class TransactionRepository @Inject constructor(
         return cashFlowTransactionDao.getCashFlowTransactionsWithDetails()
     }
     
+    suspend fun getCashFlowTransactionIds(): Set<String> {
+        val cashFlowTransactions = cashFlowTransactionDao.getAllCashFlowTransactions()
+        return cashFlowTransactions.map { it.transactionId }.toSet()
+    }
+    
     /**
      * Manually trigger budget monitoring - useful for testing or manual checks
      */

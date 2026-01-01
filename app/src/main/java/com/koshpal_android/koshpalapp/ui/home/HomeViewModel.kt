@@ -59,11 +59,21 @@ class HomeViewModel @Inject constructor(
                 android.util.Log.d("HomeViewModel", "   ${index + 1}. ${transaction.merchant} - ₹${transaction.amount} (${transaction.type})")
             }
             
-            // Calculate totals with detailed logging
+            // Get cash flow transaction IDs to exclude from totals
+            val cashFlowTransactionIds = transactionRepository.getCashFlowTransactionIds()
+            android.util.Log.d("HomeViewModel", "💰 Cash Flow transactions to exclude: ${cashFlowTransactionIds.size} transactions")
+            
+            // Calculate totals with detailed logging (excluding cash flow transactions)
             var totalIncome = 0.0
             var totalExpenses = 0.0
             
             allTransactions.forEach { transaction ->
+                // Skip if transaction is in cash flow
+                if (cashFlowTransactionIds.contains(transaction.id)) {
+                    android.util.Log.d("HomeViewModel", "   ⏭️ Skipping cash flow transaction: ${transaction.merchant} -₹${transaction.amount}")
+                    return@forEach
+                }
+                
                 when (transaction.type) {
                     TransactionType.CREDIT -> {
                         totalIncome += transaction.amount
@@ -97,6 +107,12 @@ class HomeViewModel @Inject constructor(
             var currentMonthExpenses = 0.0
             
             allTransactions.forEach { transaction ->
+                // Skip if transaction is in cash flow
+                if (cashFlowTransactionIds.contains(transaction.id)) {
+                    android.util.Log.d("HomeViewModel", "   ⏭️ Skipping cash flow transaction from current month: ${transaction.merchant} -₹${transaction.amount}")
+                    return@forEach
+                }
+                
                 calendar.timeInMillis = transaction.timestamp
                 val transactionMonth = calendar.get(java.util.Calendar.MONTH)
                 val transactionYear = calendar.get(java.util.Calendar.YEAR)

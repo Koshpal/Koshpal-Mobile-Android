@@ -48,6 +48,7 @@ class TransactionsFragment : Fragment() {
         val transactions by viewModel.displayedTransactions.collectAsState()
         val summaryData by viewModel.summaryData.collectAsState()
         val currentFilter by viewModel.currentFilter.collectAsState()
+        val searchQuery by viewModel.searchQuery.collectAsState()
         val loadingState by viewModel.loadingState.collectAsState()
         val selectedMonth by viewModel.selectedMonth.collectAsState()
         
@@ -123,33 +124,76 @@ class TransactionsFragment : Fragment() {
     
     private fun showSearchDialog() {
         val context = requireContext()
-        val editText = android.widget.EditText(context).apply {
-            hint = "Search by merchant, description, or amount"
-            inputType = android.text.InputType.TYPE_CLASS_TEXT
-            setTextColor(android.graphics.Color.WHITE)
-            setHintTextColor(android.graphics.Color.GRAY)
-            setBackgroundColor(android.graphics.Color.parseColor("#1A1F2E"))
-            setPadding(32, 24, 32, 24)
+        val dialogView = android.view.LayoutInflater.from(context).inflate(
+            com.koshpal_android.koshpalapp.R.layout.dialog_search_transactions,
+            null
+        )
+        
+        val etSearchQuery = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(
+            com.koshpal_android.koshpalapp.R.id.etSearchQuery
+        )
+        val btnCancel = dialogView.findViewById<android.widget.TextView>(
+            com.koshpal_android.koshpalapp.R.id.btnCancel
+        )
+        val btnClear = dialogView.findViewById<android.widget.TextView>(
+            com.koshpal_android.koshpalapp.R.id.btnClear
+        )
+        val btnSearch = dialogView.findViewById<android.widget.TextView>(
+            com.koshpal_android.koshpalapp.R.id.btnSearch
+        )
+        
+        // Get current search query from ViewModel
+        val currentSearchQuery = viewModel.searchQuery.value
+        
+        // Set current search query if any
+        if (currentSearchQuery.isNotEmpty()) {
+            etSearchQuery.setText(currentSearchQuery)
+            etSearchQuery.setSelection(currentSearchQuery.length) // Move cursor to end
         }
         
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
-            .setTitle("Search Transactions")
-            .setView(editText)
-            .setPositiveButton("Search") { _, _ ->
-                val query = editText.text.toString().trim()
-                if (query.isNotEmpty()) {
-                    viewModel.searchTransactions(query)
-                    Toast.makeText(context, "Searching for: $query", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Clear") { _, _ ->
-                viewModel.searchTransactions("")
-                Toast.makeText(context, "Search cleared", Toast.LENGTH_SHORT).show()
-            }
-            .setNeutralButton("Cancel") { dialog, _ ->
+        // Focus on input field
+        etSearchQuery.requestFocus()
+        
+        val dialog = android.app.AlertDialog.Builder(context, com.koshpal_android.koshpalapp.R.style.Theme_KoshpalApp_DarkDialog)
+            .setView(dialogView)
+            .create()
+        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        // Set up button click listeners
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        btnClear.setOnClickListener {
+            etSearchQuery.setText("")
+            viewModel.searchTransactions("")
+            dialog.dismiss()
+        }
+        
+        btnSearch.setOnClickListener {
+            val query = etSearchQuery.text?.toString()?.trim() ?: ""
+            viewModel.searchTransactions(query)
+            dialog.dismiss()
+        }
+        
+        // Handle Enter key press
+        etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = etSearchQuery.text?.toString()?.trim() ?: ""
+                viewModel.searchTransactions(query)
                 dialog.dismiss()
+                true
+            } else {
+                false
             }
-            .show()
+        }
+        
+        // Focus on input field and show keyboard
+        etSearchQuery.requestFocus()
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        
+        dialog.show()
     }
     
     override fun onDestroyView() {

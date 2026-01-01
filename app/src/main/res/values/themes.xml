@@ -45,6 +45,17 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
     </style>
+    
+    <!-- Dark Dialog Theme -->
+    <style name="Theme.KoshpalApp.DarkDialog" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">#A0AEC0</item>
+        <item name="colorSurface">#1A1F2E</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorPrimary">@color/primary</item>
+    </style>
+    
     <style name="NotificationActivityAnimation">
         <item name="colorPrimary">@color/primary</item>
         <item name="android:activityOpenEnterAnimation">@android:anim/fade_in</item>

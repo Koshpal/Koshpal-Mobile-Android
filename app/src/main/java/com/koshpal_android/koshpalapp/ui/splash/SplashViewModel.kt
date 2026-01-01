@@ -29,7 +29,7 @@ class SplashViewModel @Inject constructor(
     fun startSplashTimer() {
         viewModelScope.launch {
             Log.d("SplashViewModel", "🚀 Starting splash timer")
-            delay(1000) // 1 second delay for splash screen
+            delay(2000) // 2 second delay for splash screen animation
             
             // 🔐 AUTO-LOGIN: Always use static employee ID (no login required)
             val staticEmployeeId = "68ee28ce2f3fd392ea436576"

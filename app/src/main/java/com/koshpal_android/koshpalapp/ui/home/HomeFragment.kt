@@ -255,13 +255,6 @@ class HomeFragment : Fragment() {
             }
         }
         
-        val onRemindersClick: () -> Unit = remember {
-            {
-                android.util.Log.d("HomeFragment", "🔔 Reminders button clicked")
-                (activity as? HomeActivity)?.showRemindersListFragment()
-            }
-        }
-        
         val onTransactionClick: (Transaction) -> Unit = remember {
             { transaction ->
                 android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
@@ -291,7 +284,6 @@ class HomeFragment : Fragment() {
             onBankCardClick = onBankCardClick,
             onAddCashClick = onAddCashClick,
             onAddPaymentClick = onAddPaymentClick,
-            onRemindersClick = onRemindersClick,
             onTransactionClick = onTransactionClick,
             onViewAllTransactionsClick = onViewAllTransactionsClick
         )

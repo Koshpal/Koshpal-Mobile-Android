@@ -48,6 +48,7 @@ class TransactionsViewModel @Inject constructor(
 
     private val _currentFilter = MutableStateFlow("All")
     private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
     private val _selectedMonth = MutableStateFlow<Pair<Int, Int>?>(null) // Month, Year (null = All)
     val selectedMonth: StateFlow<Pair<Int, Int>?> = _selectedMonth.asStateFlow()
     
@@ -312,9 +313,12 @@ class TransactionsViewModel @Inject constructor(
     }
 
     private fun updateSummary(transactions: List<Transaction>) {
-        // Calculate totals for THIS MONTH ONLY
+        // Calculate totals for THIS MONTH ONLY (excluding cash flow transactions)
         var totalIncome = 0.0
         var totalExpense = 0.0
+        
+        // Get cash flow transaction IDs to exclude
+        val cashFlowTransactionIds = _cashFlowTransactionIds.value
         
         // Get current month boundaries
         val calendar = Calendar.getInstance()
@@ -332,8 +336,13 @@ class TransactionsViewModel @Inject constructor(
         calendar.add(Calendar.MILLISECOND, -1)
         val endOfMonth = calendar.timeInMillis
         
-        // Filter transactions for this month and calculate totals
+        // Filter transactions for this month and calculate totals (excluding cash flow)
         transactions.forEach { transaction ->
+            // Skip if transaction is in cash flow
+            if (cashFlowTransactionIds.contains(transaction.id)) {
+                return@forEach
+            }
+            
             if (transaction.timestamp in startOfMonth..endOfMonth) {
                 when (transaction.type) {
                     TransactionType.CREDIT -> {
