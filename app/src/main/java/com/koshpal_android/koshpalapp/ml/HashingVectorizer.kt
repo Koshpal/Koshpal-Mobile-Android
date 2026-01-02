@@ -55,7 +55,11 @@ class HashingVectorizer {
      */
     private fun generateNgrams(text: String, minN: Int, maxN: Int): List<String> {
         val ngrams = mutableListOf<String>()
-        val words = text.split("\\s+".toRegex()).filter { it.isNotEmpty() }
+
+        // BIT-EXACT TOKENIZATION: Match scikit-learn HashingVectorizer
+        // Uses (?u)\b\w\w+\b regex for Unicode-aware alphanumeric tokens ≥ 2 chars
+        val tokenizer = Regex("\\b\\w\\w+\\b")
+        val words = tokenizer.findAll(text).map { match -> match.value }.toList()
         
         // Generate unigrams and bigrams
         for (n in minN..maxN) {

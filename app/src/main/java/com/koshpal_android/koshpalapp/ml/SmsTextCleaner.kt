@@ -4,17 +4,20 @@ import java.util.regex.Pattern
 
 /**
  * SMS Text Cleaner
- * 
- * Cleans SMS text to match Python cleaning logic exactly.
- * Rules applied in order:
- * 1. Lowercase text
- * 2. Replace URLs with <URL>
- * 3. Normalize currency (₹, rs., rs, inr → rs)
- * 4. Replace numeric values:
- *    - Standalone numbers → <NUM>
- *    - Masked accounts (xxxx1234) → xxxx<NUM>
- * 5. Replace long alphanumeric tokens (≥10 chars) → <UTR>
- * 6. Normalize whitespace
+ *
+ * BIT-EXACT Python cleaning logic implementation.
+ * Rules applied in EXACT Python order:
+ * 1. lowercase()
+ * 2. URL replacement → <URL>
+ * 3. Currency normalization: ₹, rs., rs, inr → "rs"
+ * 4. Mask numeric patterns:
+ *    - x{4,}\d+ → xxxx<NUM>
+ *    - \bx\s*\d+\b → x<NUM>
+ *    - \b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b → <NUM>
+ *    - \b\d+(?:\.\d+)?\b → <NUM>
+ * 5. Long tokens: \b[a-z0-9]{10,}\b → <UTR>
+ * 6. Whitespace normalization → single spaces
+ * 7. trim()
  */
 object SmsTextCleaner {
     
@@ -34,10 +37,8 @@ object SmsTextCleaner {
     
     private val NUMBER_WITH_COMMAS = Pattern.compile("\\b\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?\\b")
     private val NUMBER_WITHOUT_COMMAS = Pattern.compile("\\b\\d+(?:\\.\\d+)?\\b")
-    private val NUMBER_PERCENT_PREFIX = Pattern.compile("%<NUM>")
-    private val NUMBER_PERCENT_SUFFIX = Pattern.compile("<NUM>%")
     
-    private val LONG_ALPHANUMERIC = Pattern.compile("\\b[a-z0-9]{10,}\\b")
+    private val LONG_ALPHANUMERIC = Pattern.compile("\\b[a-z0-9]{10,}\\b")  // EXACT Python: \b[a-z0-9]{10,}\b
     
     private val MULTIPLE_SPACES = Pattern.compile("\\s+")
     
@@ -70,16 +71,11 @@ object SmsTextCleaner {
         cleaned = CURRENCY_INR.matcher(cleaned as CharSequence).replaceAll("rs")
         cleaned = CURRENCY_MULTIPLE_RS.matcher(cleaned as CharSequence).replaceAll("rs")
         
-        // Rule 4: Replace numeric values
-        // First, handle masked accounts (xxxx1234, XXXX1234, etc.)
+        // Rule 4: Mask numeric patterns (EXACT Python order)
         cleaned = MASKED_ACCOUNT_XXXX.matcher(cleaned as CharSequence).replaceAll("xxxx<NUM>")
         cleaned = MASKED_ACCOUNT_X.matcher(cleaned as CharSequence).replaceAll("x<NUM>")
-        
-        // Then replace standalone numbers
         cleaned = NUMBER_WITH_COMMAS.matcher(cleaned as CharSequence).replaceAll("<NUM>")
         cleaned = NUMBER_WITHOUT_COMMAS.matcher(cleaned as CharSequence).replaceAll("<NUM>")
-        cleaned = NUMBER_PERCENT_PREFIX.matcher(cleaned as CharSequence).replaceAll("<NUM>")
-        cleaned = NUMBER_PERCENT_SUFFIX.matcher(cleaned as CharSequence).replaceAll("<NUM>")
         
         // Rule 5: Replace long alphanumeric tokens (≥10 characters)
         cleaned = replaceLongTokens(cleaned)
@@ -92,8 +88,9 @@ object SmsTextCleaner {
     }
     
     /**
-     * Replace long alphanumeric tokens with <UTR>.
-     * Skips tokens that are already tags like <NUM>, <URL>, <UTR>.
+     * Rule 5: Replace long alphanumeric tokens with <UTR>.
+     * Python: \b[a-z0-9]{10,}\b → <UTR>
+     * Android: Same logic, skips already-processed tags (<NUM>, <URL>, etc.)
      */
     private fun replaceLongTokens(text: String): String {
         val matcher = LONG_ALPHANUMERIC.matcher(text)
