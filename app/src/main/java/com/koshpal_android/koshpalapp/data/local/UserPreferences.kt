@@ -2,6 +2,7 @@ package com.koshpal_android.koshpalapp.data.local
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,6 +37,9 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
         private const val KEY_TOTAL_SYNCED_COUNT = "total_synced_count"
         private const val KEY_LAST_SYNC_ERROR = "last_sync_error"
         private const val KEY_LAST_SYNC_TIME = "last_sync_time"
+
+        // Fresh install detection
+        private const val KEY_STORED_VERSION_CODE = "stored_version_code"
     }
 
     fun saveUserToken(token: String) {
@@ -193,5 +197,25 @@ class UserPreferences @Inject constructor(@ApplicationContext context: Context) 
     
     fun setLastSyncTime(time: Long) {
         sharedPreferences.edit().putLong(KEY_LAST_SYNC_TIME, time).apply()
+    }
+
+    // Fresh install detection methods
+    fun getStoredVersionCode(): Long {
+        return sharedPreferences.getLong(KEY_STORED_VERSION_CODE, 0L)
+    }
+
+    fun setStoredVersionCode(versionCode: Long) {
+        sharedPreferences.edit().putLong(KEY_STORED_VERSION_CODE, versionCode).apply()
+    }
+
+    fun resetForFreshInstall() {
+        Log.d("UserPreferences", "🔄 Resetting preferences for fresh install")
+        // Reset SMS and sync flags, but keep login state
+        setInitialSmsProcessed(false)
+        setInitialSyncCompleted(false)
+        setTotalSyncedCount(0L)
+        setLastSyncError(null)
+        setLastSyncTime(0L)
+        // Don't clear login state, email, etc. as they should persist
     }
 }
