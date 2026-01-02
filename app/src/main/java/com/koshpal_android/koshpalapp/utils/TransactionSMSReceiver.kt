@@ -16,6 +16,7 @@ import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import com.koshpal_android.koshpalapp.service.TransactionSyncServiceEntryPoint
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import com.koshpal_android.koshpalapp.ml.SmsClassifier
+import com.koshpal_android.koshpalapp.ml.SmsProcessingMetrics
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,9 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                             // Process SMS immediately in background
                             CoroutineScope(Dispatchers.IO).launch {
                                     try {
+                                        // Record SMS received for metrics
+                                        SmsProcessingMetrics.recordSmsReceived()
+
                                         context?.let { ctx ->
                                             val database = KoshpalDatabase.getDatabase(ctx)
                                             val paymentSmsDao = database.paymentSmsDao()
@@ -68,6 +72,11 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                             val existingSms = paymentSmsDao.getSMSByBodyAndSender(messageBody, sender)
                                             if (existingSms != null) {
                                                 Log.d("TransactionSMS", "⏭️ SMS already exists, skipping")
+                                                SmsProcessingMetrics.logSkippedSms(
+                                                    reason = SmsProcessingMetrics.SmsSkipReason.SMS_ALREADY_EXISTS,
+                                                    smsBody = messageBody,
+                                                    additionalContext = "Existing SMS ID: ${existingSms.id}"
+                                                )
                                                 return@launch
                                             }
                                             
@@ -96,32 +105,92 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 null
                                             }
                                             
-                                            // Decision: Use ML result if available and confident, otherwise fallback
+                                            // CONFIDENCE-BASED ML DECISION - REPLACES BINARY GATING
+
+                                            // Declare variables at higher scope for transaction creation
+                                            var mlTransactionType: TransactionType? = null
+                                            var transactionConfidence = 0.0f
+
                                             if (mlResult != null) {
-                                                val isTransaction = mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction"
-                                                Log.d("TransactionSMS", "🤖 ML Result: label=${mlResult.label}, confidence=${mlResult.confidence}, isTransaction=$isTransaction")
-                                                
-                                                // If ML says NOT a transaction, stop processing
-                                                if (!isTransaction) {
-                                                    Log.d("TransactionSMS", "⏭️ ML classified as non-transaction (${mlResult.label}), marking SMS as processed and skipping")
+                                                val (shouldCreate, confidence, transactionType) = classifier.shouldCreateTransaction(mlResult)
+                                                transactionConfidence = confidence
+
+                                                Log.d("TransactionSMS", "🤖 ML Confidence Decision: label=${mlResult.label}, max_confidence=${mlResult.confidence}, transaction_confidence=$transactionConfidence, should_create=$shouldCreate, type=$transactionType")
+
+                                                if (!shouldCreate) {
+                                                    Log.d("TransactionSMS", "⏭️ ML confidence too low ($transactionConfidence < 0.20) - skipping")
+                                                    SmsProcessingMetrics.logSkippedSms(
+                                                        reason = SmsProcessingMetrics.SmsSkipReason.ML_LOW_CONFIDENCE,
+                                                        smsBody = messageBody,
+                                                        mlResult = mlResult,
+                                                        additionalContext = "Transaction confidence: $transactionConfidence (threshold: 0.20), label: ${mlResult.label}"
+                                                    )
                                                     paymentSmsDao.markAsProcessed(paymentSms.id)
                                                     return@launch
                                                 }
+
+                                                // LOG BORDERLINE CONFIDENCE FOR RETRAINING DATA
+                                                if (SmsClassifier(ctx).isBorderlineConfidence(mlResult)) {
+                                                    Log.i("TransactionSMS", "📊 BORDERLINE CONFIDENCE: SMS='${messageBody.take(100)}...', confidence=$transactionConfidence, debit=${mlResult.probabilities.getOrElse(0){0.0f}}, credit=${mlResult.probabilities.getOrElse(1){0.0f}}, decision=CREATE_${transactionType}")
+                                                }
+
+                                                // ML approved - proceed with transaction creation
+                                                Log.d("TransactionSMS", "✅ ML approved transaction creation (confidence: $transactionConfidence, type: $transactionType)")
+                                                SmsProcessingMetrics.recordSuccessfulProcessing()
+
+                                                // Store the ML-determined transaction type
+                                                mlTransactionType = transactionType
+
                                             } else {
-                                                Log.d("TransactionSMS", "⚠️ ML inference unavailable, using regex fallback")
+                                                // ML inference failed - cannot determine transaction confidence
+                                                Log.d("TransactionSMS", "⚠️ ML inference failed - skipping SMS (no confidence available)")
+                                                SmsProcessingMetrics.logSkippedSms(
+                                                    reason = SmsProcessingMetrics.SmsSkipReason.ML_INFERENCE_FAILED,
+                                                    smsBody = messageBody,
+                                                    additionalContext = "ML inference completely failed - no confidence available"
+                                                )
+                                                paymentSmsDao.markAsProcessed(paymentSms.id)
+                                                return@launch
+                                            }
+
+                                            // At this point, ML has approved transaction creation
+                                            if (mlTransactionType == null) {
+                                                Log.e("TransactionSMS", "❌ Critical error: ML approved transaction but type is null")
+                                                return@launch
                                             }
                                             
                                             // Process SMS immediately to create transaction
                                             val engine = TransactionCategorizationEngine()
                                             val details = engine.extractTransactionDetails(messageBody)
                                             
+                                            // STRICT VALIDATION: Require both amount and merchant (after ML approval)
                                             if (details.amount > 0 && details.merchant.isNotBlank()) {
-                                                // Check for duplicates before creating transaction
-                                                val existingTransaction = transactionDao.getTransactionsBySmsBody(messageBody)
-                                                if (existingTransaction != null) {
-                                                    Log.d("TransactionSMS", "⏭️ Transaction already exists for this SMS, skipping")
-                                                    paymentSmsDao.markAsProcessed(paymentSms.id)
-                                                    return@launch
+                                                Log.d("TransactionSMS", "✅ Processing SMS - Amount: ${details.amount}, Merchant: '${details.merchant}'")
+                                                // ML-SAFE DUPLICATE DETECTION
+                                                // Check for transactions with similar content and timing
+                                                val normalizedSmsHash = messageBody.trim().lowercase().hashCode().toString()
+                                                val timeWindow = 120000L // 2 minutes window
+
+                                                // Use amount as rough filter + content hash check
+                                                val existingByContentAndTime = transactionDao.getTransactionByAmountAndTime(
+                                                    details.amount,
+                                                    currentTime - timeWindow,
+                                                    currentTime + timeWindow
+                                                )
+
+                                                if (existingByContentAndTime != null) {
+                                                    val existingSmsHash = existingByContentAndTime.smsBody?.trim()?.lowercase()?.hashCode().toString()
+                                                    if (existingSmsHash == normalizedSmsHash) {
+                                                        Log.d("TransactionSMS", "⏭️ Duplicate transaction detected (similar content + timing), skipping")
+                                                        SmsProcessingMetrics.logSkippedSms(
+                                                            reason = SmsProcessingMetrics.SmsSkipReason.TRANSACTION_ALREADY_EXISTS,
+                                                            smsBody = messageBody,
+                                                            mlResult = mlResult,
+                                                            additionalContext = "Existing transaction ID: ${existingByContentAndTime.id}, SMS hash match within ${timeWindow/1000}s window"
+                                                        )
+                                                        paymentSmsDao.markAsProcessed(paymentSms.id)
+                                                        return@launch
+                                                    }
                                                 }
                                                 
                                                 // Auto-categorize using MerchantCategorizer
@@ -135,24 +204,9 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 // Extract bank name from SMS
                                                 val bankName = extractBankNameFromSMS(messageBody, paymentSms.sender)
                                                 
-                                                // Determine transaction type from ML if available
-                                                val isTransaction = mlResult != null && (mlResult.label == "debit_transaction" || mlResult.label == "credit_transaction")
-                                                val finalType = if (isTransaction && mlResult != null) {
-                                                    when (mlResult.label) {
-                                                        "debit_transaction" -> TransactionType.DEBIT
-                                                        "credit_transaction" -> TransactionType.CREDIT
-                                                        else -> details.type // Fallback to regex-extracted type
-                                                    }
-                                                } else {
-                                                    details.type // Use regex-extracted type
-                                                }
-                                                
-                                                // Use ML confidence if available, otherwise default
-                                                val finalConfidence = if (isTransaction && mlResult != null) {
-                                                    mlResult.confidence * 100f // Convert 0.0-1.0 to 0-100
-                                                } else {
-                                                    85.0f // Default confidence for regex-based extraction
-                                                }
+                                                // Use ML-determined transaction type and confidence
+                                                val finalType = mlTransactionType
+                                                val finalConfidence = transactionConfidence * 100f // Convert 0.0-1.0 to 0-100
                                                 
                                                 // Create transaction
                                                 val transaction = Transaction(
@@ -173,7 +227,10 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                 
                                                 Log.d("TransactionSMS", "🎉 NEW TRANSACTION CREATED: ₹${details.amount} at ${details.merchant}")
                                                 Log.d("TransactionSMS", "💾 Transaction saved to database successfully")
-                                                
+
+                                                // Record successful processing
+                                                SmsProcessingMetrics.recordSuccessfulProcessing()
+
                                                 // Auto-sync to MongoDB
                                                 try {
                                                     val syncService = getSyncService(context)
@@ -203,7 +260,27 @@ class TransactionSMSReceiver : BroadcastReceiver() {
                                                     Log.e("TransactionSMS", "❌ Failed to check budget status", e)
                                                 }
                                             } else {
-                                                Log.d("TransactionSMS", "⚠️ Could not extract valid transaction data")
+                                                // MISSING AMOUNT OR MERCHANT - SKIP (after ML approval)
+                                                val skipReason = when {
+                                                    details.amount <= 0 && details.merchant.isBlank() ->
+                                                        SmsProcessingMetrics.SmsSkipReason.MISSING_AMOUNT
+                                                    details.amount <= 0 ->
+                                                        SmsProcessingMetrics.SmsSkipReason.MISSING_AMOUNT
+                                                    details.merchant.isBlank() ->
+                                                        SmsProcessingMetrics.SmsSkipReason.MISSING_MERCHANT
+                                                    else ->
+                                                        SmsProcessingMetrics.SmsSkipReason.INVALID_AMOUNT
+                                                }
+
+                                                Log.d("TransactionSMS", "⚠️ Missing amount (${details.amount}) or merchant ('${details.merchant}') - skipping")
+                                                SmsProcessingMetrics.logSkippedSms(
+                                                    reason = skipReason,
+                                                    smsBody = messageBody,
+                                                    mlResult = mlResult,
+                                                    detectedAmount = details.amount,
+                                                    detectedMerchant = details.merchant,
+                                                    additionalContext = "ML approved but extraction failed: amount=${details.amount}, merchant='${details.merchant}'"
+                                                )
                                                 paymentSmsDao.markAsProcessed(paymentSms.id)
                                             }
                                         }
