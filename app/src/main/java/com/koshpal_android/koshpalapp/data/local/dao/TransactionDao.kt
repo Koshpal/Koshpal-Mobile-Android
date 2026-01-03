@@ -199,6 +199,9 @@ interface TransactionDao {
     // Duplicate prevention: Check by amount and time window
     @Query("SELECT * FROM transactions WHERE amount = :amount AND date BETWEEN :startTime AND :endTime LIMIT 1")
     suspend fun getTransactionByAmountAndTime(amount: Double, startTime: Long, endTime: Long): Transaction?
+
+    @Query("SELECT * FROM transactions WHERE smsBody = :smsBody LIMIT 1")
+    suspend fun getTransactionBySmsBody(smsBody: String): Transaction?
     
     // Month-over-month comparison queries
     @Query("""

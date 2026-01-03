@@ -12,7 +12,7 @@ import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.model.PaymentSms
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
-import com.koshpal_android.koshpalapp.service.TransactionSyncService
+import com.koshpal_android.koshpalapp.service.NewTransactionSyncService
 import com.koshpal_android.koshpalapp.service.TransactionSyncServiceEntryPoint
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import com.koshpal_android.koshpalapp.ml.SmsClassifier
@@ -349,12 +349,12 @@ class TransactionSMSReceiver : BroadcastReceiver() {
         }
     }
     
-    private fun getSyncService(context: Context?): TransactionSyncService? {
+    private fun getSyncService(context: Context?): NewTransactionSyncService? {
         return try {
             val application = context?.applicationContext as? Application
             application?.let { app ->
                 val entryPoint = EntryPointAccessors.fromApplication(app, TransactionSyncServiceEntryPoint::class.java)
-                entryPoint.transactionSyncService()
+                entryPoint.newTransactionSyncService()
             }
         } catch (e: Exception) {
             Log.e("TransactionSMS", "Failed to get sync service: ${e.message}")

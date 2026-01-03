@@ -24,12 +24,19 @@ class SmsProcessingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySmsProcessingBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         setupBackPressHandler()
         setupUI()
         observeProcessingState()
-        
-        // Start processing automatically
+
+        // Check if SMS processing has already been completed
+        if (viewModel.isSmsProcessingCompleted()) {
+            android.util.Log.d("SmsProcessingActivity", "✅ SMS processing already completed, skipping to home")
+            navigateToHome()
+            return
+        }
+
+        // Start processing automatically (only if not already done)
         viewModel.startProcessing()
     }
     

@@ -9,9 +9,13 @@ import java.util.concurrent.TimeUnit
  * Scheduler for background transaction sync using WorkManager
  */
 object TransactionSyncScheduler {
-    
+
     private const val TAG = "TransactionSyncScheduler"
     private const val PERIODIC_SYNC_WORK_NAME = "periodic_transaction_sync"
+
+    // Sync types (matching TransactionSyncWorker constants)
+    private const val SYNC_TYPE_SINGLE = "single"
+    private const val SYNC_TYPE_BULK = "bulk"
     
     /**
      * Schedule periodic sync every 15 minutes (minimum allowed by Android)
@@ -87,7 +91,7 @@ object TransactionSyncScheduler {
         Log.d(TAG, "🚀 Scheduling immediate sync of all transactions")
         
         val inputData = workDataOf(
-            TransactionSyncWorker.KEY_SYNC_TYPE to TransactionSyncWorker.SYNC_TYPE_ALL
+            TransactionSyncWorker.KEY_SYNC_TYPE to SYNC_TYPE_BULK
         )
         
         val constraints = Constraints.Builder()

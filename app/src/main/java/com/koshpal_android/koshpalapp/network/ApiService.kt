@@ -7,6 +7,52 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // ============ AUTHENTICATION ============
+
+    /**
+     * Employee login with email and password
+     */
+    @POST("api/v1/auth/login")
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<LoginResponse>
+
+    // ============ TRANSACTION SYNC ============
+
+    /**
+     * Sync single transaction (incremental sync)
+     */
+    @POST("api/v1/transactions")
+    suspend fun syncSingleTransaction(
+        @Body request: SyncTransactionRequest
+    ): Response<SyncTransactionResponse>
+
+    /**
+     * Bulk sync multiple transactions
+     */
+    @POST("api/v1/transactions/bulk")
+    suspend fun syncBulkTransactions(
+        @Body request: BulkSyncRequest
+    ): Response<BulkSyncApiResponse>
+
+    // ============ FINANCIAL GOALS ============
+
+    /**
+     * Get employee's financial goals
+     */
+    @GET("api/v1/employee/goals")
+    suspend fun getFinancialGoals(): Response<FinancialGoalsResponse>
+
+    /**
+     * Create new financial goal
+     */
+    @POST("api/v1/employee/goals")
+    suspend fun createFinancialGoal(
+        @Body request: CreateGoalRequest
+    ): Response<FinancialGoalDto>
+
+    // ============ LEGACY ENDPOINTS (for backward compatibility) ============
+
     @POST("create-user")
     suspend fun createUser(
         @Body request: CreateUserRequest
@@ -33,36 +79,36 @@ interface ApiService {
         @Body request: Map<String, Any>
     ): Response<CreateUserResponse>
 
-    // Transaction Sync Endpoints
-    
+    // Old Transaction Sync Endpoints
+
     /**
      * Bulk upload transactions (first-time sync)
      */
-    @POST("api/transactions/bulk")
+    @POST("api/v1/transactions/bulk")
     suspend fun uploadBulkTransactions(
         @Body request: BulkTransactionRequest
     ): Response<BulkTransactionResponse>
-    
+
     /**
      * Upload single transaction (new or updated)
      */
-    @POST("api/transactions/")
+    @POST("api/v1/transactions/")
     suspend fun uploadSingleTransaction(
         @Body transaction: TransactionDto
     ): Response<SingleTransactionResponse>
 
-    @PUT("api/transactions/{transactionId}")
+    @PUT("api/v1/transactions/{transactionId}")
     suspend fun updateTransaction(
         @Path("transactionId") transactionId: String,
         @Body transaction: TransactionDto
     ): Response<TransactionSyncResponse>
 
-    @DELETE("api/transactions/{transactionId}")
+    @DELETE("api/v1/transactions/{transactionId}")
     suspend fun deleteTransaction(
         @Path("transactionId") transactionId: String
     ): Response<TransactionSyncResponse>
 
-    @GET("api/transactions/sync-status")
+    @GET("api/v1/transactions/sync-status")
     suspend fun getSyncStatus(
         @Query("employeeId") employeeId: String,
         @Query("deviceId") deviceId: String

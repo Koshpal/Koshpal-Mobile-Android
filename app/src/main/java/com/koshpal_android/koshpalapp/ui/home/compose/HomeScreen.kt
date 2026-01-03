@@ -3,12 +3,11 @@ package com.koshpal_android.koshpalapp.ui.home.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -44,6 +43,7 @@ import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.model.BankSpending
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
+import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
 import com.koshpal_android.koshpalapp.ui.theme.AppColors
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -87,6 +87,8 @@ fun HomeScreen(
     onAddPaymentClick: () -> Unit,
     onTransactionClick: (Transaction) -> Unit,
     onViewAllTransactionsClick: () -> Unit,
+    goalsViewModel: GoalsViewModel? = null,
+    onAddGoalClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
@@ -101,126 +103,148 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp) // Bottom padding for navigation bar
         ) {
-        // Top App Bar
-        TopAppBarSection(
-            greetingText = greetingText,
-            userName = userName,
-            onProfileClick = onProfileClick,
-            onNotificationClick = onNotificationClick,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // This Month Overview Card
-        ThisMonthOverviewCard(
-            income = currentMonthIncome,
-            expenses = currentMonthExpenses,
-            incomeChangePercentage = incomeChangePercentage,
-            expenseChangePercentage = expenseChangePercentage,
-            onViewDetailsClick = onViewDetailsClick,
-            currencyFormatter = currencyFormatter,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(20.dp))
-        
-        // Your Banks & Cards Section
-        BanksAndCardsSection(
-            bankCards = bankCards,
-            onBankCardClick = onBankCardClick,
-            onAddCashClick = onAddCashClick,
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Action Buttons Row
-        ActionButtonsRow(
-            onAddPaymentClick = onAddPaymentClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Recent Transactions Section - Title outside card
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            // Header with Title and View All (outside card) - Matching "Your Banks & Cards" style
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Left side: Icon + Title (matching "Your Banks & Cards" style)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_rup),
-                        contentDescription = "Transactions",
-                        tint = AppColors.TextPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = "Recent Transactions",
-                        color = AppColors.TextPrimary,
-                        fontSize = 16.sp, // Same size as "Your Banks & Cards"
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                // View All Button (Ghost button with blue text)
-                TextButton(
-                    onClick = onViewAllTransactionsClick,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = AppColors.AccentBlue
-                    )
-                ) {
-                    Text(
-                        text = "View All",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+            // Top App Bar
+            item {
+                TopAppBarSection(
+                    greetingText = greetingText,
+                    userName = userName,
+                    onProfileClick = onProfileClick,
+                    onNotificationClick = onNotificationClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            
-            // Recent Transactions List (no outer card, individual cards only)
-            if (recentTransactions.isNotEmpty()) {
-                Column(
+
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+
+            // This Month Overview Card
+            item {
+                ThisMonthOverviewCard(
+                    income = currentMonthIncome,
+                    expenses = currentMonthExpenses,
+                    incomeChangePercentage = incomeChangePercentage,
+                    expenseChangePercentage = expenseChangePercentage,
+                    onViewDetailsClick = onViewDetailsClick,
+                    currencyFormatter = currencyFormatter,
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+
+            // Your Banks & Cards Section
+            item {
+                BanksAndCardsSection(
+                    bankCards = bankCards,
+                    onBankCardClick = onBankCardClick,
+                    onAddCashClick = onAddCashClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            // Action Buttons Row
+            item {
+                ActionButtonsRow(
+                    onAddPaymentClick = onAddPaymentClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            // Recent Transactions Section Header
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    recentTransactions.forEach { transaction ->
-                        TransactionItem(
-                            transaction = transaction,
-                            onClick = { onTransactionClick(transaction) },
-                            currencyFormatter = currencyFormatter
+                    // Left side: Icon + Title
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_rup),
+                            contentDescription = "Transactions",
+                            tint = AppColors.TextPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Recent Transactions",
+                            color = AppColors.TextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // View All Button
+                    TextButton(
+                        onClick = onViewAllTransactionsClick,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = AppColors.AccentBlue
+                        )
+                    ) {
+                        Text(
+                            text = "View All",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
             }
-        }
-        
-        // Bottom padding for navigation bar
-        Spacer(modifier = Modifier.height(80.dp))
+
+            // Recent Transactions Items
+            if (recentTransactions.isNotEmpty()) {
+                items(recentTransactions) { transaction ->
+                    TransactionItem(
+                        transaction = transaction,
+                        onClick = { onTransactionClick(transaction) },
+                        currencyFormatter = currencyFormatter
+                    )
+                }
+            } else {
+                item {
+                    // Empty state for transactions
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No recent transactions",
+                            color = AppColors.TextSecondary,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            // Financial Goals Section (moved below recent transactions)
+            goalsViewModel?.let { vm ->
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    FinancialGoalsSection(
+                        goalsViewModel = vm,
+                        onAddGoalClick = onAddGoalClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
     }
 }
@@ -1109,15 +1133,17 @@ private fun TransactionItem(
     // Transaction type label
     val typeLabel = if (isIncome) "Income" else "Expense"
     
-    // Each transaction item is in its own card matching the main card background
+    // Compact transaction item card
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.DarkCard // Match the main card background color
-        )
+            containerColor = AppColors.DarkCard
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier

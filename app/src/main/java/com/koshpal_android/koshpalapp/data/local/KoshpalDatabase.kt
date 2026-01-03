@@ -21,7 +21,7 @@ import com.koshpal_android.koshpalapp.data.local.dao.*
         CashFlowTransaction::class,
         Reminder::class
     ],
-    version = 9, // Updated for sync tracking columns (isSynced, lastSyncAttempt)
+    version = 10, // Updated for additional sync tracking columns (serverTransactionId, syncedAt)
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -48,9 +48,23 @@ abstract class KoshpalDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Add isSynced column (default false - will be synced on next sync cycle)
                 database.execSQL("ALTER TABLE transactions ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
-                
+
                 // Add lastSyncAttempt column (default null)
                 database.execSQL("ALTER TABLE transactions ADD COLUMN lastSyncAttempt INTEGER")
+            }
+        }
+
+        /**
+         * Migration from version 9 to 10
+         * Adds additional sync tracking columns to transactions table
+         */
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add serverTransactionId column (default null)
+                database.execSQL("ALTER TABLE transactions ADD COLUMN serverTransactionId TEXT")
+
+                // Add syncedAt column (default null)
+                database.execSQL("ALTER TABLE transactions ADD COLUMN syncedAt INTEGER")
             }
         }
         
@@ -61,7 +75,7 @@ abstract class KoshpalDatabase : RoomDatabase() {
                     KoshpalDatabase::class.java,
                     "koshpal_database_v8" // Keep the same name to allow migration!
                 )
-                .addMigrations(MIGRATION_8_9) // Preserve existing data with migration
+                .addMigrations(MIGRATION_8_9, MIGRATION_9_10) // Preserve existing data with migration
                 .fallbackToDestructiveMigration() // Only if migration fails
                 .build()
                 INSTANCE = instance

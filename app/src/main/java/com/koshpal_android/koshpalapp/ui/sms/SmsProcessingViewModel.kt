@@ -122,6 +122,10 @@ class SmsProcessingViewModel @Inject constructor(
         _processingState.value = SmsProcessingState.Idle
         startProcessing()
     }
+
+    fun isSmsProcessingCompleted(): Boolean {
+        return userPreferences.isInitialSmsProcessed()
+    }
     
     private fun buildSuccessSummary(result: com.koshpal_android.koshpalapp.utils.ProcessResult): String {
         return buildString {

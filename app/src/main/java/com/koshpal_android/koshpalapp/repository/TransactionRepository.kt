@@ -15,7 +15,7 @@ import com.koshpal_android.koshpalapp.model.CashFlowTransaction
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import com.koshpal_android.koshpalapp.utils.BudgetMonitor
-import com.koshpal_android.koshpalapp.service.TransactionSyncService
+import com.koshpal_android.koshpalapp.service.NewTransactionSyncService
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +32,7 @@ class TransactionRepository @Inject constructor(
     private val budgetCategoryDao: BudgetCategoryNewDao,
     private val cashFlowTransactionDao: CashFlowTransactionDao,
     private val categorizationEngine: TransactionCategorizationEngine,
-    private val syncService: TransactionSyncService,
+    private val syncService: NewTransactionSyncService,
     @ApplicationContext private val context: Context
 ) {
     
@@ -177,7 +177,7 @@ class TransactionRepository @Inject constructor(
         
         // Auto-sync transaction update to MongoDB
         try {
-            syncService.autoSyncTransactionUpdate(transaction)
+            syncService.syncSingleTransaction(transaction)
             android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for transaction update")
         } catch (e: Exception) {
             android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for transaction update: ${e.message}")
@@ -275,7 +275,7 @@ class TransactionRepository @Inject constructor(
                     
                     // Auto-sync category update to MongoDB
                     try {
-                        syncService.autoSyncTransactionUpdate(updatedTransaction)
+                        syncService.syncSingleTransaction(updatedTransaction)
                         android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for category update")
                     } catch (e: Exception) {
                         android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for category update: ${e.message}")

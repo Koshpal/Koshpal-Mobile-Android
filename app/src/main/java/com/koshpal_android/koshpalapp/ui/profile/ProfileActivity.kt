@@ -41,9 +41,12 @@ class ProfileActivity : AppCompatActivity() {
     
     @Inject
     lateinit var userPreferences: UserPreferences
-    
+
     @Inject
     lateinit var transactionRepository: TransactionRepository
+
+    @Inject
+    lateinit var syncRepository: com.koshpal_android.koshpalapp.repository.SyncRepository
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +74,9 @@ class ProfileActivity : AppCompatActivity() {
         setupUI()
         observeViewModel()
         loadUserInfo()
+
+        // Initialize sync status
+        updateSyncStatus()
     }
     
     private fun setupUI() {
@@ -110,9 +116,94 @@ class ProfileActivity : AppCompatActivity() {
                 Log.d("ProfileActivity", "📧 Report Undetected SMS clicked")
                 reportUndetectedSMS()
             }
+
+            // Sync All Transactions
+            binding.btnSyncTransactions.setOnClickListener {
+                Log.d("ProfileActivity", "🔄 Sync All Transactions clicked")
+                performSync()
+            }
         }
         
         Log.d("ProfileActivity", "✅ UI setup completed")
+    }
+
+    private fun performSync() {
+        Log.d("ProfileActivity", "🔄 Starting manual transaction sync")
+
+        // Check if already syncing
+        val currentStatus = profileViewModel.syncStatus.value
+        if (currentStatus == ProfileViewModel.SyncStatus.SYNCING) {
+            Log.d("ProfileActivity", "⚠️ Sync already in progress, ignoring")
+            return
+        }
+
+        // Check if user is logged in
+        if (!userPreferences.isLoggedIn()) {
+            Log.w("ProfileActivity", "🚪 User not logged in, cannot sync")
+            Toast.makeText(this, "Please login to sync transactions", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Start sync
+        profileViewModel.performInitialSync()
+        updateSyncUI(isSyncing = true)
+    }
+
+    private fun updateSyncStatus() {
+        lifecycleScope.launch {
+            try {
+                val unsyncedCount = syncRepository.getUnsyncedTransactionCount()
+                val lastSyncTime = profileViewModel.lastSyncTime.value ?: 0L
+
+                val statusText = when {
+                    unsyncedCount > 0 -> "$unsyncedCount pending transactions"
+                    lastSyncTime > 0 -> "Last sync: ${formatLastSyncTime(lastSyncTime)}"
+                    else -> "All transactions synced"
+                }
+
+                binding.tvSyncStatus.text = statusText
+
+                // Update status icon
+                if (unsyncedCount == 0 && lastSyncTime > 0) {
+                    binding.ivSyncStatus.visibility = View.VISIBLE
+                    binding.ivSyncStatus.setColorFilter(ContextCompat.getColor(this@ProfileActivity, R.color.success))
+                } else {
+                    binding.ivSyncStatus.visibility = View.GONE
+                }
+
+            } catch (e: Exception) {
+                Log.e("ProfileActivity", "❌ Error updating sync status: ${e.message}")
+                binding.tvSyncStatus.text = "Unable to check sync status"
+            }
+        }
+    }
+
+    private fun updateSyncUI(isSyncing: Boolean) {
+        if (isSyncing) {
+            binding.progressSync.visibility = View.VISIBLE
+            binding.btnSyncTransactions.isEnabled = false
+            binding.btnSyncTransactions.alpha = 0.6f
+        } else {
+            binding.progressSync.visibility = View.GONE
+            binding.btnSyncTransactions.isEnabled = true
+            binding.btnSyncTransactions.alpha = 1.0f
+        }
+    }
+
+    private fun formatLastSyncTime(timestamp: Long): String {
+        return try {
+            val now = System.currentTimeMillis()
+            val diff = now - timestamp
+
+            when {
+                diff < 60_000 -> "Just now" // Less than 1 minute
+                diff < 3_600_000 -> "${diff / 60_000}m ago" // Less than 1 hour
+                diff < 86_400_000 -> "${diff / 3_600_000}h ago" // Less than 1 day
+                else -> "${diff / 86_400_000}d ago" // Days ago
+            }
+        } catch (e: Exception) {
+            "Recently"
+        }
     }
     
     private fun openTermsAndConditions() {
@@ -182,18 +273,24 @@ class ProfileActivity : AppCompatActivity() {
             syncStatus.observe(this@ProfileActivity) { status ->
                 Log.d("ProfileActivity", "🔄 Sync status: $status")
                 val inProgress = status == ProfileViewModel.SyncStatus.SYNCING
+
+                // Update sync UI
+                updateSyncUI(inProgress)
+
                 binding.apply {
                     progressBar.visibility = if (inProgress) View.VISIBLE else View.GONE
                 }
-                
+
                 // Show toast on completion
                 when (status) {
                     ProfileViewModel.SyncStatus.SUCCESS -> {
                         Toast.makeText(this@ProfileActivity, "Sync completed successfully!", Toast.LENGTH_SHORT).show()
+                        updateSyncStatus() // Refresh status after successful sync
                     }
                     ProfileViewModel.SyncStatus.ERROR -> {
                         val error = lastSyncError.value ?: "Unknown error"
                         Toast.makeText(this@ProfileActivity, "Sync failed: $error", Toast.LENGTH_LONG).show()
+                        updateSyncStatus() // Refresh status after failed sync
                     }
                     else -> {} // IDLE or SYNCING
                 }
@@ -202,6 +299,7 @@ class ProfileActivity : AppCompatActivity() {
             // Observe total synced count
             totalSyncedCount.observe(this@ProfileActivity) { count ->
                 Log.d("ProfileActivity", "📊 Total synced count: $count")
+                updateSyncStatus()
             }
         }
         

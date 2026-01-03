@@ -101,7 +101,7 @@ class SMSManager(private val context: Context) {
                 // Step 5: Process SMS into transactions
                 Log.d("SMSManager", "⚙️ Processing SMS into transactions...")
                 val engine = TransactionCategorizationEngine()
-                
+
                 // Get categories directly without Flow collection to avoid hanging
                 val categoryList = try {
                     database.categoryDao().getAllActiveCategoriesList() // Use direct list method
@@ -109,15 +109,15 @@ class SMSManager(private val context: Context) {
                     Log.e("SMSManager", "❌ Error getting categories: ${e.message}")
                     emptyList()
                 }
-                
+
                 Log.d("SMSManager", "📂 Found ${categoryList.size} categories for processing")
-                
+
                 // ============================================
                 // INTEGRATED ML MODULE: Initialize ML classifier
                 // Uses TensorFlow Lite INT8 model for SMS classification
                 // ============================================
                 val classifier = SmsClassifier(context)
-                
+
                 // Process ALL SMS with ML model (no rule-based filtering)
                 allSMS.forEach { sms ->
                     // Record SMS received for metrics
@@ -204,8 +204,20 @@ class SMSManager(private val context: Context) {
                             val sender = "" // SMS sender not available in this context
                             val timeWindow = 120000L // 2 minutes window (±2 minutes)
 
-                            // Check for transactions from same sender within time window with similar content
-                            // Since we don't have sender in SMS processing, use content hash + time window only
+                            // PRIMARY DUPLICATE CHECK: Look for transactions with the same SMS content
+                            val existingBySmsBody = database.transactionDao().getTransactionBySmsBody(sms.smsBody)
+                            if (existingBySmsBody != null) {
+                                Log.d("SMSManager", "⏭️ Duplicate: Transaction already exists for this SMS content, skipping")
+                                SmsProcessingMetrics.logSkippedSms(
+                                    reason = SmsProcessingMetrics.SmsSkipReason.DUPLICATE_SMS_BODY,
+                                    smsBody = sms.smsBody,
+                                    mlResult = mlResult,
+                                    additionalContext = "Existing transaction ID: ${existingBySmsBody.id}, SMS already processed"
+                                )
+                                return@forEach
+                            }
+
+                            // SECONDARY CHECK: Fallback to amount + time window (for edge cases)
                             val existingByContentAndTime = database.transactionDao().getTransactionByAmountAndTime(
                                 details.amount, // Still use amount as a rough filter
                                 sms.timestamp - timeWindow,

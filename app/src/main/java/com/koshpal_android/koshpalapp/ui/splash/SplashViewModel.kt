@@ -7,9 +7,9 @@ import android.os.Build
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.koshpal_android.koshpalapp.auth.SessionManager
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.repository.AuthRepository
-import com.koshpal_android.koshpalapp.repository.UserRepository
 import com.koshpal_android.koshpalapp.ui.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,12 +22,11 @@ import javax.inject.Inject
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val userRepository: UserRepository,
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager,
     private val userPreferences: UserPreferences,
     private val syncManager: SyncManager
 ) : ViewModel() {
-
-    private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _navigationEvent = MutableSharedFlow<NavigationDestination>()
     val navigationEvent: SharedFlow<NavigationDestination> = _navigationEvent
@@ -57,33 +56,26 @@ class SplashViewModel @Inject constructor(
 
             // 🔐 AUTO-LOGIN: Always use static employee ID (no login required)
             val staticEmployeeId = "68ee28ce2f3fd392ea436576"
-            if (!userPreferences.isLoggedIn()) {
+            if (!sessionManager.isLoggedIn.value) {
                 Log.d("SplashViewModel", "🔐 Auto-logging in with static employee ID: $staticEmployeeId")
-                userPreferences.setLoggedIn(true)
-                userPreferences.saveUserId(staticEmployeeId)
-                userPreferences.saveEmail("koshpal.user@app.com") // Default email
+                // For auto-login, create a mock user session
+                // In production, this would be removed and users would need to login
+                // TODO: Remove this auto-login once proper authentication is implemented
             }
 
             val isSmsProcessed = userPreferences.isInitialSmsProcessed()
-            val isLoggedIn = userPreferences.isLoggedIn()
+            val isLoggedIn = sessionManager.isLoggedIn.value
             val isSyncCompleted = userPreferences.isInitialSyncCompleted()
 
             Log.d("SplashViewModel", "📊 User state - SMS Processed: $isSmsProcessed, Logged In: $isLoggedIn, Sync Completed: $isSyncCompleted")
 
-            // 🧪 SIMPLIFIED FLOW: Auto-login enabled, just check SMS processing
-            if (!isSmsProcessed) {
-                Log.d("SplashViewModel", "📱 SMS not processed - navigating to SMS_PROCESSING")
-                // First time - process all SMS
-                _navigationEvent.emit(NavigationDestination.SMS_PROCESSING)
-            } else {
-                Log.d("SplashViewModel", "🏠 SMS processed and auto-logged in - navigating to HOME")
-                // User is auto-logged in - go to home
-                _navigationEvent.emit(NavigationDestination.HOME)
-            }
+            // 🔐 PRODUCTION FLOW: Always go to login first
+            Log.d("SplashViewModel", "🔐 Navigating to LOGIN screen")
+            _navigationEvent.emit(NavigationDestination.LOGIN)
             
             /* PRODUCTION FLOW (Uncomment for production):
             // Check if user is already logged in
-            if (userPreferences.isLoggedIn()) {
+            if (sessionManager.isLoggedIn.value) {
                 // Check if onboarding is completed
                 if (userPreferences.isOnboardingCompleted()) {
                     // Check if initial SMS processing is done
@@ -96,7 +88,7 @@ class SplashViewModel @Inject constructor(
                     }
                 } else {
                     // User is logged in but onboarding not completed, go to ONBOARDING
-                    val email = userPreferences.getEmail() ?: ""
+                    val email = sessionManager.getUserEmail() ?: ""
                     if (email.isNotEmpty()) {
                         _navigationEvent.emit(NavigationDestination.ONBOARDING)
                     } else {
@@ -105,8 +97,8 @@ class SplashViewModel @Inject constructor(
                     }
                 }
             } else {
-                // User not logged in, go to Employee Login
-                _navigationEvent.emit(NavigationDestination.EMPLOYEE_LOGIN)
+                // User not logged in, go to Employee Login (main login flow)
+                _navigationEvent.emit(NavigationDestination.LOGIN)
             }
             */
         }

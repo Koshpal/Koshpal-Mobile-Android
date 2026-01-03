@@ -2,9 +2,8 @@ package com.koshpal_android.koshpalapp.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.koshpal_android.koshpalapp.data.local.UserPreferences
+import com.koshpal_android.koshpalapp.auth.SessionManager
 import com.koshpal_android.koshpalapp.repository.AuthRepository
-import com.koshpal_android.koshpalapp.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,10 +13,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OTPVerificationViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val userPreferences: UserPreferences
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
-    private val authRepository = AuthRepository(userRepository, userPreferences)
 
     private val _uiState = MutableStateFlow(OTPUiState())
     val uiState: StateFlow<OTPUiState> = _uiState
@@ -26,19 +24,14 @@ class OTPVerificationViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            val result = authRepository.verifyOTPAndCreateUser(verificationId, otp, phoneNumber)
-            if (result.isSuccess) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    isVerified = true,
-                    user = result.getOrNull()
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = result.exceptionOrNull()?.message ?: "Verification failed"
-                )
-            }
+            // TODO: Implement phone number OTP verification
+            // This functionality is not implemented in the current email/password auth system
+            delay(1000) // Simulate network call
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = "Phone number authentication is not implemented. Please use email login."
+            )
         }
     }
 

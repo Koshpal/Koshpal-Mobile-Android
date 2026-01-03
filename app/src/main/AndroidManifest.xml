@@ -61,9 +61,6 @@
             android:name=".ui.auth.OTPVerificationActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.auth.LoginActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.auth.EmployeeLoginActivity"
             android:exported="false" />
         <activity
