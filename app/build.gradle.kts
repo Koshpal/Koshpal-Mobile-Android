@@ -30,6 +30,26 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 16KB Page Size Compliance: Only include arm64-v8a ABI for release builds
+            ndk {
+                abiFilters.add("arm64-v8a")
+            }
+            packaging {
+                // Exclude emulator ABIs from release builds
+                jniLibs {
+                    excludes.addAll(listOf(
+                        "lib/x86/libtensorflowlite_jni.so",
+                        "lib/x86_64/libtensorflowlite_jni.so",
+                        "lib/armeabi-v7a/libtensorflowlite_jni.so"
+                    ))
+                }
+            }
+        }
+        debug {
+            // Debug builds can include emulator ABIs for testing
+            ndk {
+                abiFilters.addAll(listOf("arm64-v8a", "x86", "x86_64"))
+            }
         }
     }
     
@@ -132,7 +152,7 @@ dependencies {
     // INTEGRATED ML MODULE: TensorFlow Lite for ML inference
     // Used for SMS transaction classification using INT8 quantized model
     // ============================================
-    implementation("org.tensorflow:tensorflow-lite:2.15.0")
+    implementation("org.tensorflow:tensorflow-lite:2.17.0")
     
     // ============================================
     // ADDED LOTTIE ANIMATION: Lottie library for splash screen animation

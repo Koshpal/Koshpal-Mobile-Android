@@ -37,7 +37,6 @@
     <style name="Theme.KoshpalApp.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="windowActionBar">false</item>
-        <item name="colorPrimary">@color/white</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">@color/black</item>
