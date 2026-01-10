@@ -269,7 +269,6 @@ class HomeFragment : Fragment() {
         // Show HomeScreen
         HomeScreen(
             greetingText = greetingText,
-            userName = uiState.userName,
             currentMonthIncome = uiState.currentMonthIncome,
             currentMonthExpenses = uiState.currentMonthExpenses,
             incomeChangePercentage = incomeChangePercentage,

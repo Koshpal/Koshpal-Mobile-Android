@@ -51,9 +51,8 @@ import java.util.*
 
 /**
  * Stateless HomeScreen Composable
- * 
- * @param greetingText Greeting text (e.g., "Good Evening")
- * @param userName User's name to display
+ *
+ * @param greetingText Time-based greeting text (e.g., "Good Evening")
  * @param currentMonthIncome Current month income amount
  * @param currentMonthExpenses Current month expenses amount
  * @param incomeChangePercentage Percentage change for income (e.g., "+12%")
@@ -72,7 +71,6 @@ import java.util.*
 @Composable
 fun HomeScreen(
     greetingText: String,
-    userName: String,
     currentMonthIncome: Double,
     currentMonthExpenses: Double,
     incomeChangePercentage: String? = null,
@@ -112,7 +110,6 @@ fun HomeScreen(
             item {
                 TopAppBarSection(
                     greetingText = greetingText,
-                    userName = userName,
                     onProfileClick = onProfileClick,
                     onNotificationClick = onNotificationClick,
                     modifier = Modifier.fillMaxWidth()
@@ -250,12 +247,11 @@ fun HomeScreen(
 }
 
 /**
- * Top App Bar - Clean design with profile icon and "Hi [USERNAME]" text
+ * Top App Bar - Clean design with profile icon and time-based greeting
  */
 @Composable
 private fun TopAppBarSection(
     greetingText: String,
-    userName: String,
     onProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -300,24 +296,13 @@ private fun TopAppBarSection(
             )
         }
         
-        // "Hi [USERNAME]" text - matching reference style (only one "Hi" in normal weight)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "Hi",
-                color = AppColors.TextSecondary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
-            )
-            Text(
-                text = userName.uppercase(),
-                color = AppColors.TextPrimary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        // Time-based greeting text
+        Text(
+            text = greetingText,
+            color = AppColors.TextPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 

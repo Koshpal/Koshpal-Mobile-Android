@@ -24,11 +24,11 @@ import java.util.Calendar
 
 /**
  * Common App Bar for all fragments
- * Displays profile icon and "Hi [USERNAME]" greeting
+ * Displays profile icon and time-based greeting
  */
 @Composable
 fun CommonAppBar(
-    userName: String = "User",
+    greeting: String = getGreetingText(),
     onProfileClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -72,24 +72,13 @@ fun CommonAppBar(
             )
         }
         
-        // "Hi [USERNAME]" text
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "Hi",
-                color = AppColors.TextSecondary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
-            )
-            Text(
-                text = userName.uppercase(),
-                color = AppColors.TextPrimary,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        // Time-based greeting text
+        Text(
+            text = greeting,
+            color = AppColors.TextPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
