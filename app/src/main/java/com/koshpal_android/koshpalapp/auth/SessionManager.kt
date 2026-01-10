@@ -2,6 +2,7 @@ package com.koshpal_android.koshpalapp.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.data.remote.dto.UserDto
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,8 @@ import javax.inject.Singleton
 
 @Singleton
 class SessionManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val userPreferences: UserPreferences
 ) {
 
     // TODO: Replace with EncryptedSharedPreferences for production security
@@ -62,6 +64,12 @@ class SessionManager @Inject constructor(
 
         _currentUser.value = user
         _isLoggedIn.value = true
+
+        // Synchronize with UserPreferences
+        userPreferences.setLoggedIn(true)
+        userPreferences.saveUserId(user.id)
+        userPreferences.saveEmail(user.email)
+        userPreferences.saveUserToken(accessToken ?: "")
     }
 
     /**
@@ -86,6 +94,12 @@ class SessionManager @Inject constructor(
 
             _currentUser.value = user
             _isLoggedIn.value = true
+
+            // Synchronize with UserPreferences
+            userPreferences.setLoggedIn(true)
+            userPreferences.saveUserId(user.id)
+            userPreferences.saveEmail(user.email)
+            userPreferences.saveUserToken(accessToken ?: "")
 
             android.util.Log.d("SessionManager", "✅ Session restored: user=${user.email}, active=${user.isActive}, token=${accessToken?.take(10)}...")
         } else {
@@ -112,6 +126,13 @@ class SessionManager @Inject constructor(
 
         _currentUser.value = null
         _isLoggedIn.value = false
+
+        // Synchronize with UserPreferences
+        userPreferences.setLoggedIn(false)
+        userPreferences.saveUserId("")
+        userPreferences.saveEmail("")
+        userPreferences.saveUserToken("")
+        userPreferences.setInitialSyncCompleted(false)
     }
 
     /**
@@ -150,10 +171,11 @@ class SessionManager @Inject constructor(
     fun isValidSession(): Boolean {
         val isLoggedIn = _isLoggedIn.value
         val hasToken = getAccessToken() != null
+        val isUserActive = _currentUser.value?.isActive == true
 
-        val result = isLoggedIn && hasToken
+        val result = isLoggedIn && hasToken && isUserActive
 
-        android.util.Log.d("SessionManager", "🔐 Session validation: loggedIn=$isLoggedIn, hasToken=$hasToken, valid=$result")
+        android.util.Log.d("SessionManager", "🔐 Session validation: loggedIn=$isLoggedIn, hasToken=$hasToken, isActive=$isUserActive, valid=$result")
 
         return result
     }

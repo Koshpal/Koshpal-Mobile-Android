@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.koshpal_android.koshpalapp.R
+import com.koshpal_android.koshpalapp.auth.SessionManager
 import com.koshpal_android.koshpalapp.databinding.ActivityProfileBinding
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.model.Transaction
@@ -41,6 +42,9 @@ class ProfileActivity : AppCompatActivity() {
     
     @Inject
     lateinit var userPreferences: UserPreferences
+
+    @Inject
+    lateinit var sessionManager: SessionManager
 
     @Inject
     lateinit var transactionRepository: TransactionRepository
@@ -137,9 +141,9 @@ class ProfileActivity : AppCompatActivity() {
             return
         }
 
-        // Check if user is logged in
-        if (!userPreferences.isLoggedIn()) {
-            Log.w("ProfileActivity", "🚪 User not logged in, cannot sync")
+        // Check if user session is valid
+        if (!sessionManager.isValidSession()) {
+            Log.w("ProfileActivity", "🚪 User session invalid, cannot sync")
             Toast.makeText(this, "Please login to sync transactions", Toast.LENGTH_SHORT).show()
             return
         }
@@ -352,21 +356,17 @@ class ProfileActivity : AppCompatActivity() {
     private fun logout() {
         Log.d("ProfileActivity", "🚪 Logging out user")
         try {
-            // Clear user preferences
-            userPreferences.setLoggedIn(false)
-            userPreferences.setInitialSyncCompleted(false)
-            userPreferences.saveUserId("")
-            userPreferences.saveEmail("")
-            userPreferences.saveUserToken("")
-            
+            // Clear session (this will synchronize both SessionManager and UserPreferences)
+            sessionManager.clearSession()
+
             Log.d("ProfileActivity", "✅ User logged out successfully")
-            
+
             // Navigate to splash screen
             val intent = Intent(this, SplashActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
-            
+
             Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e("ProfileActivity", "❌ Error during logout: ${e.message}", e)
