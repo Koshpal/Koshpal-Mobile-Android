@@ -2,6 +2,7 @@ package com.koshpal_android.koshpalapp.ui.sync
 
 import android.content.Context
 import android.util.Log
+import com.koshpal_android.koshpalapp.auth.SessionManager
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.service.TransactionSyncService
 import com.koshpal_android.koshpalapp.service.DemoLoginService
@@ -17,6 +18,7 @@ class SyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val syncService: TransactionSyncService,
     private val userPreferences: UserPreferences,
+    private val sessionManager: SessionManager,
     private val demoLoginService: DemoLoginService
 ) {
     
@@ -79,9 +81,9 @@ class SyncManager @Inject constructor(
         return try {
             Log.d("SyncManager", "🚀 Starting initial sync...")
             
-            // Check if user is logged in (should be done via login screen)
-            if (!userPreferences.isLoggedIn()) {
-                val errorMsg = "User not logged in. Please login first."
+            // Check if user session is valid (should be done via login screen)
+            if (!sessionManager.isValidSession()) {
+                val errorMsg = "User session invalid. Please login first."
                 Log.e("SyncManager", "❌ $errorMsg")
                 _errorMessage.value = errorMsg
                 return false

@@ -32,44 +32,17 @@ object ReminderNotificationHelper {
         // Calculate trigger time
         val triggerTime = reminder.dueDate + reminder.dueTime
 
-        // Schedule exact alarm
+        // Schedule inexact alarm (Play Store compliant, no exact alarm permissions needed)
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                // Android 12+ - check if can schedule exact alarms
-                if (alarmManager.canScheduleExactAlarms()) {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerTime,
-                        pendingIntent
-                    )
-                    android.util.Log.d(
-                        "ReminderNotificationHelper",
-                        "✅ Exact alarm scheduled for ${Date(triggerTime)} (ID: ${reminder.notificationId})"
-                    )
-                } else {
-                    // Fallback to inexact alarm
-                    alarmManager.setAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerTime,
-                        pendingIntent
-                    )
-                    android.util.Log.w(
-                        "ReminderNotificationHelper",
-                        "⚠️ Using inexact alarm (exact alarms not permitted)"
-                    )
-                }
-            } else {
-                // Android 11 and below
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-                android.util.Log.d(
-                    "ReminderNotificationHelper",
-                    "✅ Exact alarm scheduled for ${Date(triggerTime)} (ID: ${reminder.notificationId})"
-                )
-            }
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerTime,
+                pendingIntent
+            )
+            android.util.Log.d(
+                "ReminderNotificationHelper",
+                "✅ Inexact alarm scheduled for ${Date(triggerTime)} (ID: ${reminder.notificationId})"
+            )
         } catch (e: Exception) {
             android.util.Log.e(
                 "ReminderNotificationHelper",
@@ -124,9 +97,9 @@ object ReminderNotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Schedule snooze alarm
+        // Schedule snooze alarm (inexact)
         try {
-            alarmManager.setExactAndAllowWhileIdle(
+            alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 newTriggerTime,
                 pendingIntent

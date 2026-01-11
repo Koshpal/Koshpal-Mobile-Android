@@ -20,6 +20,13 @@ import java.text.NumberFormat
 import java.util.*
 import javax.inject.Inject
 
+private data class DisplayData(
+    val income: Double,
+    val expenses: Double,
+    val balance: Double,
+    val period: String
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     application: Application,
@@ -142,22 +149,65 @@ class HomeViewModel @Inject constructor(
             
             val currentMonthBalance = currentMonthIncome - currentMonthExpenses
             
-            // Always display CURRENT MONTH data (not total)
-            val displayIncome = currentMonthIncome
-            val displayExpenses = currentMonthExpenses
-            val displayBalance = currentMonthBalance
-            
-            android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION:")
-            android.util.Log.d("HomeViewModel", "   Always showing CURRENT MONTH data")
-            
-            android.util.Log.d("HomeViewModel", "📅 CURRENT MONTH DATA:")
+            // SMART FALLBACK TOTALS: Show most relevant data available
+            // 1. Current month (if has transactions)
+            // 2. Last 30 days (if has transactions)
+            // 3. All-time (fallback)
+
+            // Calculate last 30 days totals
+            val thirtyDaysAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
+            var last30DaysIncome = 0.0
+            var last30DaysExpenses = 0.0
+
+            allTransactions.forEach { transaction ->
+                // Skip if transaction is in cash flow
+                if (cashFlowTransactionIds.contains(transaction.id)) {
+                    return@forEach
+                }
+
+                if (transaction.timestamp >= thirtyDaysAgo) {
+                    when (transaction.type) {
+                        TransactionType.CREDIT -> last30DaysIncome += transaction.amount
+                        TransactionType.DEBIT -> last30DaysExpenses += transaction.amount
+                        TransactionType.TRANSFER -> last30DaysExpenses += transaction.amount
+                    }
+                }
+            }
+
+            val last30DaysBalance = last30DaysIncome - last30DaysExpenses
+
+            // Determine which data to display with smart fallback
+            val displayData = when {
+                // Option 1: Current month has transactions
+                currentMonthIncome > 0 || currentMonthExpenses > 0 -> {
+                    android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION: Current month has transactions")
+                    DisplayData(currentMonthIncome, currentMonthExpenses, currentMonthBalance, "Current Month")
+                }
+                // Option 2: Last 30 days has transactions
+                last30DaysIncome > 0 || last30DaysExpenses > 0 -> {
+                    android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION: Using last 30 days (current month empty)")
+                    DisplayData(last30DaysIncome, last30DaysExpenses, last30DaysBalance, "Last 30 Days")
+                }
+                // Option 3: All-time totals (fallback)
+                else -> {
+                    android.util.Log.d("HomeViewModel", "📊 DISPLAY DECISION: Using all-time totals (no recent activity)")
+                    DisplayData(totalIncome, totalExpenses, totalIncome - totalExpenses, "All Time")
+                }
+            }
+
+            val displayIncome = displayData.income
+            val displayExpenses = displayData.expenses
+            val displayBalance = displayData.balance
+
+            android.util.Log.d("HomeViewModel", "📊 DISPLAYING: ${displayData.period}")
             android.util.Log.d("HomeViewModel", "   Income: ₹$displayIncome")
             android.util.Log.d("HomeViewModel", "   Expenses: ₹$displayExpenses")
             android.util.Log.d("HomeViewModel", "   Balance: ₹$displayBalance")
-            android.util.Log.d("HomeViewModel", "📊 TOTAL DATA (for reference):")
-            android.util.Log.d("HomeViewModel", "   Total Income: ₹$totalIncome")
-            android.util.Log.d("HomeViewModel", "   Total Expenses: ₹$totalExpenses")
-            android.util.Log.d("HomeViewModel", "   Total Balance: ₹${totalIncome - totalExpenses}")
+
+            android.util.Log.d("HomeViewModel", "📊 AVAILABLE DATA:")
+            android.util.Log.d("HomeViewModel", "   Current Month: ₹$currentMonthIncome income, ₹$currentMonthExpenses expenses")
+            android.util.Log.d("HomeViewModel", "   Last 30 Days: ₹$last30DaysIncome income, ₹$last30DaysExpenses expenses")
+            android.util.Log.d("HomeViewModel", "   All Time: ₹$totalIncome income, ₹$totalExpenses expenses")
             
             android.util.Log.d("HomeViewModel", "🔄 Creating simplified UI state...")
             

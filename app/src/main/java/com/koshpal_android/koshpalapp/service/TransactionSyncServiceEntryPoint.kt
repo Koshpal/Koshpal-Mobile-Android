@@ -8,4 +8,5 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface TransactionSyncServiceEntryPoint {
     fun transactionSyncService(): TransactionSyncService
+    fun newTransactionSyncService(): NewTransactionSyncService
 }

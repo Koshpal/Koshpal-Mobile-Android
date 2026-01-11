@@ -33,7 +33,7 @@
     <color name="md_theme_light_inversePrimary">#D0BCFF</color>
 
     <!-- Brand Primary Colors (Blue Palette) -->
-    <color name="primary_darkest">#081F5C</color>
+    <color name="primary_darkest">#020A21</color>
     <color name="primary">#334EAC</color>
     <color name="primary_mid">#99A6D6</color>
     <color name="primary_light">#CCD3EA</color>

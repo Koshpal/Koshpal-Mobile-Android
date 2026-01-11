@@ -1,98 +1,106 @@
 package com.koshpal_android.koshpalapp.repository
 
-import android.app.Activity
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
-import com.koshpal_android.koshpalapp.data.local.UserPreferences
-import com.koshpal_android.koshpalapp.model.User
+import android.util.Log
+import com.koshpal_android.koshpalapp.auth.SessionManager
+import com.koshpal_android.koshpalapp.data.remote.dto.LoginRequest
+import com.koshpal_android.koshpalapp.data.remote.dto.LoginResponse
+import com.koshpal_android.koshpalapp.network.ApiService
 import com.koshpal_android.koshpalapp.network.NetworkResult
-import kotlinx.coroutines.tasks.await
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepository @Inject constructor(
-    private val userRepository: UserRepository,
-    private val userPreferences: UserPreferences
+    private val apiService: ApiService,
+    private val sessionManager: SessionManager
 ) {
-    private val firebaseAuth = FirebaseAuth.getInstance()
 
-    suspend fun sendOTP(
-        phoneNumber: String,
-        activity: Activity,
-        callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    ) {
-        firebaseAuth.firebaseAuthSettings.setAppVerificationDisabledForTesting(false)
+    private val TAG = "AuthRepository"
 
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth)
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(callbacks)
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
+    /**
+     * Login with email and password
+     */
+    fun login(email: String, password: String): Flow<NetworkResult<LoginResponse>> = flow {
+        try {
+            Log.d(TAG, "🚀 Starting login request for email: $email")
 
-    suspend fun verifyOTPAndCreateUser(
-        verificationId: String,
-        otp: String,
-        phoneNumber: String
-    ): Result<User> {
-        return try {
-            // Step 1: Verify OTP with Firebase
-            val credential = PhoneAuthProvider.getCredential(verificationId, otp)
-            val result = firebaseAuth.signInWithCredential(credential).await()
-            val firebaseUser = result.user
+            emit(NetworkResult.Loading())
 
-            if (firebaseUser != null) {
-                // Step 2: Create user in your backend
-                when (val apiResult = userRepository.createUser(phoneNumber)) {
-                    is NetworkResult.Success -> {
-                        // Step 3: Return success with user data
-                        val user = User(
-                            uid = firebaseUser.uid,
-                            phoneNumber = phoneNumber,
-                            isVerified = true,
-                            apiToken = apiResult.data
-                        )
-                        Result.success(user)
+            val loginRequest = LoginRequest(email, password)
+            val response = apiService.login(loginRequest)
+
+            if (response.isSuccessful) {
+                val loginResponse = response.body()
+                if (loginResponse != null) {
+                    Log.d(TAG, "✅ Login successful for user: ${loginResponse.user.email}")
+
+                    // Extract tokens from Set-Cookie headers
+                    var accessToken: String? = null
+                    var refreshToken: String? = null
+
+                    val setCookieHeaders = response.headers().values("Set-Cookie")
+                    for (cookie in setCookieHeaders) {
+                        Log.d(TAG, "🍪 Cookie received: $cookie")
+                        if (cookie.startsWith("accessToken=")) {
+                            accessToken = cookie.substringAfter("accessToken=").substringBefore(";")
+                            Log.d(TAG, "🔑 Extracted accessToken: ${accessToken.take(20)}...")
+                        } else if (cookie.startsWith("refreshToken=")) {
+                            refreshToken = cookie.substringAfter("refreshToken=").substringBefore(";")
+                            Log.d(TAG, "🔄 Extracted refreshToken: ${refreshToken.take(20)}...")
+                        }
                     }
-                    is NetworkResult.Error -> {
-                        // Surface backend error instead of masking it as success
-                        Result.failure(Exception("Backend user creation failed: ${apiResult.message}${apiResult.code?.let { " (code: $it)" } ?: ""}"))
-                    }
-                    is NetworkResult.Loading -> {
-                        Result.failure(Exception("Unexpected loading state"))
-                    }
+
+                    Log.d(TAG, "👤 User data: id=${loginResponse.user.id}, email=${loginResponse.user.email}, isActive=${loginResponse.user.isActive}")
+
+                    // Save session with tokens
+                    sessionManager.saveSession(loginResponse.user, accessToken, refreshToken)
+                    Log.d(TAG, "✅ Session saved - checking validity: ${sessionManager.isValidSession()}")
+
+                    emit(NetworkResult.Success(loginResponse))
+                } else {
+                    Log.e(TAG, "❌ Login response body is null")
+                    emit(NetworkResult.Error("Login failed: Empty response"))
                 }
             } else {
-                Result.failure(Exception("Firebase authentication failed"))
+                val errorMessage = when (response.code()) {
+                    401 -> "Invalid email or password"
+                    403 -> "Account is not active"
+                    429 -> "Too many login attempts. Please try again later"
+                    else -> "Login failed: ${response.message()}"
+                }
+                Log.e(TAG, "❌ Login failed with code ${response.code()}: ${response.message()}")
+                emit(NetworkResult.Error(errorMessage))
             }
+
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e(TAG, "❌ Login exception: ${e.message}", e)
+            emit(NetworkResult.Error("Network error: ${e.localizedMessage ?: e.message}"))
         }
     }
 
-    fun getCurrentUser(): User? {
-        val firebaseUser = firebaseAuth.currentUser
-        val savedToken = userPreferences.getUserToken()
-        val isLoggedIn = userPreferences.isLoggedIn()
-
-        return if (firebaseUser != null && isLoggedIn) {
-            User(
-                uid = firebaseUser.uid,
-                phoneNumber = firebaseUser.phoneNumber ?: userPreferences.getPhoneNumber() ?: "",
-                isVerified = true,
-                apiToken = savedToken
-            )
-        } else null
+    /**
+     * Logout current user
+     */
+    fun logout() {
+        Log.d(TAG, "🚪 Logging out user")
+        sessionManager.clearSession()
     }
 
-    fun signOut() {
-        firebaseAuth.signOut()
-        userPreferences.clearUserData()
-    }
+    /**
+     * Check if user is currently logged in
+     */
+    fun isLoggedIn(): Boolean = sessionManager.isLoggedIn.value
+
+    /**
+     * Get current user information
+     */
+    fun getCurrentUser() = sessionManager.currentUser.value
+
+    /**
+     * Check if session is valid
+     */
+    fun isValidSession(): Boolean = sessionManager.isValidSession()
 }

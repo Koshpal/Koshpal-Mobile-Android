@@ -42,6 +42,8 @@ import com.koshpal_android.koshpalapp.ui.profile.ProfileActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.ui.home.compose.HomeScreen
+import com.koshpal_android.koshpalapp.ui.home.compose.AddGoalDialog
+import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionCategorizationDialog
 import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsDialog
 import com.koshpal_android.koshpalapp.repository.TransactionRepository
@@ -76,6 +78,7 @@ import javax.inject.Inject
 class HomeFragment : Fragment() {
 
     private val viewModel: HomeViewModel by viewModels()
+    private val goalsViewModel: GoalsViewModel by viewModels()
     private var isFirstLoad = true
 
     @Inject
@@ -126,6 +129,9 @@ class HomeFragment : Fragment() {
         // Bank spending state
         var bankCards by remember { mutableStateOf<List<BankSpending>>(emptyList()) }
         var isLoadingBankData by remember { mutableStateOf(true) }
+
+        // Goals dialog state
+        var showAddGoalDialog by remember { mutableStateOf(false) }
         
         // Calculate greeting text
         val greetingText = remember {
@@ -140,44 +146,38 @@ class HomeFragment : Fragment() {
         LaunchedEffect(Unit) {
             try {
                 android.util.Log.d("HomeFragment", "💳 ========== LOADING BANK SPENDING ==========")
-                
-                // Get ONLY real SMS transaction data for current month
+
+                // Get ALL-TIME transaction data (no month filtering)
                 val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
-                
+
                 android.util.Log.d("HomeFragment", "💳 Loaded ${bankSpending.size} bank cards with spending data")
-                
-                // Log each bank's spending
+
+                // Detailed logging for each bank
                 bankSpending.forEach { bank ->
-                    android.util.Log.d("HomeFragment", "💳 ${bank.bankName}: ₹${bank.totalSpending} (${bank.transactionCount} transactions)")
+                    android.util.Log.d("HomeFragment", "💳 ${bank.bankName}: ₹${bank.totalSpending} (${bank.transactionCount} transactions, isCash=${bank.isCash})")
                 }
-                
-                // Add Cash card at the end (always show for manual entry)
-                bankSpending.add(
-                    BankSpending(
-                        bankName = "Cash",
-                        totalSpending = 0.0,
-                        transactionCount = 0,
-                        isCash = true
-                    )
-                )
-                
-                android.util.Log.d("HomeFragment", "💳 Submitting ${bankSpending.size} cards (including Cash)")
+
+                // Special check for cash cards
+                val cashCards = bankSpending.filter { it.isCash }
+                if (cashCards.isNotEmpty()) {
+                    android.util.Log.d("HomeFragment", "💰 CASH CARDS FOUND: ${cashCards.size}")
+                    cashCards.forEach { cash ->
+                        android.util.Log.d("HomeFragment", "💰 Cash: ₹${cash.totalSpending} (${cash.transactionCount} transactions)")
+                    }
+                } else {
+                    android.util.Log.w("HomeFragment", "⚠️ NO CASH CARDS - cash transactions may not be detected")
+                }
+
+                android.util.Log.d("HomeFragment", "💳 Submitting ${bankSpending.size} cards")
                 bankCards = bankSpending
                 isLoadingBankData = false
                 
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "❌ Failed to load bank spending: ${e.message}", e)
                 e.printStackTrace()
-                
-                // Still show Cash card on error
-                bankCards = listOf(
-                    BankSpending(
-                        bankName = "Cash",
-                        totalSpending = 0.0,
-                        transactionCount = 0,
-                        isCash = true
-                    )
-                )
+
+                // Show empty list on error (no fallback cash card)
+                bankCards = emptyList()
                 isLoadingBankData = false
             }
         }
@@ -187,14 +187,6 @@ class HomeFragment : Fragment() {
             if (!isLoadingBankData && recentTransactions.isNotEmpty()) {
                 try {
                     val bankSpending = transactionRepository.getBankWiseSpending().toMutableList()
-                    bankSpending.add(
-                        BankSpending(
-                            bankName = "Cash",
-                            totalSpending = 0.0,
-                            transactionCount = 0,
-                            isCash = true
-                        )
-                    )
                     bankCards = bankSpending
                 } catch (e: Exception) {
                     android.util.Log.e("HomeFragment", "❌ Failed to reload bank spending: ${e.message}", e)
@@ -267,11 +259,16 @@ class HomeFragment : Fragment() {
                 (activity as? HomeActivity)?.showTransactionsFragment()
             }
         }
+
+        val onAddGoalClick: () -> Unit = remember {
+            {
+                showAddGoalDialog = true
+            }
+        }
         
         // Show HomeScreen
         HomeScreen(
             greetingText = greetingText,
-            userName = uiState.userName,
             currentMonthIncome = uiState.currentMonthIncome,
             currentMonthExpenses = uiState.currentMonthExpenses,
             incomeChangePercentage = incomeChangePercentage,
@@ -285,8 +282,22 @@ class HomeFragment : Fragment() {
             onAddCashClick = onAddCashClick,
             onAddPaymentClick = onAddPaymentClick,
             onTransactionClick = onTransactionClick,
-            onViewAllTransactionsClick = onViewAllTransactionsClick
+            onViewAllTransactionsClick = onViewAllTransactionsClick,
+            goalsViewModel = goalsViewModel,
+            onAddGoalClick = onAddGoalClick
         )
+
+        // Add Goal Dialog
+        if (showAddGoalDialog) {
+            AddGoalDialog(
+                viewModel = goalsViewModel,
+                onDismiss = { showAddGoalDialog = false },
+                onGoalCreated = {
+                    showAddGoalDialog = false
+                    // Goals list will auto-refresh via ViewModel
+                }
+            )
+        }
     }
     
 

@@ -313,51 +313,98 @@ class TransactionsViewModel @Inject constructor(
     }
 
     private fun updateSummary(transactions: List<Transaction>) {
-        // Calculate totals for THIS MONTH ONLY (excluding cash flow transactions)
-        var totalIncome = 0.0
-        var totalExpense = 0.0
-        
-        // Get cash flow transaction IDs to exclude
+        // SMART FALLBACK TOTALS: Show most relevant data available
+        // 1. Current month (if has transactions)
+        // 2. Last 30 days (if has transactions)
+        // 3. All-time (fallback)
+
         val cashFlowTransactionIds = _cashFlowTransactionIds.value
-        
+
+        // Calculate current month totals
+        var currentMonthIncome = 0.0
+        var currentMonthExpense = 0.0
+
         // Get current month boundaries
         val calendar = Calendar.getInstance()
         val currentMonth = calendar.get(Calendar.MONTH)
         val currentYear = calendar.get(Calendar.YEAR)
-        
+
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
         val startOfMonth = calendar.timeInMillis
-        
+
         calendar.add(Calendar.MONTH, 1)
         calendar.add(Calendar.MILLISECOND, -1)
         val endOfMonth = calendar.timeInMillis
-        
-        // Filter transactions for this month and calculate totals (excluding cash flow)
+
+        // Calculate last 30 days totals
+        val thirtyDaysAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
+        var last30DaysIncome = 0.0
+        var last30DaysExpense = 0.0
+
+        // Calculate all-time totals (excluding cash flow)
+        var allTimeIncome = 0.0
+        var allTimeExpense = 0.0
+
         transactions.forEach { transaction ->
             // Skip if transaction is in cash flow
             if (cashFlowTransactionIds.contains(transaction.id)) {
                 return@forEach
             }
-            
+
+            // All-time totals
+            when (transaction.type) {
+                TransactionType.CREDIT -> allTimeIncome += transaction.amount
+                TransactionType.DEBIT, TransactionType.TRANSFER -> allTimeExpense += transaction.amount
+            }
+
+            // Current month totals
             if (transaction.timestamp in startOfMonth..endOfMonth) {
                 when (transaction.type) {
-                    TransactionType.CREDIT -> {
-                        totalIncome += transaction.amount
-                    }
-                    TransactionType.DEBIT, TransactionType.TRANSFER -> {
-                        totalExpense += transaction.amount
-                    }
+                    TransactionType.CREDIT -> currentMonthIncome += transaction.amount
+                    TransactionType.DEBIT, TransactionType.TRANSFER -> currentMonthExpense += transaction.amount
+                }
+            }
+
+            // Last 30 days totals
+            if (transaction.timestamp >= thirtyDaysAgo) {
+                when (transaction.type) {
+                    TransactionType.CREDIT -> last30DaysIncome += transaction.amount
+                    TransactionType.DEBIT, TransactionType.TRANSFER -> last30DaysExpense += transaction.amount
                 }
             }
         }
 
+        // Determine which data to display with smart fallback
+        val (displayIncome, displayExpense) = when {
+            // Option 1: Current month has transactions
+            currentMonthIncome > 0 || currentMonthExpense > 0 -> {
+                android.util.Log.d("TransactionsViewModel", "📊 SUMMARY: Using current month totals")
+                Pair(currentMonthIncome, currentMonthExpense)
+            }
+            // Option 2: Last 30 days has transactions
+            last30DaysIncome > 0 || last30DaysExpense > 0 -> {
+                android.util.Log.d("TransactionsViewModel", "📊 SUMMARY: Using last 30 days totals (current month empty)")
+                Pair(last30DaysIncome, last30DaysExpense)
+            }
+            // Option 3: All-time totals (fallback)
+            else -> {
+                android.util.Log.d("TransactionsViewModel", "📊 SUMMARY: Using all-time totals (no recent activity)")
+                Pair(allTimeIncome, allTimeExpense)
+            }
+        }
+
+        android.util.Log.d("TransactionsViewModel", "📊 SUMMARY TOTALS: Income ₹$displayIncome, Expense ₹$displayExpense")
+        android.util.Log.d("TransactionsViewModel", "   Current Month: ₹$currentMonthIncome / ₹$currentMonthExpense")
+        android.util.Log.d("TransactionsViewModel", "   Last 30 Days: ₹$last30DaysIncome / ₹$last30DaysExpense")
+        android.util.Log.d("TransactionsViewModel", "   All Time: ₹$allTimeIncome / ₹$allTimeExpense")
+
         _summaryData.value = TransactionSummary(
-            totalIncome = totalIncome,
-            totalExpense = totalExpense
+            totalIncome = displayIncome,
+            totalExpense = displayExpense
         )
     }
     

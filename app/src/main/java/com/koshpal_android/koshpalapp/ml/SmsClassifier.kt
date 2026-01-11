@@ -3,6 +3,7 @@ package com.koshpal_android.koshpalapp.ml
 import android.content.Context
 import android.content.res.AssetFileDescriptor
 import android.util.Log
+import com.koshpal_android.koshpalapp.model.TransactionType
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -238,6 +239,61 @@ class SmsClassifier(context: Context) {
      */
     fun close() {
         interpreter.close()
+    }
+
+    /**
+     * CONFIDENCE-BASED TRANSACTION DETECTION
+     * Replaces binary label gating with probability-driven decisions
+     *
+     * @return Triple(isTransaction, transactionConfidence, transactionType)
+     * - isTransaction: true if max(debit_prob, credit_prob) >= 0.25
+     * - transactionConfidence: max(debit_probability, credit_probability)
+     * - transactionType: DEBIT or CREDIT based on argmax
+     */
+    fun shouldCreateTransaction(result: SmsInferenceResult): Triple<Boolean, Float, TransactionType?> {
+        val probabilities = result.probabilities
+
+        // Extract debit and credit probabilities (indices 0 and 1)
+        val debitProb = probabilities.getOrElse(0) { 0.0f }.toFloat()
+        val creditProb = probabilities.getOrElse(1) { 0.0f }.toFloat()
+
+        // Transaction confidence = max(debit, credit)
+        val transactionConfidence = maxOf(debitProb, creditProb)
+
+        // CALIBRATED THRESHOLD: 0.20 instead of 0.25 to match Web behavior
+        // Web accepts transactions at 0.20-0.45 confidence
+        val shouldCreate = transactionConfidence >= 0.20f
+
+        // Transaction type = argmax(debit, credit)
+        val transactionType = when {
+            debitProb > creditProb -> TransactionType.DEBIT
+            creditProb > debitProb -> TransactionType.CREDIT
+            else -> TransactionType.CREDIT // Default to CREDIT on tie
+        }
+
+        return Triple(shouldCreate, transactionConfidence, if (shouldCreate) transactionType else null)
+    }
+
+    /**
+     * Check if SMS has borderline confidence for logging
+     * Used for collecting retraining data
+     */
+    fun isBorderlineConfidence(result: SmsInferenceResult): Boolean {
+        val probabilities = result.probabilities
+        val debitProb = probabilities.getOrElse(0) { 0.0f }.toFloat()
+        val creditProb = probabilities.getOrElse(1) { 0.0f }.toFloat()
+        val transactionConfidence = maxOf(debitProb, creditProb)
+
+        // Log SMS with confidence in borderline range
+        return transactionConfidence in 0.15f..0.30f
+    }
+
+    /**
+     * LEGACY: STRICT ML GATE - DEPRECATED
+     * Kept for backward compatibility but replaced by shouldCreateTransaction()
+     */
+    fun isTransactionPrediction(result: SmsInferenceResult): Boolean {
+        return result.label == "debit_transaction" || result.label == "credit_transaction"
     }
 }
 

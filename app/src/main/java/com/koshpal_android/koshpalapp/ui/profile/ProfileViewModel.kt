@@ -3,7 +3,7 @@ package com.koshpal_android.koshpalapp.ui.profile
 import android.util.Log
 import androidx.lifecycle.*
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
-import com.koshpal_android.koshpalapp.service.TransactionSyncService
+import com.koshpal_android.koshpalapp.service.NewTransactionSyncService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val transactionSyncService: TransactionSyncService,
+    private val transactionSyncService: NewTransactionSyncService,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
     
@@ -48,10 +48,10 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             transactionSyncService.syncState.collect { state ->
                 _syncStatus.value = when (state) {
-                    TransactionSyncService.SyncState.IDLE -> SyncStatus.IDLE
-                    TransactionSyncService.SyncState.SYNCING -> SyncStatus.SYNCING
-                    TransactionSyncService.SyncState.SUCCESS -> SyncStatus.SUCCESS
-                    TransactionSyncService.SyncState.ERROR -> SyncStatus.ERROR
+                    NewTransactionSyncService.SyncState.IDLE -> SyncStatus.IDLE
+                    NewTransactionSyncService.SyncState.SYNCING -> SyncStatus.SYNCING
+                    NewTransactionSyncService.SyncState.SUCCESS -> SyncStatus.SUCCESS
+                    NewTransactionSyncService.SyncState.ERROR -> SyncStatus.ERROR
                 }
             }
         }
@@ -81,17 +81,17 @@ class ProfileViewModel @Inject constructor(
      */
     fun performInitialSync() {
         Log.d("ProfileViewModel", "🔄 Starting initial bulk sync")
-        
+
         viewModelScope.launch {
             _syncStatus.value = SyncStatus.SYNCING
-            
+
             try {
-                val result = transactionSyncService.performInitialSync()
-                
+                val result = transactionSyncService.performBulkSync()
+
                 if (result.success) {
                     Log.d("ProfileViewModel", "✅ Sync completed successfully: ${result.syncedCount} transactions")
                     _syncStatus.value = SyncStatus.SUCCESS
-                    
+
                     // Refresh data from preferences
                     loadSyncData()
                 } else {

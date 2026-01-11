@@ -15,7 +15,7 @@ import com.koshpal_android.koshpalapp.model.CashFlowTransaction
 import com.koshpal_android.koshpalapp.engine.TransactionCategorizationEngine
 import com.koshpal_android.koshpalapp.utils.MerchantCategorizer
 import com.koshpal_android.koshpalapp.utils.BudgetMonitor
-import com.koshpal_android.koshpalapp.service.TransactionSyncService
+import com.koshpal_android.koshpalapp.service.NewTransactionSyncService
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +32,7 @@ class TransactionRepository @Inject constructor(
     private val budgetCategoryDao: BudgetCategoryNewDao,
     private val cashFlowTransactionDao: CashFlowTransactionDao,
     private val categorizationEngine: TransactionCategorizationEngine,
-    private val syncService: TransactionSyncService,
+    private val syncService: NewTransactionSyncService,
     @ApplicationContext private val context: Context
 ) {
     
@@ -177,7 +177,7 @@ class TransactionRepository @Inject constructor(
         
         // Auto-sync transaction update to MongoDB
         try {
-            syncService.autoSyncTransactionUpdate(transaction)
+            syncService.syncSingleTransaction(transaction)
             android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for transaction update")
         } catch (e: Exception) {
             android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for transaction update: ${e.message}")
@@ -275,7 +275,7 @@ class TransactionRepository @Inject constructor(
                     
                     // Auto-sync category update to MongoDB
                     try {
-                        syncService.autoSyncTransactionUpdate(updatedTransaction)
+                        syncService.syncSingleTransaction(updatedTransaction)
                         android.util.Log.d("TransactionRepository", "🔄 Auto-sync triggered for category update")
                     } catch (e: Exception) {
                         android.util.Log.e("TransactionRepository", "❌ Auto-sync failed for category update: ${e.message}")
@@ -511,70 +511,84 @@ class TransactionRepository @Inject constructor(
     }
     
     suspend fun getBankWiseSpending(): List<com.koshpal_android.koshpalapp.model.BankSpending> {
-        // Get current month date range
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        val startOfMonth = calendar.timeInMillis
-        
-        calendar.add(Calendar.MONTH, 1)
-        calendar.add(Calendar.MILLISECOND, -1)
-        val endOfMonth = calendar.timeInMillis
-        
-        android.util.Log.d("TransactionRepository", "📊 Getting bank spending for current month: ${java.util.Date(startOfMonth)} to ${java.util.Date(endOfMonth)}")
-        
-        // Get ONLY current month transactions
+        android.util.Log.d("TransactionRepository", "📊 Getting bank spending for ALL TIME (no date filtering)")
+
+        // Get ALL transactions (no date filtering)
         val allTransactions = transactionDao.getAllTransactionsOnce()
-        val currentMonthTransactions = allTransactions.filter { 
-            it.date >= startOfMonth && it.date <= endOfMonth 
-        }
+        val currentMonthTransactions = allTransactions // Use all transactions
+
+        android.util.Log.d("TransactionRepository", "📊 Total transactions: ${allTransactions.size}")
+
+        // Diagnostic: Count transactions by type
+        val creditCount = allTransactions.count { it.type == TransactionType.CREDIT }
+        val debitCount = allTransactions.count { it.type == TransactionType.DEBIT }
+        val transferCount = allTransactions.count { it.type == TransactionType.TRANSFER }
+        android.util.Log.d("TransactionRepository", "📊 Transaction types: CREDIT=$creditCount, DEBIT=$debitCount, TRANSFER=$transferCount")
         
-        android.util.Log.d("TransactionRepository", "📊 Total transactions: ${allTransactions.size}, Current month: ${currentMonthTransactions.size}")
-        
-        // Extract bank name from SMS or merchant field - ONLY DEBIT transactions
+        // Extract bank name from SMS or merchant field - ALL transaction types for complete activity
         val bankTransactions = currentMonthTransactions
-            .filter { it.type == TransactionType.DEBIT }
+            .filter { extractBankName(it).isNotEmpty() } // Filter out empty bank names
             .groupBy { extractBankName(it) }
             .map { (bankName, transactions) ->
-                val totalSpending = transactions.sumOf { it.amount }
-                
-                // Get most recent transaction for account number, balance, and timestamp
+                // Calculate credits and debits separately
+                val totalCredits = transactions
+                    .filter { it.type == TransactionType.CREDIT }
+                    .sumOf { it.amount }
+
+                val totalDebits = transactions
+                    .filter { it.type == TransactionType.DEBIT || it.type == TransactionType.TRANSFER }
+                    .sumOf { it.amount }
+
+                // Net balance = credits - debits (positive = surplus, negative = deficit)
+                val netBalance = totalCredits - totalDebits
+
+                // Get most recent transaction for account number and timestamp
                 val mostRecentTransaction = transactions.maxByOrNull { it.date }
                 val accountNumber = mostRecentTransaction?.smsBody?.let { extractAccountNumber(it) }
-                val balance = mostRecentTransaction?.smsBody?.let { extractBalance(it) }
                 val lastUpdated = mostRecentTransaction?.date
-                
-                android.util.Log.d("TransactionRepository", "💳 $bankName: ₹$totalSpending (${transactions.size} transactions), Account: $accountNumber, Balance: $balance")
-                
+
+                android.util.Log.d("TransactionRepository", "💳 $bankName: ₹$netBalance net (${transactions.size} transactions), Credits: ₹$totalCredits, Debits: ₹$totalDebits, Account: $accountNumber")
+
                 com.koshpal_android.koshpalapp.model.BankSpending(
                     bankName = bankName,
-                    totalSpending = totalSpending,
+                    totalSpending = netBalance, // Net balance instead of just spending
                     transactionCount = transactions.size,
                     isCash = bankName == "Cash",
                     accountNumber = accountNumber,
-                    balance = balance,
+                    balance = netBalance, // Use calculated net balance
                     lastUpdated = lastUpdated
                 )
             }
-            .filter { it.totalSpending > 0 } // Only show banks with actual spending
-            .sortedByDescending { it.totalSpending }
+            .filter { it.transactionCount > 0 } // Show banks with any transactions (including negative balances)
+            .sortedByDescending { Math.abs(it.totalSpending) } // Sort by absolute balance magnitude
         
         android.util.Log.d("TransactionRepository", "📊 Found ${bankTransactions.size} banks with spending in current month")
         return bankTransactions
     }
 
     private fun extractBankName(transaction: Transaction): String {
-        // If bank name is already set, use it
+        // If bank name is already set from SMS processing, use it
         if (!transaction.bankName.isNullOrBlank()) {
             return transaction.bankName
         }
 
-        // Extract from SMS body or merchant
-        val text = (transaction.smsBody ?: transaction.merchant).uppercase()
-        
+        // Extract from SMS body or merchant (improved cash detection)
+        val text = (transaction.smsBody ?: transaction.merchant ?: "").uppercase()
+        val merchant = (transaction.merchant ?: "").uppercase()
+
+        // Enhanced cash detection - check multiple indicators
+        val isCashTransaction = text.contains("CASH") ||
+                               merchant.contains("CASH") ||
+                               text.contains("ATM") ||
+                               text.contains("WITHDRAW") ||
+                               text.contains("DEPOSIT") && !text.contains("BANK") ||
+                               merchant.equals("CASH") ||
+                               text.matches(".*\\bCASH\\b.*".toRegex())
+
+        if (isCashTransaction) {
+            return "Cash"
+        }
+
         return when {
             text.contains("SBI") || text.contains("STATE BANK") -> "SBI"
             text.contains("HDFC") -> "HDFC Bank"
@@ -591,7 +605,7 @@ class TransactionRepository @Inject constructor(
             text.contains("UNION BANK") -> "Union Bank"
             text.contains("IDBI") -> "IDBI Bank"
             text.contains("YES BANK") -> "Yes Bank"
-            else -> "Other Banks"
+            else -> "" // Return empty string instead of "Other Banks" to filter out
         }
     }
     

@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.koshpal_android.koshpalapp.auth.SessionManager
 import com.koshpal_android.koshpalapp.databinding.FragmentProfileBinding
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
 import com.koshpal_android.koshpalapp.utils.Constants
@@ -28,6 +29,9 @@ class ProfileFragment : Fragment() {
     
     @Inject
     lateinit var userPreferences: UserPreferences
+
+    @Inject
+    lateinit var sessionManager: SessionManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -190,21 +194,17 @@ class ProfileFragment : Fragment() {
     private fun logout() {
         Log.d("ProfileFragment", "🚪 Logging out user")
         try {
-            // Clear user preferences
-            userPreferences.setLoggedIn(false)
-            userPreferences.setInitialSyncCompleted(false)
-            userPreferences.saveUserId("")
-            userPreferences.saveEmail("")
-            userPreferences.saveUserToken("")
-            
+            // Clear session (this will synchronize both SessionManager and UserPreferences)
+            sessionManager.clearSession()
+
             Log.d("ProfileFragment", "✅ User logged out successfully")
-            
+
             // Restart app to go to splash screen
             val intent = requireActivity().packageManager.getLaunchIntentForPackage(requireActivity().packageName)
             intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             intent?.let { startActivity(it) }
             requireActivity().finish()
-            
+
             Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Log.e("ProfileFragment", "❌ Error during logout: ${e.message}", e)

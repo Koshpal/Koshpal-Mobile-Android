@@ -8,7 +8,7 @@ object Constants {
     const val OTP_TIMEOUT = 60L
 
     // API Constants
-    const val API_BASE_URL = "https://koshpal-server-wc9o.onrender.com/" // Updated to new Koshpal server
+    const val API_BASE_URL = "https://api.koshpal.com/" // New production API endpoint
     const val CONNECT_TIMEOUT = 30L
     const val READ_TIMEOUT = 30L
     const val WRITE_TIMEOUT = 30L

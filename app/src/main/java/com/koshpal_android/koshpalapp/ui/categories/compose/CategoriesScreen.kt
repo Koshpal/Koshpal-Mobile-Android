@@ -93,7 +93,6 @@ fun CategoriesScreen(
         ) {
         // Common App Bar
         com.koshpal_android.koshpalapp.ui.common.CommonAppBar(
-            userName = "Chaitany", // TODO: Get from ViewModel or UserPreferences
             onProfileClick = onProfileClick,
             modifier = Modifier.fillMaxWidth()
         )

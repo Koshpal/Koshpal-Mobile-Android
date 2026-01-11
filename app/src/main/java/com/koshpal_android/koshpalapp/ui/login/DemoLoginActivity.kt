@@ -9,7 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.koshpal_android.koshpalapp.databinding.ActivityDemoLoginBinding
-import com.koshpal_android.koshpalapp.ui.sync.SyncActivity
+import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -71,11 +71,8 @@ class DemoLoginActivity : AppCompatActivity() {
                 }
             }
             
-            btnSkip.setOnClickListener {
-                Log.d("DemoLoginActivity", "🔘 Skip button clicked")
-                // Skip login and go to home
-                navigateToHome()
-            }
+            // Remove skip button - login is now required
+            btnSkip.visibility = View.GONE
         }
         
         Log.d("DemoLoginActivity", "✅ UI setup completed")
@@ -90,7 +87,6 @@ class DemoLoginActivity : AppCompatActivity() {
                 binding.apply {
                     progressBar.visibility = if (inProgress) View.VISIBLE else View.GONE
                     btnLogin.isEnabled = !inProgress
-                    btnSkip.isEnabled = !inProgress
                 }
             }
             
@@ -100,7 +96,7 @@ class DemoLoginActivity : AppCompatActivity() {
                     is LoginViewModel.LoginResult.Success -> {
                         Log.d("DemoLoginActivity", "✅ Login successful!")
                         Toast.makeText(this@DemoLoginActivity, "Login successful!", Toast.LENGTH_SHORT).show()
-                        navigateToSync()
+                        navigateToSmsProcessing()
                     }
                     is LoginViewModel.LoginResult.Error -> {
                         Log.e("DemoLoginActivity", "❌ Login failed: ${result.message}")
@@ -116,30 +112,16 @@ class DemoLoginActivity : AppCompatActivity() {
         Log.d("DemoLoginActivity", "✅ ViewModel observers setup completed")
     }
     
-    private fun navigateToSync() {
-        Log.d("DemoLoginActivity", "🔄 Navigating to Sync Activity")
+    private fun navigateToSmsProcessing() {
+        Log.d("DemoLoginActivity", "📱 Navigating to SMS Processing Activity")
         try {
-            val intent = Intent(this, SyncActivity::class.java)
+            val intent = Intent(this, com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
-            Log.d("DemoLoginActivity", "✅ Successfully navigated to Sync Activity")
+            Log.d("DemoLoginActivity", "✅ Successfully navigated to SMS Processing Activity")
         } catch (e: Exception) {
-            Log.e("DemoLoginActivity", "❌ Error navigating to Sync: ${e.message}", e)
-            Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
-    
-    private fun navigateToHome() {
-        Log.d("DemoLoginActivity", "🏠 Navigating to Home Activity")
-        try {
-            val intent = Intent(this, com.koshpal_android.koshpalapp.ui.home.HomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            Log.d("DemoLoginActivity", "✅ Successfully navigated to Home Activity")
-        } catch (e: Exception) {
-            Log.e("DemoLoginActivity", "❌ Error navigating to Home: ${e.message}", e)
+            Log.e("DemoLoginActivity", "❌ Error navigating to SMS Processing: ${e.message}", e)
             Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
