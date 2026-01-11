@@ -14,8 +14,8 @@ android {
         applicationId = "com.koshpal_android.koshpalapp"
         minSdk = 26  // Increased to 26 for TensorFlow Lite compatibility
         targetSdk = 35
-        versionCode = 3
-        versionName = "3.0"
+        versionCode = 7
+        versionName = "7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
