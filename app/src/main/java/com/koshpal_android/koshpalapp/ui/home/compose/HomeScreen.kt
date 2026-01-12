@@ -45,6 +45,7 @@ import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
 import com.koshpal_android.koshpalapp.ui.home.components.AddPaymentButton
+import com.koshpal_android.koshpalapp.ui.home.components.BankCardItem
 import com.koshpal_android.koshpalapp.ui.home.components.MoneyManagerCard
 import com.koshpal_android.koshpalapp.ui.home.components.TransactionItem
 import com.koshpal_android.koshpalapp.ui.theme.AppColors
@@ -768,11 +769,16 @@ private fun getBankCardColors(bankName: String): Pair<Color, Color> {
  * Individual Bank Card Item - Styled exactly like reference images
  */
 @Composable
+// Old BankCardItem function removed - replaced with new component
 private fun BankCardItem(
     bankSpending: BankSpending,
     onCardClick: () -> Unit,
     onAddCashClick: () -> Unit
 ) {
+    // This function is no longer used - replaced by BankCardItem component
+    return
+}
+/*
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     val dateFormatter = remember { 
         SimpleDateFormat("hh:mm a • d, MMM", Locale.getDefault()).apply {
@@ -964,6 +970,8 @@ private fun BankCardItem(
         }
     }
 }
+
+ */
 
 /**
  * Action Buttons Row - Add Payment and Reminders
