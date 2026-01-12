@@ -2,6 +2,7 @@ package com.koshpal_android.koshpalapp.ui.home.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.koshpal_android.koshpalapp.model.BankSpending
 import java.text.NumberFormat
@@ -49,7 +51,7 @@ fun BankCardItem(
             .clickable(onClick = onCardClick)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(12.dp)), // shadow-lg
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.Transparent // Transparent to let sections show their backgrounds
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

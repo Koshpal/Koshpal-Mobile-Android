@@ -1,6 +1,7 @@
 package com.koshpal_android.koshpalapp.ui.home.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,11 +24,13 @@ fun BankCardDetails(
     dateFormatter: SimpleDateFormat,
     modifier: Modifier = Modifier
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
     Column(
         modifier = modifier
             .fillMaxHeight()
             .background(
-                if (MaterialTheme.colorScheme.surface == Color.White) {
+                if (!isDarkTheme) {
                     Color.White // bg-white
                 } else {
                     Color(0xFF374151) // card-dark equivalent
@@ -64,7 +67,7 @@ fun BankCardDetails(
                 fontWeight = FontWeight.Bold, // font-bold
                 fontSize = 24.sp // text-2xl
             ),
-            color = if (MaterialTheme.colorScheme.surface == Color.White) {
+            color = if (!isDarkTheme) {
                 Color(0xFF111827) // slate-900
             } else {
                 Color.White // text-white

@@ -1,6 +1,7 @@
 package com.koshpal_android.koshpalapp.ui.home.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -22,12 +23,14 @@ fun BankCardIdentity(
     accountNumber: String,
     modifier: Modifier = Modifier
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
     Column(
         modifier = modifier
             .fillMaxHeight()
             .background(
                 // Light background tint based on theme
-                if (MaterialTheme.colorScheme.surface == Color.White) {
+                if (!isDarkTheme) {
                     Color(0xFFE0F2FE) // sky-200 equivalent
                 } else {
                     KoshpalColors.Primary.copy(alpha = 0.2f) // primary/20
@@ -43,7 +46,7 @@ fun BankCardIdentity(
                 .size(40.dp) // w-10 h-10
                 .clip(RoundedCornerShape(8.dp)) // rounded-lg
                 .background(
-                    if (MaterialTheme.colorScheme.surface == Color.White) {
+                    if (!isDarkTheme) {
                         Color(0xFF0EA5E9) // sky-500
                     } else {
                         KoshpalColors.Primary
@@ -70,7 +73,7 @@ fun BankCardIdentity(
                     fontWeight = FontWeight.Bold, // font-bold
                     fontSize = 14.sp
                 ),
-                color = if (MaterialTheme.colorScheme.surface == Color.White) {
+                color = if (!isDarkTheme) {
                     Color(0xFF111827) // slate-900
                 } else {
                     Color.White // text-white
@@ -83,14 +86,10 @@ fun BankCardIdentity(
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontSize = 10.sp // text-[10px]
                 ),
-                color = if (MaterialTheme.colorScheme.surface == Color.White) {
+                color = if (!isDarkTheme) {
                     Color(0xFF6B7280) // slate-500
                 } else {
-                    if (MaterialTheme.colorScheme.surface == Color.White) {
-                        Color(0xFF7DD3FC) // sky-300
-                    } else {
-                        KoshpalColors.Primary.copy(alpha = 0.7f) // primary with opacity
-                    }
+                    KoshpalColors.Primary.copy(alpha = 0.7f) // primary with opacity
                 }
             )
         }
