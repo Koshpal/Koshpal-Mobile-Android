@@ -44,6 +44,9 @@ import com.koshpal_android.koshpalapp.model.BankSpending
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
+import com.koshpal_android.koshpalapp.ui.home.components.AddPaymentButton
+import com.koshpal_android.koshpalapp.ui.home.components.MoneyManagerCard
+import com.koshpal_android.koshpalapp.ui.home.components.TransactionItem
 import com.koshpal_android.koshpalapp.ui.theme.AppColors
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -118,15 +121,22 @@ fun HomeScreen(
 
             item { Spacer(modifier = Modifier.height(12.dp)) }
 
-            // This Month Overview Card
+            // Money Manager Card - Redesigned to match HTML
             item {
-                ThisMonthOverviewCard(
-                    income = currentMonthIncome,
-                    expenses = currentMonthExpenses,
-                    incomeChangePercentage = incomeChangePercentage,
-                    expenseChangePercentage = expenseChangePercentage,
-                    onViewDetailsClick = onViewDetailsClick,
-                    currencyFormatter = currencyFormatter,
+                val currentMonthName = remember {
+                    val calendar = Calendar.getInstance()
+                    val monthNames = arrayOf(
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                    )
+                    monthNames[calendar.get(Calendar.MONTH)]
+                }
+
+                MoneyManagerCard(
+                    monthLabel = currentMonthName,
+                    spendAmount = currencyFormatter.format(currentMonthExpenses),
+                    incomeAmount = currencyFormatter.format(currentMonthIncome),
+                    onMonthClick = onViewDetailsClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -306,34 +316,16 @@ private fun TopAppBarSection(
     }
 }
 
-/**
- * This Month Overview Card - Dark gray card with Income and Expense
- * Styled to match reference image with proper glow effects and layout
+// ThisMonthOverviewCard function completely removed - replaced with MoneyManagerCard
+
+/*
+ * Old ThisMonthOverviewCard function body removed
+ * This function has been replaced with the new MoneyManagerCard component
+ * The following code is legacy and should be removed in a future cleanup
  */
-@Composable
-private fun ThisMonthOverviewCard(
-    income: Double,
-    expenses: Double,
-    incomeChangePercentage: String?,
-    expenseChangePercentage: String?,
-    onViewDetailsClick: () -> Unit,
-    currencyFormatter: NumberFormat,
-    modifier: Modifier = Modifier
-) {
-    // Get current month name
-    val currentMonthName = remember {
-        val calendar = Calendar.getInstance()
-        val monthNames = arrayOf(
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        )
-        monthNames[calendar.get(Calendar.MONTH)]
-    }
-    
-    // Use blue color for month and navigation (replacing green)
-    val vibrantBlue = AppColors.AccentBlue
-    
-    // Dark charcoal gray base colors for sophisticated gradient - more visible
+
+/*
+// Dark charcoal gray base colors for sophisticated gradient - more visible
     val darkCharcoalBase = Color(0xFF0F0F0F) // Very dark charcoal (not pure black)
     val darkCharcoalLighter = Color(0xFF1F1F1F) // Lighter for gradient (more visible)
     val darkCharcoalMid = Color(0xFF151515) // Mid tone
@@ -648,6 +640,8 @@ private fun ThisMonthOverviewCard(
         }
     }
 }
+
+ */
 
 /**
  * Banks & Cards Section with horizontal scrollable list
@@ -979,40 +973,11 @@ private fun ActionButtonsRow(
     onAddPaymentClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Add Payment Button (Full Width)
-    Button(
+    // Add Payment Button (Full Width) - Redesigned to match HTML
+    AddPaymentButton(
         onClick = onAddPaymentClick,
         modifier = modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors.DarkButtonBg
-        ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 4.dp
-        )
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add_expense),
-                contentDescription = "Add",
-                tint = AppColors.TextPrimary,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Add Payment",
-                color = AppColors.TextPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
+    )
 }
 
 /**
@@ -1073,12 +1038,9 @@ private fun RecentTransactionsCard(
  * Individual Transaction Item - Exact match to reference image
  * Each item is in its own rounded card with category icon
  */
-@Composable
+// @Composable - Old TransactionItem function removed - replaced with new component
+/*
 private fun TransactionItem(
-    transaction: Transaction,
-    onClick: () -> Unit,
-    currencyFormatter: NumberFormat
-) {
     // Date format: "Dec 31, 22:09" (Month Day, HH:mm)
     val dateFormat = remember { SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()) }
     val formattedDate = remember(transaction.date) {
@@ -1228,4 +1190,5 @@ private fun TransactionItem(
         }
     }
 }
+// */
 
