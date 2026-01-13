@@ -28,13 +28,7 @@ fun MoneyManagerCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp)), // rounded-2xl
         colors = CardDefaults.cardColors(
-            containerColor = if (MaterialTheme.colorScheme.surface == Color.White) {
-                // Light theme: light surface with subtle primary tint
-                MaterialTheme.colorScheme.surface
-            } else {
-                // Dark theme: primary with low opacity
-                KoshpalColors.Primary.copy(alpha = 0.1f)
-            }
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), // shadow-xl equivalent
         shape = RoundedCornerShape(16.dp)

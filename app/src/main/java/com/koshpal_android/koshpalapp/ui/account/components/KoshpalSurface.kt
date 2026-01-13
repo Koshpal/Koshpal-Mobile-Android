@@ -17,25 +17,13 @@ fun KoshpalSurface(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val surfaceColor = if (MaterialTheme.colorScheme.surface == Color.White) {
-        Color(0xFFF8FAFC) // Light theme surface from HTML
-    } else {
-        Color(0xFF181A20) // Dark theme surface from HTML
-    }
-
-    val borderColor = if (MaterialTheme.colorScheme.surface == Color.White) {
-        Color(0xFFE2E8F0).copy(alpha = 0.5f) // Light theme border
-    } else {
-        Color(0xFF23262F) // Dark theme border
-    }
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(surfaceColor)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = 1.dp,
-                color = borderColor,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp)
             )
     ) {

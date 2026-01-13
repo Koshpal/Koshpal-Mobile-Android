@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,7 +46,6 @@ import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
 import com.koshpal_android.koshpalapp.ui.home.components.AddPaymentButton
-import com.koshpal_android.koshpalapp.ui.home.components.BankCardItem
 import com.koshpal_android.koshpalapp.ui.home.components.MoneyManagerCard
 import com.koshpal_android.koshpalapp.ui.home.components.TransactionItem
 import com.koshpal_android.koshpalapp.ui.theme.AppColors
@@ -96,15 +96,10 @@ fun HomeScreen(
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     
     Box(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Background Image
-        Image(
-            painter = painterResource(id = R.drawable.backgroundstrucure2),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -187,12 +182,12 @@ fun HomeScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_rup),
                             contentDescription = "Transactions",
-                            tint = AppColors.TextPrimary,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = "Recent Transactions",
-                            color = AppColors.TextPrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -202,7 +197,7 @@ fun HomeScreen(
                     TextButton(
                         onClick = onViewAllTransactionsClick,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = AppColors.AccentBlue
+                            contentColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Text(
@@ -235,7 +230,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = "No recent transactions",
-                            color = AppColors.TextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp
                         )
                     }
@@ -275,6 +270,7 @@ private fun TopAppBarSection(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Profile Icon with blue background and glow effect
+        val primaryColor = MaterialTheme.colorScheme.primary
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -283,8 +279,8 @@ private fun TopAppBarSection(
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                AppColors.AccentBlue.copy(alpha = 0.3f),
-                                AppColors.AccentBlue.copy(alpha = 0.1f),
+                                primaryColor.copy(alpha = 0.3f),
+                                primaryColor.copy(alpha = 0.1f),
                                 Color.Transparent
                             ),
                             center = Offset(size.width / 2f, size.height / 2f),
@@ -294,7 +290,7 @@ private fun TopAppBarSection(
                     )
                 }
                 .clip(CircleShape)
-                .background(AppColors.AccentBlue)
+                .background(primaryColor)
                 .clickable(onClick = onProfileClick),
             contentAlignment = Alignment.Center
         ) {
@@ -310,7 +306,7 @@ private fun TopAppBarSection(
         // Time-based greeting text
         Text(
             text = greetingText,
-            color = AppColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
@@ -670,13 +666,13 @@ private fun BanksAndCardsSection(
             Icon(
                 painter = painterResource(id = R.drawable.ic_credit_card),
                 contentDescription = "Banks",
-                tint = AppColors.TextPrimary,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Your Banks & Cards",
-                color = AppColors.TextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -704,6 +700,7 @@ private fun BanksAndCardsSection(
  * Left side: Light pastel tint of bank's brand color (matching logo)
  * Right side: Always white/light gray
  */
+@Composable
 private fun getBankCardColors(bankName: String): Pair<Color, Color> {
     val normalizedName = bankName.uppercase()
     
@@ -759,8 +756,8 @@ private fun getBankCardColors(bankName: String): Pair<Color, Color> {
         }
     }
     
-    // Right side: Always white/light gray
-    val rightColor = Color(0xFFF5F5F5) // Off-white
+    // Right side: Always use surface color from theme
+    val rightColor = MaterialTheme.colorScheme.surface
     
     return Pair(leftColor, rightColor)
 }
@@ -769,16 +766,11 @@ private fun getBankCardColors(bankName: String): Pair<Color, Color> {
  * Individual Bank Card Item - Styled exactly like reference images
  */
 @Composable
-// Old BankCardItem function removed - replaced with new component
 private fun BankCardItem(
     bankSpending: BankSpending,
     onCardClick: () -> Unit,
     onAddCashClick: () -> Unit
 ) {
-    // This function is no longer used - replaced by BankCardItem component
-    return
-}
-/*
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("en", "IN")) }
     val dateFormatter = remember { 
         SimpleDateFormat("hh:mm a • d, MMM", Locale.getDefault()).apply {
@@ -840,7 +832,7 @@ private fun BankCardItem(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
-                        .background(rightColor)
+                        .background(MaterialTheme.colorScheme.surface)
                 )
             }
             
@@ -903,12 +895,12 @@ private fun BankCardItem(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text(
-                                text = currencyFormatter.format(bankSpending.totalSpending).replace(".00", ""),
-                                color = Color.Black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                        Text(
+                            text = currencyFormatter.format(bankSpending.totalSpending).replace(".00", ""),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                             // Arrow icon in circular background
                             Box(
                                 modifier = Modifier
@@ -934,14 +926,14 @@ private fun BankCardItem(
                 ) {
                     Text(
                         text = if (isIndiaPost) "India Post" else bankSpending.bankName,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "xx$accountNumber",
-                        color = Color(0xFF808080), // Light gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
@@ -954,24 +946,22 @@ private fun BankCardItem(
                     if (lastUpdatedText.isNotEmpty()) {
                         Text(
                             text = lastUpdatedText,
-                            color = Color(0xFF808080), // Light gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 10.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                     }
-                    Text(
-                        text = currencyFormatter.format(displaySpending).replace(".00", ""),
-                        color = Color.Black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                            Text(
+                                text = currencyFormatter.format(displaySpending).replace(".00", ""),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                 }
             }
         }
     }
 }
-
- */
 
 /**
  * Action Buttons Row - Add Payment and Reminders
@@ -1003,7 +993,7 @@ private fun RecentTransactionsCard(
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(20.dp)),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.DarkCard)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
