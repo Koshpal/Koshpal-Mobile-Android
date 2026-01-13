@@ -13,7 +13,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.koshpal_android.koshpalapp.R
 import com.koshpal_android.koshpalapp.data.remote.dto.FinancialGoalDto
 import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
+import com.koshpal_android.koshpalapp.ui.home.components.goals.FinancialGoalCard
 
 private const val TAG = "FinancialGoalsSection"
 
@@ -120,7 +120,7 @@ fun FinancialGoalsSection(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(financialGoals) { goal ->
-                        GoalCard(
+                        FinancialGoalCard(
                             goal = goal,
                             viewModel = goalsViewModel,
                             modifier = Modifier.width(260.dp)
@@ -132,154 +132,6 @@ fun FinancialGoalsSection(
     }
 }
 
-@Composable
-private fun GoalCard(
-    goal: FinancialGoalDto,
-    viewModel: GoalsViewModel,
-    modifier: Modifier = Modifier
-) {
-    val progress = viewModel.calculateProgress(goal.saving, goal.goalAmount)
-    val formattedDate = viewModel.formatTargetDate(goal.goalDate)
-
-    // Premium gradient background
-    val gradientBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFF6366F1).copy(alpha = 0.1f), // Indigo with low opacity
-            Color(0xFF8B5CF6).copy(alpha = 0.08f), // Purple with low opacity
-            Color(0xFF06B6D4).copy(alpha = 0.06f)  // Cyan with low opacity
-        )
-    )
-
-    Card(
-        modifier = modifier
-            .height(140.dp)
-            .clip(RoundedCornerShape(20.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(gradientBrush)
-                .background(
-                    Color.White.copy(alpha = 0.05f),
-                    RoundedCornerShape(20.dp)
-                )
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.1f),
-                            Color.White.copy(alpha = 0.05f)
-                        )
-                    )
-                )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Top row: Icon and goal name
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Emoji icon in a subtle background
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .background(
-                                    Color.White.copy(alpha = 0.15f),
-                                    RoundedCornerShape(10.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = goal.icon,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-
-                        Text(
-                            text = goal.goalName,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = Color.White.copy(alpha = 0.9f),
-                            maxLines = 1
-                        )
-                    }
-
-                    // Progress percentage
-                    Text(
-                        text = "${progress.toInt()}%",
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-                }
-
-                // Middle: Amount saved vs goal
-                Text(
-                    text = "₹${goal.saving.toInt()} / ₹${goal.goalAmount.toInt()}",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // Bottom: Progress bar and target date
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Premium progress bar
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .background(
-                                Color.White.copy(alpha = 0.2f),
-                                RoundedCornerShape(3.dp)
-                            )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth((progress / 100f).coerceIn(0f, 1f))
-                                .fillMaxHeight()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                            Color(0xFF10B981), // Emerald
-                                            Color(0xFF06B6D4), // Cyan
-                                            Color(0xFF6366F1)  // Indigo
-                                        )
-                                    ),
-                                    RoundedCornerShape(3.dp)
-                                )
-                        )
-                    }
-
-                    // Target date
-                    Text(
-                        text = "Target: $formattedDate",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun LoginPromptCard(
