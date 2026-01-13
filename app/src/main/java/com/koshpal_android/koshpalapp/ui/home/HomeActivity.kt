@@ -19,8 +19,7 @@ import com.koshpal_android.koshpalapp.ui.transactions.dialog.TransactionDetailsD
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.ui.reminders.RemindersListFragment
-import com.koshpal_android.koshpalapp.ui.home.compose.CustomBottomNavigation
-import com.koshpal_android.koshpalapp.ui.home.compose.NavigationItem
+import com.koshpal_android.koshpalapp.ui.navigation.BottomNavBar
 import com.koshpal_android.koshpalapp.ui.theme.KoshpalTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -128,19 +127,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        val navigationItems = listOf(
-            NavigationItem(R.id.home, R.drawable.ic_home, "Home"),
-            NavigationItem(R.id.transactions, R.drawable.ic_rup, "Payments"),
-            NavigationItem(R.id.categories, R.drawable.ic_categ, "Categories"),
-            //NavigationItem(R.id.insights, R.drawable.ic_insig, "Insights"),
-            NavigationItem(R.id.reminders, R.drawable.ic_notifications, "Reminders")
-        )
-
         val composeView = binding.root.findViewById<ComposeView>(R.id.bottomNavigationCompose)
         composeView?.setContent {
             KoshpalTheme {
-                CustomBottomNavigation(
-                    items = navigationItems,
+                BottomNavBar(
                     selectedItemId = selectedNavItemId,
                     onItemSelected = { itemId ->
                         selectedNavItemId = itemId
