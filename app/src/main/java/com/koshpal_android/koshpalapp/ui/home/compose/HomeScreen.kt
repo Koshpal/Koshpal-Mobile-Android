@@ -26,12 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import android.graphics.Color as AndroidColor
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
@@ -46,9 +41,9 @@ import com.koshpal_android.koshpalapp.model.Transaction
 import com.koshpal_android.koshpalapp.model.TransactionType
 import com.koshpal_android.koshpalapp.ui.goals.GoalsViewModel
 import com.koshpal_android.koshpalapp.ui.home.components.AddPaymentButton
+import com.koshpal_android.koshpalapp.ui.home.components.HomeTopHeader
 import com.koshpal_android.koshpalapp.ui.home.components.MoneyManagerCard
 import com.koshpal_android.koshpalapp.ui.home.components.TransactionItem
-import com.koshpal_android.koshpalapp.ui.theme.AppColors
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -75,6 +70,7 @@ import java.util.*
 @Composable
 fun HomeScreen(
     greetingText: String,
+    userName: String = "Koshpal User",
     currentMonthIncome: Double,
     currentMonthExpenses: Double,
     incomeChangePercentage: String? = null,
@@ -107,11 +103,11 @@ fun HomeScreen(
         ) {
             // Top App Bar
             item {
-                TopAppBarSection(
+                HomeTopHeader(
                     greetingText = greetingText,
+                    userName = userName,
                     onProfileClick = onProfileClick,
-                    onNotificationClick = onNotificationClick,
-                    modifier = Modifier.fillMaxWidth()
+                    onNotificationClick = onNotificationClick
                 )
             }
 
@@ -252,66 +248,6 @@ fun HomeScreen(
     }
 }
 
-/**
- * Top App Bar - Clean design with profile icon and time-based greeting
- */
-@Composable
-private fun TopAppBarSection(
-    greetingText: String,
-    onProfileClick: () -> Unit,
-    onNotificationClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Profile Icon with blue background and glow effect
-        val primaryColor = MaterialTheme.colorScheme.primary
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .drawBehind {
-                    // Blue glow effect around the circle
-                    drawCircle(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                primaryColor.copy(alpha = 0.3f),
-                                primaryColor.copy(alpha = 0.1f),
-                                Color.Transparent
-                            ),
-                            center = Offset(size.width / 2f, size.height / 2f),
-                            radius = size.width / 2f + 4.dp.toPx()
-                        ),
-                        radius = size.width / 2f + 4.dp.toPx()
-                    )
-                }
-                .clip(CircleShape)
-                .background(primaryColor)
-                .clickable(onClick = onProfileClick),
-            contentAlignment = Alignment.Center
-        ) {
-            // Blue user icon
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile",
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-        
-        // Time-based greeting text
-        Text(
-            text = greetingText,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
 
 // ThisMonthOverviewCard function completely removed - replaced with MoneyManagerCard
 
@@ -1009,11 +945,11 @@ private fun RecentTransactionsCard(
                         .padding(vertical = 32.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "No recent transactions",
-                        color = AppColors.TextSecondary,
-                        fontSize = 14.sp
-                    )
+                        Text(
+                            text = "No recent transactions",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
                 }
             } else {
                 Column(
