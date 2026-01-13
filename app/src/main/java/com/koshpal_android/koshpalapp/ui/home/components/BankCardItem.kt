@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.koshpal_android.koshpalapp.model.BankSpending
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -43,6 +45,7 @@ fun BankCardItem(
         }
     }
 
+    // Debug: Simple visible card first
     Card(
         modifier = modifier
             .width(288.dp) // w-72 equivalent
@@ -51,26 +54,21 @@ fun BankCardItem(
             .clickable(onClick = onCardClick)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(12.dp)), // shadow-lg
         colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent // Transparent to let sections show their backgrounds
+            containerColor = Color.Red // Make it obviously visible for debugging
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Yellow),
+            contentAlignment = Alignment.Center
         ) {
-            // Left section - Identity strip (1/3 width)
-            BankCardIdentity(
-                bankName = bankSpending.bankName,
-                accountNumber = accountNumber,
-                modifier = Modifier.weight(1f)
-            )
-
-            // Right section - Details (2/3 width)
-            BankCardDetails(
-                bankSpending = bankSpending,
-                currencyFormatter = currencyFormatter,
-                dateFormatter = dateFormatter,
-                modifier = Modifier.weight(2f)
+            Text(
+                text = "${bankSpending.bankName}\n₹${bankSpending.totalSpending}",
+                color = Color.Black,
+                fontSize = 16.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
     }

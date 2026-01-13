@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,7 +38,21 @@ fun BankCardIdentity(
                     KoshpalColors.Primary.copy(alpha = 0.2f) // primary/20
                 }
             )
-            .padding(16.dp), // p-4 equivalent
+            .padding(16.dp) // p-4 equivalent
+            .drawBehind {
+                // Right border as in HTML: border-r border-black/5 dark:border-white/5
+                val borderColor = if (!isDarkTheme) {
+                    Color.Black.copy(alpha = 0.05f)
+                } else {
+                    Color.White.copy(alpha = 0.05f)
+                }
+                drawLine(
+                    color = borderColor,
+                    start = Offset(size.width, 0f),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            },
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.Start
     ) {

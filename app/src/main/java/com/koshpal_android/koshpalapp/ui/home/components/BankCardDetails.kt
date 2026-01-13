@@ -29,13 +29,6 @@ fun BankCardDetails(
     Column(
         modifier = modifier
             .fillMaxHeight()
-            .background(
-                if (!isDarkTheme) {
-                    Color.White // bg-white
-                } else {
-                    Color(0xFF374151) // card-dark equivalent
-                }
-            )
             .padding(16.dp), // p-4 equivalent
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.End

@@ -683,33 +683,16 @@ private fun BanksAndCardsSection(
         }
         
         // Horizontal Scrollable Bank Cards
-        if (bankCards.isNotEmpty()) {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) {
-                items(bankCards) { bankCard ->
-                    BankCardItem(
-                        bankSpending = bankCard,
-                        onCardClick = { onBankCardClick(bankCard.bankName) },
-                        onAddCashClick = onAddCashClick
-                    )
-                }
-            }
-        } else {
-            // Show placeholder or empty state
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No bank cards available",
-                    color = AppColors.TextSecondary,
-                    fontSize = 14.sp
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            items(bankCards) { bankCard ->
+                BankCardItem(
+                    bankSpending = bankCard,
+                    onCardClick = { onBankCardClick(bankCard.bankName) },
+                    onAddCashClick = onAddCashClick
                 )
             }
         }
