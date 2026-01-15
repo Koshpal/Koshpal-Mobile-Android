@@ -75,6 +75,7 @@ class ProfileActivity : AppCompatActivity() {
                     onExportStatementClick = { showExportStatementDialog() },
                     onSyncTransactionsClick = { performSync() },
                     onReportSmsClick = { reportUndetectedSMS() },
+                    onCollectLogsClick = { collectAppLogs() },
                     onHelpClick = { openHelp() },
                     onRateUsClick = { rateApp() },
                     onTermsClick = { openTermsAndConditions() },
@@ -186,6 +187,17 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
     
+    private fun collectAppLogs() {
+        try {
+            Log.d("ProfileActivity", "📊 Collecting full app logs using persistent SMS metrics")
+            com.koshpal_android.koshpalapp.ml.SmsProcessingMetrics.printMetricsReport()
+            Toast.makeText(this, "App logs collected and printed to console", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("ProfileActivity", "❌ Error collecting app logs: ${e.message}", e)
+            Toast.makeText(this, "Error collecting logs: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun reportUndetectedSMS() {
         try {
             Log.d("ProfileActivity", "📧 Opening email to report undetected SMS")

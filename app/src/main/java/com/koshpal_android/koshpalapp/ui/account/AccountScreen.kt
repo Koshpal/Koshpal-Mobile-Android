@@ -12,10 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.koshpal_android.koshpalapp.ml.SmsProcessingMetrics
 
 @Composable
 fun AccountScreen(
@@ -26,6 +28,7 @@ fun AccountScreen(
     onExportStatementClick: () -> Unit = {},
     onSyncTransactionsClick: () -> Unit = {},
     onReportSmsClick: () -> Unit = {},
+    onCollectLogsClick: () -> Unit = {},
     onHelpClick: () -> Unit = {},
     onRateUsClick: () -> Unit = {},
     onTermsClick: () -> Unit = {},
@@ -109,6 +112,12 @@ fun AccountScreen(
                     icon = Icons.Default.Forum,
                     title = "Chat with us",
                     onClick = onChatClick
+                )
+
+                AccountRow(
+                    icon = Icons.Default.BugReport,
+                    title = "Collect App Logs",
+                    onClick = onCollectLogsClick
                 )
 
                 LogoutRow(
