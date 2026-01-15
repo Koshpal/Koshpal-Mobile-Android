@@ -55,6 +55,18 @@ class Application : Application(), Configuration.Provider {
         } catch (e: Exception) {
             Log.e("Application", "❌ Failed to create SMS Classifier instance: ${e.message}", e)
         }
+
+        // ============================================
+        // PERSISTENT SMS METRICS: Initialize full app logging
+        // Loads previously saved metrics for continuous tracking across app sessions
+        // ============================================
+        try {
+            Log.d("Application", "📊 Initializing SMS Processing Metrics with persistent storage...")
+            com.koshpal_android.koshpalapp.ml.SmsProcessingMetrics.initialize(this)
+            Log.d("Application", "✅ SMS Processing Metrics initialized with full app logging")
+        } catch (e: Exception) {
+            Log.e("Application", "❌ Failed to initialize SMS Processing Metrics: ${e.message}", e)
+        }
     }
 
     /**

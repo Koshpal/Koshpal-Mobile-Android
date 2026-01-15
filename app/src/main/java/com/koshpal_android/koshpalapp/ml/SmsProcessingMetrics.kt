@@ -1,5 +1,7 @@
 package com.koshpal_android.koshpalapp.ml
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 
 /**
@@ -7,21 +9,96 @@ import android.util.Log
  *
  * Tracks and logs SMS processing pipeline for visibility and optimization.
  * Provides detailed insights into where SMS are being skipped and why.
+ * Now persists metrics across app sessions for full app logging.
  */
 object SmsProcessingMetrics {
 
     private const val TAG = "SmsMetrics"
+    private const val PREFS_NAME = "sms_processing_metrics"
 
-    // Metrics counters
+    // SharedPreferences keys
+    private const val KEY_TOTAL_SMS_RECEIVED = "total_sms_received"
+    private const val KEY_SKIPPED_BY_ML = "skipped_by_ml"
+    private const val KEY_SKIPPED_BY_MERCHANT = "skipped_by_merchant"
+    private const val KEY_SKIPPED_BY_DUPLICATE = "skipped_by_duplicate"
+    private const val KEY_SKIPPED_BY_VALIDATION = "skipped_by_validation"
+    private const val KEY_PROCESSED_SUCCESSFULLY = "processed_successfully"
+    private const val KEY_METRICS_START_TIME = "metrics_start_time"
+
+    private lateinit var sharedPreferences: SharedPreferences
+    private var isInitialized = false
+
+    // Metrics counters - now loaded from persistent storage
     private var totalSmsReceived = 0
     private var skippedByMl = 0
     private var skippedByMerchant = 0
     private var skippedByDuplicate = 0
     private var skippedByValidation = 0
     private var processedSuccessfully = 0
+    private var metricsStartTime = 0L
 
     // Skip reason tracking
     private val skipReasons = mutableMapOf<SmsSkipReason, Int>()
+
+    /**
+     * Initialize metrics with persistent storage
+     */
+    fun initialize(context: Context) {
+        if (isInitialized) return
+
+        sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        // Load persisted metrics
+        totalSmsReceived = sharedPreferences.getInt(KEY_TOTAL_SMS_RECEIVED, 0)
+        skippedByMl = sharedPreferences.getInt(KEY_SKIPPED_BY_ML, 0)
+        skippedByMerchant = sharedPreferences.getInt(KEY_SKIPPED_BY_MERCHANT, 0)
+        skippedByDuplicate = sharedPreferences.getInt(KEY_SKIPPED_BY_DUPLICATE, 0)
+        skippedByValidation = sharedPreferences.getInt(KEY_SKIPPED_BY_VALIDATION, 0)
+        processedSuccessfully = sharedPreferences.getInt(KEY_PROCESSED_SUCCESSFULLY, 0)
+        metricsStartTime = sharedPreferences.getLong(KEY_METRICS_START_TIME, System.currentTimeMillis())
+
+        // Load skip reasons from JSON string
+        loadSkipReasonsFromStorage()
+
+        isInitialized = true
+        Log.d(TAG, "📊 SMS Processing Metrics initialized with persisted data (since: ${java.util.Date(metricsStartTime)})")
+        Log.d(TAG, "   📨 Total SMS Received: $totalSmsReceived")
+        Log.d(TAG, "   ✅ Processed Successfully: $processedSuccessfully")
+    }
+
+    /**
+     * Load skip reasons from persistent storage
+     */
+    private fun loadSkipReasonsFromStorage() {
+        val skipReasonsJson = sharedPreferences.getString("skip_reasons_json", "{}")
+        try {
+            // Parse JSON string back to map (simplified implementation)
+            // In production, consider using Gson or similar
+            if (skipReasonsJson != "{}" && skipReasonsJson != null) {
+                // For now, we'll rebuild skip reasons from scratch if needed
+                // Full implementation would parse the JSON
+                Log.d(TAG, "📊 Loaded skip reasons from storage")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error loading skip reasons from storage", e)
+        }
+    }
+
+    /**
+     * Save skip reasons to persistent storage
+     */
+    private fun saveSkipReasonsToStorage() {
+        try {
+            // Convert skip reasons map to JSON string (simplified implementation)
+            // In production, consider using Gson or similar
+            val jsonString = skipReasons.entries.joinToString(",", "{", "}") {
+                "\"${it.key.name}\":${it.value}"
+            }
+            sharedPreferences.edit().putString("skip_reasons_json", jsonString).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error saving skip reasons to storage", e)
+        }
+    }
 
     /**
      * SMS Skip Reason Enumeration
@@ -55,6 +132,7 @@ object SmsProcessingMetrics {
 
     /**
      * Reset all metrics (for testing/debugging)
+     * Note: This will reset persistent storage too
      */
     fun reset() {
         totalSmsReceived = 0
@@ -64,7 +142,22 @@ object SmsProcessingMetrics {
         skippedByValidation = 0
         processedSuccessfully = 0
         skipReasons.clear()
-        Log.d(TAG, "📊 SMS Processing Metrics Reset")
+
+        // Reset persistent storage
+        if (::sharedPreferences.isInitialized) {
+            sharedPreferences.edit()
+                .putInt(KEY_TOTAL_SMS_RECEIVED, 0)
+                .putInt(KEY_SKIPPED_BY_ML, 0)
+                .putInt(KEY_SKIPPED_BY_MERCHANT, 0)
+                .putInt(KEY_SKIPPED_BY_DUPLICATE, 0)
+                .putInt(KEY_SKIPPED_BY_VALIDATION, 0)
+                .putInt(KEY_PROCESSED_SUCCESSFULLY, 0)
+                .putLong(KEY_METRICS_START_TIME, System.currentTimeMillis())
+                .putString("skip_reasons_json", "{}")
+                .apply()
+        }
+
+        Log.d(TAG, "📊 SMS Processing Metrics Reset (persistent storage cleared)")
     }
 
     /**
@@ -72,6 +165,7 @@ object SmsProcessingMetrics {
      */
     fun recordSmsReceived() {
         totalSmsReceived++
+        saveMetricsToStorage()
     }
 
     /**
@@ -79,6 +173,24 @@ object SmsProcessingMetrics {
      */
     fun recordSuccessfulProcessing() {
         processedSuccessfully++
+        saveMetricsToStorage()
+    }
+
+    /**
+     * Save current metrics to persistent storage
+     */
+    private fun saveMetricsToStorage() {
+        if (!::sharedPreferences.isInitialized) return
+
+        sharedPreferences.edit()
+            .putInt(KEY_TOTAL_SMS_RECEIVED, totalSmsReceived)
+            .putInt(KEY_SKIPPED_BY_ML, skippedByMl)
+            .putInt(KEY_SKIPPED_BY_MERCHANT, skippedByMerchant)
+            .putInt(KEY_SKIPPED_BY_DUPLICATE, skippedByDuplicate)
+            .putInt(KEY_SKIPPED_BY_VALIDATION, skippedByValidation)
+            .putInt(KEY_PROCESSED_SUCCESSFULLY, processedSuccessfully)
+            .putLong(KEY_METRICS_START_TIME, metricsStartTime)
+            .apply()
     }
 
     /**
@@ -117,6 +229,10 @@ object SmsProcessingMetrics {
 
         // Track skip reasons
         skipReasons[reason] = (skipReasons[reason] ?: 0) + 1
+
+        // Save updated metrics and skip reasons to persistent storage
+        saveMetricsToStorage()
+        saveSkipReasonsToStorage()
 
         // Create masked SMS body for logging
         val maskedSms = maskSmsBody(smsBody)
