@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Koshpal – Financial App Progress Report</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+<button id="download-pdf-btn" class="download-btn" title="Download as PDF">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    Download PDF
+</button>
+<div class="page" id="report-content">
+    <!-- Cover Section -->
+    <header class="cover" id="cover">
+        <p class="report-date">Report Date: December 27, 2024</p>
+        <div class="cover-logo">
+            <img src="koshPal-logo.png" alt="Koshpal logo" class="cover-logo-image" />
+        </div>
+        <div class="cover-meta">
+            <h1 class="app-title">Koshpal</h1>
+            <p class="app-subtitle">Financial Management &amp; Expense Tracking App</p>
+            <p class="app-tagline">Internal product &amp; engineering progress report</p>
+        </div>
+        <div class="cover-footer">
+            <p class="meta-line"><span class="meta-label">Report Type:</span> Internal Product / Engineering</p>
+            <p class="meta-line"><span class="meta-label">Version:</span> v1.0 (Static Snapshot)</p>
+            <p class="meta-line"><span class="meta-label">Date:</span> December 27, 2024</p>
+        </div>
+    </header>
+
+    <!-- App Overview -->
+    <section class="section" id="overview">
+        <h2>1. App Overview</h2>
+        <p class="body-text">
+            Koshpal is a mobile-first financial management app that reads transactional SMS messages,
+            organizes income and expenses into clear views, and helps users stay on top of budgets,
+            reminders, and personal cash flow.
+        </p>
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Target Users</h3>
+                <p class="body-text">
+                    Employees and individuals who receive bank or wallet SMS alerts and want a
+                    simple way to monitor their personal finances.
+                </p>
+            </div>
+            <div class="info-card">
+                <h3>Core Purpose</h3>
+                <p class="body-text">
+                    Provide an automated, SMS-driven view of transactions, budgets, and reminders so
+                    that users can track spending, avoid missed payments, and make informed financial decisions.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Current Working Screens -->
+    <section class="section" id="screens">
+        <h2>2. Current Working Screens</h2>
+
+        <!-- 1. Login Screen -->
+        <article class="screen-card">
+            <h3>2.1 Login Screen</h3>
+            <p class="screen-purpose">
+                Allows users to authenticate into the Koshpal app using simple credentials and start a secure session.
+            </p>
+            <ul class="screen-list">
+                <li>Capture user credentials in a guided layout.</li>
+                <li>Perform basic input validation before submission.</li>
+                <li>Transition into the main app upon successful login.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="loginscreen.jpeg" alt="Login screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Login Screen – Actual login experience</p>
+            </div>
+        </article>
+
+        <!-- 2. SMS Scanning & Transaction Detection -->
+        <article class="screen-card">
+            <h3>2.2 SMS Scanning &amp; Transaction Detection</h3>
+            <p class="screen-purpose">
+                Runs in the background to detect financial SMS messages and convert them into structured transactions.
+            </p>
+            <ul class="screen-list">
+                <li>Listens to relevant SMS messages on the device (with user permission).</li>
+                <li>Filters for financial content such as debits, credits, and balance alerts.</li>
+                <li>Creates transaction entries that are surfaced across the app.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-mockup-grid">
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="smsprocessingscreen1.jpeg" alt="SMS processing view 1" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="smsporcessingscreen2.jpeg" alt="SMS processing view 2" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                </div>
+                <p class="mockup-caption">SMS Scanning &amp; Detection – Actual background processing and status views</p>
+            </div>
+        </article>
+
+        <!-- 3. Home Page (Dashboard) -->
+        <article class="screen-card">
+            <h3>2.3 Home Page (Dashboard)</h3>
+            <p class="screen-purpose">
+                Provides a high-level dashboard of recent activity, quick insights, and navigation into detailed views.
+            </p>
+            <ul class="screen-list">
+                <li>Summarizes recent income and expenses.</li>
+                <li>Highlights key insights, trends, or goals.</li>
+                <li>Offers shortcuts into Transactions, Budgets, Categories, and Reminders.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-mockup-grid">
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="homepagescreen1.jpeg" alt="Home page dashboard view 1" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="homepagescreen2.jpeg" alt="Home page dashboard view 2" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                </div>
+                <p class="mockup-caption">Home Page – Actual dashboard screenshots</p>
+            </div>
+        </article>
+
+        <!-- 4. All Transactions Page -->
+        <article class="screen-card">
+            <h3>2.4 All Transactions Page</h3>
+            <p class="screen-purpose">
+                Displays a chronological list of all detected transactions with filters for quick review.
+            </p>
+            <ul class="screen-list">
+                <li>Shows transaction cards with amount, category, merchant, and date.</li>
+                <li>Supports filters such as income, expense, and time ranges.</li>
+                <li>Allows tapping into transaction details for deeper review.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-mockup-grid">
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="alltransactionsscree1.jpeg" alt="All transactions list view 1" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="alltransactionsscree2.jpeg" alt="All transactions list view 2" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="alltransactionsscree3.jpeg" alt="All transactions list view 3" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                </div>
+                <p class="mockup-caption">All Transactions – Actual transactions list screenshots</p>
+            </div>
+        </article>
+
+        <!-- 5. Add Transaction Screen -->
+        <article class="screen-card">
+            <h3>2.5 Add Transaction Screen</h3>
+            <p class="screen-purpose">
+                Enables users to manually add a new transaction that may not have been captured via SMS.
+            </p>
+            <ul class="screen-list">
+                <li>Form fields for amount, type (income/expense), category, and notes.</li>
+                <li>Date and time selection for accurate tracking.</li>
+                <li>Save action to create a new transaction record.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="addtransactionscreen.jpeg" alt="Add transaction screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Add Transaction – Actual add transaction screen</p>
+            </div>
+        </article>
+
+        <!-- 6. Edit Transaction Screen -->
+        <article class="screen-card">
+            <h3>2.6 Edit Transaction Screen</h3>
+            <p class="screen-purpose">
+                Allows users to adjust details of an existing transaction for accuracy and better categorization.
+            </p>
+            <ul class="screen-list">
+                <li>Edit amount, category, notes, or transaction type.</li>
+                <li>Correct misclassified or incomplete entries.</li>
+                <li>Save updates while preserving transaction history.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-mockup-grid">
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="editransactionscreen1.jpeg" alt="Edit transaction screen view 1" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                    <div class="mobile-frame">
+                        <div class="mobile-screen">
+                            <img src="editransactionscreen2.jpeg" alt="Edit transaction screen view 2" class="mobile-screenshot" />
+                        </div>
+                    </div>
+                </div>
+                <p class="mockup-caption">Edit Transaction – Actual edit transaction screens</p>
+            </div>
+        </article>
+
+        <!-- 7. Budget Overview Screen -->
+        <article class="screen-card">
+            <h3>2.7 Budget Overview Screen</h3>
+            <p class="screen-purpose">
+                Presents a summary of monthly budgets and how current spending compares to planned limits.
+            </p>
+            <ul class="screen-list">
+                <li>Shows total monthly budget and total spent so far.</li>
+                <li>Displays per-category budgets with remaining amounts.</li>
+                <li>Visualizes budget allocation and usage for quick scanning.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="budgetoverviewscreen1.jpeg" alt="Budget overview screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Budget Overview – Actual budget overview screen</p>
+            </div>
+        </article>
+
+        <!-- 8. Set Monthly Budget Screen -->
+        <article class="screen-card">
+            <h3>2.8 Set Monthly Budget Screen</h3>
+            <p class="screen-purpose">
+                Allows users to define or adjust monthly budget amounts overall and by category.
+            </p>
+            <ul class="screen-list">
+                <li>Input field for total monthly budget.</li>
+                <li>Per-category budget entry with current spending context.</li>
+                <li>Save action to apply updated budget configuration.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="setmonthlybudgetscreen.jpeg" alt="Set monthly budget screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Set Monthly Budget – Actual set monthly budget screen</p>
+            </div>
+        </article>
+
+        <!-- 9. Reminders List Screen -->
+        <article class="screen-card">
+            <h3>2.9 Reminders List Screen</h3>
+            <p class="screen-purpose">
+                Shows upcoming and overdue payment reminders so users can act before or on due dates.
+            </p>
+            <ul class="screen-list">
+                <li>Lists reminders with due date, person, amount, and status.</li>
+                <li>Highlights pending and overdue reminders.</li>
+                <li>Entry points to add, edit, or mark reminders as completed.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="reminderlistscreen.jpeg" alt="Reminders list screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Reminders List – Actual reminders list screen</p>
+            </div>
+        </article>
+
+        <!-- 10. Set Reminder Screen -->
+        <article class="screen-card">
+            <h3>2.10 Set Reminder Screen</h3>
+            <p class="screen-purpose">
+                Lets users create or edit a specific reminder for money to pay or collect.
+            </p>
+            <ul class="screen-list">
+                <li>Form for amount, person, purpose, and due date/time.</li>
+                <li>Selection of reminder type (pay or collect).</li>
+                <li>Save action that schedules the reminder in the app.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="setreminderscreen1.jpeg" alt="Set reminder screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Set Reminder – Actual set reminder screen</p>
+            </div>
+        </article>
+
+        <!-- 11. Profile Screen -->
+        <article class="screen-card">
+            <h3>2.11 Profile Screen</h3>
+            <p class="screen-purpose">
+                Provides account-level controls, diagnostics, and export options for the user.
+            </p>
+            <ul class="screen-list">
+                <li>Displays basic account information and app metadata.</li>
+                <li>Offers actions such as transaction sync and statement export.</li>
+                <li>Provides access to support resources and logout.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="profilescreen1.jpeg" alt="Profile screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Profile – Actual profile screen</p>
+            </div>
+        </article>
+
+        <!-- 12. Splash Screen -->
+        <article class="screen-card">
+            <h3>2.12 Splash Screen</h3>
+            <p class="screen-purpose">
+                Introduces the app brand while initial setup and background processing are prepared.
+            </p>
+            <ul class="screen-list">
+                <li>Displays the Koshpal logo and branding on app launch.</li>
+                <li>Provides a smooth transition into login or onboarding flows.</li>
+                <li>Allows background initialization of SMS and data services.</li>
+            </ul>
+            <div class="mobile-mockup">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <img src="splashscreen.jpeg" alt="Splash screen" class="mobile-screenshot" />
+                    </div>
+                </div>
+                <p class="mockup-caption">Splash Screen – Actual launch experience</p>
+            </div>
+        </article>
+    </section>
+
+    <!-- Machine Learning Section -->
+    <section class="section" id="ml-module">
+        <h2>3. Machine Learning &amp; Intelligent SMS Processing</h2>
+        <p class="body-text">
+            Koshpal includes an intelligent SMS processing module that uses machine learning to
+            automatically decide which messages are relevant for financial tracking and how they
+            should be interpreted as transactions.
+        </p>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Purpose</h3>
+                <ul class="body-list">
+                    <li>Reduce manual data entry by turning SMS messages into transactions.</li>
+                    <li>Ignore non-financial messages to keep the app signal high and noise low.</li>
+                    <li>Improve the quality and consistency of transaction data over time.</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>High-Level Flow</h3>
+                <ol class="body-list ordered">
+                    <li>An SMS is received on the user’s device (with appropriate permission granted).</li>
+                    <li>The message content is analyzed by the ML module to decide if it is financial.</li>
+                    <li>If relevant, the module detects key attributes such as credit or debit, amount, and balance cues.</li>
+                    <li>The structured result is handed to the transaction engine, which creates or updates a transaction record.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="info-grid single">
+            <div class="info-card">
+                <h3>Benefits</h3>
+                <ul class="body-list">
+                    <li><strong>Automation:</strong> Users do not need to type every transaction manually.</li>
+                    <li><strong>Accuracy:</strong> Consistent parsing reduces errors that can occur with manual entry.</li>
+                    <li><strong>Reduced Effort:</strong> Financial tracking becomes a by-product of normal phone use.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overall System Flow -->
+    <section class="section" id="system-flow">
+        <h2>4. Overall System Flow (High Level)</h2>
+        <p class="body-text">
+            At a high level, Koshpal connects SMS-driven data with budgets, reminders, and reports in
+            a single, continuous flow:
+        </p>
+        <div class="flow-card">
+            <ol class="body-list ordered flow-list">
+                <li><strong>SMS Intake:</strong> The app reads relevant transactional SMS messages on the device.</li>
+                <li><strong>ML Filtering &amp; Classification:</strong> The machine learning module filters non-financial messages and classifies valid ones.</li>
+                <li><strong>Transaction Creation:</strong> Financial messages are converted into structured transactions inside the app.</li>
+                <li><strong>Budgets &amp; Insights:</strong> Transactions feed into budget views, overviews, and spending insights.</li>
+                <li><strong>Reminders &amp; Follow-Up:</strong> Users set reminders that relate to upcoming payments or collections.</li>
+                <li><strong>Reports &amp; Export:</strong> Key data is available for statements and internal reporting.</li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- Pending Tasks -->
+    <section class="section" id="pending-tasks">
+        <h2>5. Pending Tasks</h2>
+        <p class="body-text">
+            The following tasks are pending implementation and require attention:
+        </p>
+        <div class="info-grid single">
+            <div class="info-card">
+                <h3>1. Dark &amp; Light Theme Support</h3>
+                <p class="body-text">
+                    Pending implementation of dark and light theme support for:
+                </p>
+                <ul class="body-list">
+                    <li>Reminders screens</li>
+                    <li>Budget overview screen</li>
+                    <li>Add transaction screen</li>
+                    <li>Edit transaction screen</li>
+                    <li>Set reminder screen</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>2. SMS Auto Database Syncing</h3>
+                <p class="body-text">
+                    Automatic syncing of detected SMS transactions to the local database requires further stabilization and optimization.
+                </p>
+            </div>
+            <div class="info-card">
+                <h3>3. SMS Auto Detection Reliability</h3>
+                <p class="body-text">
+                    SMS auto-detection occasionally fails due to device-level constraints such as:
+                </p>
+                <ul class="body-list">
+                    <li>Manufacturer restrictions</li>
+                    <li>Background execution limits</li>
+                    <li>SMS delivery timing variations</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Next Planning -->
+    <section class="section" id="next-planning">
+        <h2>6. Next Planning (Domain-Specific)</h2>
+        <p class="body-text">
+            The following improvements are planned for future development:
+        </p>
+        <div class="info-grid single">
+            <div class="info-card">
+                <h3>1. Machine Learning (ML) Model Improvement</h3>
+                <p class="body-text">
+                    The current ML model supports limited banks and message formats. Accuracy is acceptable but not optimal. Planned work includes:
+                </p>
+                <ul class="body-list">
+                    <li>Training the model with a significantly larger and more diverse dataset</li>
+                    <li>Supporting more banks and SMS formats</li>
+                    <li>Improving overall detection accuracy and consistency</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>2. Context-Aware Auto Categorization</h3>
+                <p class="body-text">
+                    Current auto-categorization works for most transactions but lacks deep contextual understanding. Planned improvements include:
+                </p>
+                <ul class="body-list">
+                    <li>Better context awareness based on transaction patterns</li>
+                    <li>Improved category alignment</li>
+                    <li>Reduced need for manual correction by users</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const downloadBtn = document.getElementById('download-pdf-btn');
+    
+    // Check if we're using file:// protocol
+    const isFileProtocol = window.location.protocol === 'file:';
+    
+    // Show warning if using file://
+    if (isFileProtocol) {
+        const warningDiv = document.createElement('div');
+        warningDiv.style.cssText = 'position: fixed; top: 70px; right: 20px; z-index: 999; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; max-width: 320px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        warningDiv.innerHTML = `
+            <div style="font-weight: 600; color: #92400e; margin-bottom: 8px;">⚠️ Local File Detected</div>
+            <div style="font-size: 12px; color: #78350f; line-height: 1.5;">
+                PDF generation requires a local web server. Run this in terminal:<br><br>
+                <code style="background: #fff; padding: 4px 6px; border-radius: 4px; font-size: 11px; display: block; margin: 4px 0;">cd "${window.location.pathname.replace(/\/[^/]*$/, '')}" && python3 -m http.server 8000</code><br>
+                Then open: <strong>http://localhost:8000/index.html</strong>
+            </div>
+        `;
+        document.body.appendChild(warningDiv);
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            warningDiv.style.opacity = '0';
+            warningDiv.style.transition = 'opacity 0.5s';
+            setTimeout(() => warningDiv.remove(), 500);
+        }, 10000);
+    }
+    
+    downloadBtn.addEventListener('click', async function() {
+        // Check protocol and warn
+        if (isFileProtocol) {
+            const useServer = confirm(
+                'PDF generation does not work with file:// protocol due to browser security.\n\n' +
+                'Please use a local web server:\n\n' +
+                '1. Open terminal in the report folder\n' +
+                '2. Run: python3 -m http.server 8000\n' +
+                '3. Open: http://localhost:8000/index.html\n\n' +
+                'Click OK to try anyway (will likely fail), or Cancel to stop.'
+            );
+            if (!useServer) {
+                return;
+            }
+        }
+        
+        const element = document.getElementById('report-content');
+        
+        // Show loading state
+        downloadBtn.disabled = true;
+        const originalBtnContent = downloadBtn.innerHTML;
+        downloadBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Generating PDF...';
+        downloadBtn.style.opacity = '0.6';
+        
+        try {
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'Koshpal_Progress_Report.pdf',
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: false,
+                    allowTaint: true, // Must be true for file:// protocol
+                    logging: false,
+                    letterRendering: true,
+                    backgroundColor: '#ffffff',
+                    removeContainer: true,
+                    ignoreElements: function(element) {
+                        // Ignore the download button
+                        return element.id === 'download-pdf-btn';
+                    }
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true
+                },
+                pagebreak: { 
+                    mode: ['avoid-all', 'css', 'legacy'],
+                    before: '.section',
+                    after: ['.screen-card'],
+                    avoid: ['.mobile-frame', '.mobile-mockup', '.mobile-mockup-grid', 'img', '.screen-card']
+                }
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            let errorMsg = '❌ PDF Generation Failed\n\n';
+            if (error.message && error.message.includes('Tainted')) {
+                errorMsg += 'Browser security prevents PDF generation from file:// protocol.\n\n';
+                errorMsg += '✅ SOLUTION: Use a local web server\n\n';
+                errorMsg += '1. Open Terminal\n';
+                errorMsg += '2. Run: cd "' + window.location.pathname.replace(/\/[^/]*$/, '') + '"\n';
+                errorMsg += '3. Run: python3 -m http.server 8000\n';
+                errorMsg += '4. Open: http://localhost:8000/index.html\n';
+                errorMsg += '5. Click Download PDF again\n\n';
+                errorMsg += 'Alternative: npx serve (if you have Node.js)';
+            } else {
+                errorMsg += 'Error: ' + (error.message || 'Unknown error occurred.');
+            }
+            alert(errorMsg);
+        } finally {
+            // Restore button state
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = originalBtnContent;
+            downloadBtn.style.opacity = '1';
+        }
+    });
+});
+</script>
+</body>
+</html>
+
+

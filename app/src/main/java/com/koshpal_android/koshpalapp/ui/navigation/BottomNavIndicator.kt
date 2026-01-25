@@ -13,6 +13,11 @@ import androidx.compose.ui.unit.dp
 /**
  * Bottom Navigation Active Indicator
  * Small circular dot that appears below active navigation items
+ * 
+ * Design:
+ * - 4dp circular dot
+ * - Primary color for clear active state indication
+ * - Theme-aware
  */
 @Composable
 fun BottomNavIndicator(

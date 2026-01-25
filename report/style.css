@@ -1,0 +1,406 @@
+/* Base layout */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    color: #1f2933;
+    background-color: #f5f5f7;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+}
+
+/* Download Button */
+.download-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+    background: #f9fafb;
+    border-color: rgba(148, 163, 184, 0.5);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+}
+
+.download-btn:active {
+    transform: translateY(1px);
+}
+
+.download-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.download-btn svg {
+    flex-shrink: 0;
+}
+
+.page {
+    max-width: 860px;
+    margin: 32px auto 48px auto;
+    padding: 24px 24px 48px 24px;
+    background: #f9fafb;
+    border-radius: 16px;
+    box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(148, 163, 184, 0.15);
+    /* Subtle pattern */
+    background-image:
+        linear-gradient(120deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+}
+
+/* Cover */
+.cover {
+    padding: 32px 24px 28px 24px;
+    border-radius: 14px;
+    background: rgba(249, 250, 251, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(255, 255, 255, 0.7);
+    margin-bottom: 32px;
+}
+
+.report-date {
+    margin: 0 0 20px 0;
+    font-size: 12px;
+    color: #6b7280;
+    text-align: right;
+    font-weight: 500;
+}
+
+.cover-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.cover-logo-image {
+    height: 48px;
+    width: auto;
+}
+
+.app-title {
+    margin: 0 0 4px 0;
+    font-size: 32px;
+    letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #4b5563;
+}
+
+.app-tagline {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.cover-footer {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.meta-line {
+    margin: 2px 0;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Sections */
+.section {
+    margin-top: 32px;
+    padding: 24px 24px 20px 24px;
+    border-radius: 14px;
+    background: rgba(249, 250, 251, 0.97);
+    border: 1px solid rgba(209, 213, 219, 0.9);
+}
+
+.section + .section {
+    margin-top: 24px;
+}
+
+h2 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    color: #111827;
+}
+
+h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #111827;
+}
+
+.body-text {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #374151;
+}
+
+.body-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.body-list li {
+    margin: 4px 0;
+}
+
+.body-list.ordered {
+    list-style-type: decimal;
+}
+
+/* Info cards */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.info-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.info-card {
+    padding: 14px 16px 14px 16px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+/* Screen cards */
+.screen-card {
+    margin-top: 18px;
+    padding: 18px 18px 16px 18px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+.screen-card:first-of-type {
+    margin-top: 4px;
+}
+
+.screen-purpose {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #374151;
+}
+
+.screen-list {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.screen-list li {
+    margin: 3px 0;
+}
+
+/* Mobile mockup */
+.mobile-mockup {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.mobile-mockup-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.mobile-frame {
+    width: 210px;
+    border-radius: 32px;
+    padding: 10px;
+    background: linear-gradient(145deg, #e5e7eb, #f9fafb);
+    box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.20),
+        0 0 0 1px rgba(148, 163, 184, 0.50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-screen {
+    width: 100%;
+    border-radius: 24px;
+    overflow: hidden;
+    background-color: #000000;
+}
+
+.mobile-screenshot {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.mockup-caption {
+    margin: 6px 0 0 2px;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+/* Flow card */
+.flow-card {
+    margin-top: 10px;
+    padding: 14px 16px 14px 18px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid rgba(6, 37, 99, 0.9);
+}
+
+.flow-list li {
+    margin: 4px 0;
+}
+
+/* PDF Generation Styles */
+@media print {
+    .download-btn {
+        display: none;
+    }
+    
+    body {
+        background: #ffffff;
+    }
+    
+    .page {
+        margin: 0;
+        padding: 20px;
+        box-shadow: none;
+        border-radius: 0;
+        background: #ffffff;
+        background-image: none;
+    }
+    
+    .section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    .screen-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    .mobile-mockup {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    .mobile-frame {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    h2 {
+        page-break-after: avoid;
+        break-after: avoid;
+    }
+    
+    h3 {
+        page-break-after: avoid;
+        break-after: avoid;
+    }
+    
+    img {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+
+/* PDF-specific styles for html2pdf */
+.pdf-page-break {
+    page-break-before: always;
+    break-before: page;
+}
+
+.pdf-avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Hide file paths in PDF */
+@page {
+    margin: 10mm;
+    size: A4 portrait;
+}
+
+/* Ensure images don't break awkwardly */
+.mobile-screenshot {
+    max-width: 100%;
+    height: auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.mobile-mockup-grid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Responsive adjustments */
+@media (max-width: 720px) {
+    .page {
+        margin: 16px;
+        padding: 16px;
+    }
+
+    .cover {
+        padding: 24px 18px 22px 18px;
+    }
+
+    .section {
+        padding: 18px 18px 16px 18px;
+    }
+    
+    .download-btn {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+
