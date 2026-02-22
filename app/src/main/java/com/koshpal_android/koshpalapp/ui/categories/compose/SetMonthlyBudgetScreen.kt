@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.koshpal_android.koshpalapp.ui.theme.AppColors
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -70,7 +69,7 @@ fun SetMonthlyBudgetScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppColors.PureBlack)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top App Bar
         TopAppBar(
@@ -105,23 +104,17 @@ fun SetMonthlyBudgetScreen(
                     Text(
                         text = "Set Budget by Category",
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.TextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     
-                    // ADD CATEGORY Button (Send button style)
+                    // ADD CATEGORY Button
                     Box(
                         modifier = Modifier
                             .height(40.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(AppColors.DarkButtonBg)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable(onClick = onAddCategoryClicked)
-                            .shadow(
-                                elevation = 8.dp,
-                                shape = RoundedCornerShape(20.dp),
-                                spotColor = AppColors.AccentBlue.copy(alpha = 0.3f),
-                                ambientColor = AppColors.AccentBlue.copy(alpha = 0.15f)
-                            )
                             .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -132,12 +125,12 @@ fun SetMonthlyBudgetScreen(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Add Category",
-                                tint = AppColors.AccentBlue,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = "ADD CATEGORY",
-                                color = AppColors.AccentBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -199,7 +192,7 @@ private fun TopAppBar(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = AppColors.TextPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
         
@@ -207,7 +200,7 @@ private fun TopAppBar(
         Text(
             text = "Set Monthly Budget",
             style = MaterialTheme.typography.titleLarge,
-            color = AppColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
@@ -224,12 +217,12 @@ private fun TopAppBar(
             Text(
                 text = monthDisplay,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Icon(
                 imageVector = Icons.Default.CalendarToday,
                 contentDescription = "Select Month",
-                tint = AppColors.TextPrimary,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -244,6 +237,8 @@ private fun TotalBudgetCard(
     totalBudget: Double,
     onTotalBudgetChanged: (Double) -> Unit
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     var budgetText by remember { mutableStateOf(String.format("%.0f", totalBudget)) }
     
     // Update text when totalBudget changes externally
@@ -270,8 +265,8 @@ private fun TotalBudgetCard(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AppColors.AccentBlue.copy(alpha = 0.4f),
-                            AppColors.AccentBlue.copy(alpha = 0.1f),
+                            primaryColor.copy(alpha = 0.4f),
+                            primaryColor.copy(alpha = 0.1f),
                             Color.Transparent
                         ),
                         center = Offset(glowCenterX, glowCenterY),
@@ -283,7 +278,7 @@ private fun TotalBudgetCard(
             },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.DarkCard
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -294,7 +289,7 @@ private fun TotalBudgetCard(
             Text(
                 text = "Total Monthly Budget",
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             
@@ -308,25 +303,25 @@ private fun TotalBudgetCard(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(
-                    color = AppColors.TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = AppColors.TextPrimary,
-                    unfocusedTextColor = AppColors.TextPrimary,
-                    focusedBorderColor = AppColors.AccentBlue,
-                    unfocusedBorderColor = AppColors.TextTertiary,
-                    focusedLabelColor = AppColors.TextSecondary,
-                    unfocusedLabelColor = AppColors.TextSecondary,
-                    cursorColor = AppColors.AccentBlue
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 leadingIcon = {
                     Text(
                         text = "₹",
-                        color = AppColors.TextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -345,6 +340,8 @@ private fun CategoryListCard(
     categoryBudgets: List<CategoryBudgetItem>,
     onCategoryBudgetChanged: (String, Double) -> Unit
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -364,8 +361,8 @@ private fun CategoryListCard(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AppColors.AccentBlue.copy(alpha = 0.4f),
-                            AppColors.AccentBlue.copy(alpha = 0.1f),
+                            primaryColor.copy(alpha = 0.4f),
+                            primaryColor.copy(alpha = 0.1f),
                             Color.Transparent
                         ),
                         center = Offset(glowCenterX, glowCenterY),
@@ -377,7 +374,7 @@ private fun CategoryListCard(
             },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.DarkCard
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -427,7 +424,7 @@ private fun CategoryBudgetItemRow(
         val categoryColor = try {
             Color(android.graphics.Color.parseColor(category.categoryColor))
         } catch (e: Exception) {
-            AppColors.AccentBlue
+            MaterialTheme.colorScheme.primary
         }
         
         Box(
@@ -442,7 +439,7 @@ private fun CategoryBudgetItemRow(
                     painter = painterResource(id = category.categoryIcon),
                     contentDescription = category.categoryName,
                     modifier = Modifier.size(24.dp),
-                    colorFilter = ColorFilter.tint(AppColors.IconPrimary),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     contentScale = ContentScale.Fit
                 )
             } else {
@@ -464,13 +461,13 @@ private fun CategoryBudgetItemRow(
             Text(
                 text = category.categoryName,
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.TextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = "Current spending: ₹${String.format("%.0f", category.currentSpending)}",
                 style = MaterialTheme.typography.bodySmall,
-                color = AppColors.TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         
@@ -478,7 +475,7 @@ private fun CategoryBudgetItemRow(
         Row(
             modifier = Modifier
                 .background(
-                    color = AppColors.CategoryIconBg,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -487,7 +484,7 @@ private fun CategoryBudgetItemRow(
         ) {
             Text(
                 text = "₹",
-                color = AppColors.TextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -501,7 +498,7 @@ private fun CategoryBudgetItemRow(
                 },
                 modifier = Modifier.width(80.dp),
                 textStyle = TextStyle(
-                    color = AppColors.TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -516,7 +513,7 @@ private fun CategoryBudgetItemRow(
                         if (budgetText.isEmpty()) {
                             Text(
                                 text = "0",
-                                color = AppColors.TextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -537,11 +534,13 @@ private fun SaveBudgetButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     Box(
         modifier = modifier
             .height(48.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(AppColors.DarkButtonBg)
+            .background(primaryColor)
             .clickable(onClick = onClick)
             .drawBehind {
                 // Strong, soft blue glow emanating from the entire perimeter
@@ -554,10 +553,10 @@ private fun SaveBudgetButton(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AppColors.AccentBlue.copy(alpha = 0.5f),
-                            AppColors.AccentBlue.copy(alpha = 0.3f),
-                            AppColors.AccentBlue.copy(alpha = 0.15f),
-                            AppColors.AccentBlue.copy(alpha = 0.05f),
+                            primaryColor.copy(alpha = 0.5f),
+                            primaryColor.copy(alpha = 0.3f),
+                            primaryColor.copy(alpha = 0.15f),
+                            primaryColor.copy(alpha = 0.05f),
                             Color.Transparent
                         ),
                         center = Offset(centerX, centerY),
@@ -571,9 +570,9 @@ private fun SaveBudgetButton(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AppColors.AccentBlue.copy(alpha = 0.6f),
-                            AppColors.AccentBlue.copy(alpha = 0.4f),
-                            AppColors.AccentBlue.copy(alpha = 0.2f),
+                            primaryColor.copy(alpha = 0.6f),
+                            primaryColor.copy(alpha = 0.4f),
+                            primaryColor.copy(alpha = 0.2f),
                             Color.Transparent
                         ),
                         center = Offset(centerX, centerY),
@@ -587,9 +586,9 @@ private fun SaveBudgetButton(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AppColors.AccentBlue.copy(alpha = 0.7f),
-                            AppColors.AccentBlue.copy(alpha = 0.5f),
-                            AppColors.AccentBlue.copy(alpha = 0.3f),
+                            primaryColor.copy(alpha = 0.7f),
+                            primaryColor.copy(alpha = 0.5f),
+                            primaryColor.copy(alpha = 0.3f),
                             Color.Transparent
                         ),
                         center = Offset(centerX, centerY),
@@ -602,15 +601,15 @@ private fun SaveBudgetButton(
             .shadow(
                 elevation = 20.dp,
                 shape = RoundedCornerShape(24.dp),
-                spotColor = AppColors.AccentBlue.copy(alpha = 0.7f),
-                ambientColor = AppColors.AccentBlue.copy(alpha = 0.5f)
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
             ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "SAVE BUDGET",
             style = MaterialTheme.typography.titleMedium,
-            color = AppColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
             fontSize = 16.sp
