@@ -95,6 +95,7 @@ class LoginViewModel @Inject constructor(
     fun isUserLoggedIn(): Boolean = sessionManager.isLoggedIn.value
 
     fun getCurrentUserName(): String? = sessionManager.getUserName()
+    fun getCurrentUserEmail(): String? = sessionManager.getUserEmail()
 
     sealed class LoginResult {
         data class Success(val message: String) : LoginResult()

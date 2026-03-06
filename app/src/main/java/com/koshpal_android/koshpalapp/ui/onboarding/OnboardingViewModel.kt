@@ -1,5 +1,6 @@
 package com.koshpal_android.koshpalapp.ui.onboarding
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
@@ -57,20 +58,21 @@ class OnboardingViewModel @Inject constructor(
                 )
 
                 val result = onboardingRepository.submitOnboardingData(onboardingResponse)
+                
+                // Always mark onboarding as completed locally to prevent blocking the user
+                // even if the backend returns an error (e.g., "user not found")
+                userPreferences.setOnboardingCompleted(true)
+                
                 if (result.isSuccess) {
-                    // Mark onboarding as completed
-                    userPreferences.setOnboardingCompleted(true)
-                    
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isOnboardingComplete = true
-                    )
+                    Log.d("OnboardingViewModel", "✅ Onboarding data submitted successfully")
                 } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.exceptionOrNull()?.message ?: "Failed to save onboarding data"
-                    )
+                    Log.w("OnboardingViewModel", "⚠️ Onboarding submission failed but bypassing: ${result.exceptionOrNull()?.message}")
                 }
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    isOnboardingComplete = true
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

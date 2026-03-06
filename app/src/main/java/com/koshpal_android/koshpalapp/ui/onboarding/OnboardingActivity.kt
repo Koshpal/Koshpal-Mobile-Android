@@ -90,7 +90,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun navigateToHome() {
         // After onboarding, go to SMS Processing to extract transaction data
-        val intent = Intent(this, SmsProcessingActivity::class.java)
+        val intent = Intent(this, com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

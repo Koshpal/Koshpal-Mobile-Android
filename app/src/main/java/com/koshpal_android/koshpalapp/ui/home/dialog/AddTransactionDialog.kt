@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -48,15 +49,13 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     private val currentTags = mutableListOf<String>()
     private var selectedAttachmentUri: Uri? = null
     
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                selectedAttachmentUri = uri
-                binding.tvAttachmentHint.text = "Photo attached"
-                binding.tvAttachmentHint.setTextColor(requireContext().getColor(R.color.primary))
-            }
+    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            selectedAttachmentUri = uri
+            binding.tvAttachmentHint.text = "Photo attached"
+            binding.tvAttachmentHint.setTextColor(requireContext().getColor(R.color.primary))
+        } else {
+            android.util.Log.d("PhotoPicker", "No media selected")
         }
     }
     
@@ -133,6 +132,17 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         
         // Initialize tags display
         updateTagsDisplay()
+        
+        // Initial Expense toggle logic
+        updateAccountCardStyle(isExpense)
+    }
+
+    private fun updateAccountCardStyle(isExpense: Boolean) {
+        if (isExpense) {
+            binding.cvAccount.setCardBackgroundColor(requireContext().getColor(R.color.primary))
+        } else {
+            binding.cvAccount.setCardBackgroundColor(requireContext().getColor(R.color.success))
+        }
     }
 
     private fun setupClickListeners() {
@@ -168,6 +178,8 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         // Expense toggle
         binding.switchExpense.setOnCheckedChangeListener { _, isChecked ->
             isExpense = isChecked
+            updateAccountCardStyle(isChecked)
+            
             // Update transaction type based on toggle
             if (isChecked) {
                 isSpendSelected = true
@@ -178,29 +190,21 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             }
         }
         
-        // Category selector
-        binding.tvCategory.setOnClickListener {
-            showCategorySelector()
+        // Grid card click listeners
+        binding.cvCategory.setOnClickListener { showCategorySelector() }
+        binding.cvNotes.setOnClickListener { 
+            // Handle notes click - for now same as existing but could open a specific dialog
+            binding.etNotes.requestFocus()
+            // Logic to show keyboard and focus etNotes if desired
         }
-        
-        binding.btnAddCategory.setOnClickListener {
-            showCategorySelector()
-        }
-        
-        // Tags selector
-        binding.tvTags.setOnClickListener {
-            showTagsSelector()
-        }
-        
-        binding.btnAddTag.setOnClickListener {
-            showTagsSelector()
-        }
-        
-        // Attachment button
-        binding.btnAddAttachment.setOnClickListener {
-            showAttachmentPicker()
-        }
-        
+        binding.cvTags.setOnClickListener { showTagsSelector() }
+        binding.cvAttachment.setOnClickListener { showAttachmentPicker() }
+
+        // Button/Icon clicks within cards
+        binding.btnAddCategory.setOnClickListener { showCategorySelector() }
+        binding.btnAddTag.setOnClickListener { showTagsSelector() }
+        binding.btnAddAttachment.setOnClickListener { showAttachmentPicker() }
+
         // Calculator button (optional - can open calculator or do nothing)
         binding.btnCalculator.setOnClickListener {
             // Optional: Open calculator or show amount input dialog
@@ -228,25 +232,31 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         val textGrayColor = 0xFFA0AEC0.toInt()
         
         if (isSpendSelected) {
-            // Spend selected - blue background with checkmark icon
-            binding.btnSpend.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            // Spend selected
+            binding.btnSpend.setBackgroundColor(primaryColor)
             binding.btnSpend.setTextColor(whiteColor)
-            binding.btnSpend.icon = requireContext().getDrawable(R.drawable.ic_check_circle)
+            binding.btnSpend.setIconResource(R.drawable.ic_check_circle)
             binding.btnSpend.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
-            // Income unselected - outlined
-            binding.btnIncome.backgroundTintList = android.content.res.ColorStateList.valueOf(0x1A1F2E)
-            binding.btnIncome.setTextColor(whiteColor)
+            
+            // Income unselected
+            binding.btnIncome.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            binding.btnIncome.setTextColor(textGrayColor)
             binding.btnIncome.icon = null
+            
+            binding.tvAmountLabel.text = "AMOUNT SPENT"
         } else {
-            // Income selected - blue background with checkmark icon
-            binding.btnIncome.backgroundTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+            // Income selected
+            binding.btnIncome.setBackgroundColor(primaryColor)
             binding.btnIncome.setTextColor(whiteColor)
-            binding.btnIncome.icon = requireContext().getDrawable(R.drawable.ic_check_circle)
+            binding.btnIncome.setIconResource(R.drawable.ic_check_circle)
             binding.btnIncome.iconTint = android.content.res.ColorStateList.valueOf(whiteColor)
-            // Spend unselected - outlined
-            binding.btnSpend.backgroundTintList = android.content.res.ColorStateList.valueOf(0x1A1F2E)
-            binding.btnSpend.setTextColor(whiteColor)
+            
+            // Spend unselected
+            binding.btnSpend.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            binding.btnSpend.setTextColor(textGrayColor)
             binding.btnSpend.icon = null
+            
+            binding.tvAmountLabel.text = "AMOUNT RECEIVED"
         }
     }
 
@@ -471,11 +481,8 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     }
 
     private fun showAttachmentPicker() {
-        // Open image picker
-        val intent = Intent(Intent.ACTION_PICK).apply {
-            type = "image/*"
-        }
-        imagePickerLauncher.launch(intent)
+        // Open modern image picker (Photo Picker)
+        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     private fun validateInput(): Boolean {

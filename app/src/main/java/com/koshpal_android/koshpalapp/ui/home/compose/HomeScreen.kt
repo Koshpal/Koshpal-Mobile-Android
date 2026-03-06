@@ -83,6 +83,7 @@ fun HomeScreen(
     onBankCardClick: (String) -> Unit,
     onAddCashClick: () -> Unit,
     onAddPaymentClick: () -> Unit,
+    onSetBudgetClick: () -> Unit,
     onTransactionClick: (Transaction) -> Unit,
     onViewAllTransactionsClick: () -> Unit,
     goalsViewModel: GoalsViewModel? = null,
@@ -151,6 +152,7 @@ fun HomeScreen(
             item {
                 ActionButtonsRow(
                     onAddPaymentClick = onAddPaymentClick,
+                    onSetBudgetClick = onSetBudgetClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -977,40 +979,75 @@ private fun BankCardItem(
 @Composable
 private fun ActionButtonsRow(
     onAddPaymentClick: () -> Unit,
+    onSetBudgetClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Add Payment Button (Full Width)
-    Button(
-        onClick = onAddPaymentClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors.DarkButtonBg
-        ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 4.dp
-        )
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        // Add Payment Button
+        Button(
+            onClick = onAddPaymentClick,
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.DarkCard.copy(alpha = 0.8f)
+            ),
+            shape = RoundedCornerShape(24.dp), // Pill shape
+            contentPadding = PaddingValues(0.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add_expense),
-                contentDescription = "Add",
-                tint = AppColors.TextPrimary,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Add Payment",
-                color = AppColors.TextPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_add),
+                    contentDescription = "Add",
+                    tint = AppColors.AccentBlue,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "ADD PAYMENT",
+                    color = AppColors.AccentBlue,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // Set Budget Button
+        Button(
+            onClick = onSetBudgetClick,
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.DarkCard.copy(alpha = 0.8f)
+            ),
+            shape = RoundedCornerShape(24.dp), // Pill shape
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_budget_empty),
+                    contentDescription = "Set Budget",
+                    tint = AppColors.AccentBlue,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "SET BUDGET",
+                    color = AppColors.AccentBlue,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

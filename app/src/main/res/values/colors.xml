@@ -138,4 +138,11 @@
     <!-- Switch Colors -->
     <color name="switch_track_color">#2563EB</color>
     <color name="switch_thumb_color">#FFFFFF</color>
+
+    <!-- Login Redesign Colors -->
+    <color name="login_bg">#000000</color>
+    <color name="login_card_bg">#121212</color>
+    <color name="login_input_bg">#1E1E1E</color>
+    <color name="login_accent_blue">#2D60FF</color>
+    <color name="login_text_label">#8E8E93</color>
 </resources>

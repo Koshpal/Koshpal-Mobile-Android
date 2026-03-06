@@ -69,38 +69,31 @@ class SplashViewModel @Inject constructor(
 
             Log.d("SplashViewModel", "📊 User state - SMS Processed: $isSmsProcessed, Logged In: $isLoggedIn, Sync Completed: $isSyncCompleted")
 
-            // 🔐 PRODUCTION FLOW: Always go to login first
-            Log.d("SplashViewModel", "🔐 Navigating to LOGIN screen")
-            _navigationEvent.emit(NavigationDestination.LOGIN)
-            
-            /* PRODUCTION FLOW (Uncomment for production):
-            // Check if user is already logged in
+            // 🔐 PRODUCTION FLOW: Proper navigation based on user state
             if (sessionManager.isLoggedIn.value) {
                 // Check if onboarding is completed
                 if (userPreferences.isOnboardingCompleted()) {
                     // Check if initial SMS processing is done
                     if (!userPreferences.isInitialSmsProcessed()) {
                         // First time after onboarding - process SMS
+                        Log.d("SplashViewModel", "➡️ Navigating to SMS_PROCESSING")
                         _navigationEvent.emit(NavigationDestination.SMS_PROCESSING)
                     } else {
                         // User is logged in, onboarded, and SMS processed - go to HOME
+                        Log.d("SplashViewModel", "➡️ Navigating to HOME")
                         _navigationEvent.emit(NavigationDestination.HOME)
                     }
                 } else {
                     // User is logged in but onboarding not completed, go to ONBOARDING
-                    val email = sessionManager.getUserEmail() ?: ""
-                    if (email.isNotEmpty()) {
-                        _navigationEvent.emit(NavigationDestination.ONBOARDING)
-                    } else {
-                        // No email found, go to employee login
-                        _navigationEvent.emit(NavigationDestination.EMPLOYEE_LOGIN)
-                    }
+                    Log.d("SplashViewModel", "➡️ Navigating to ONBOARDING")
+                    val email = sessionManager.getUserEmail() ?: userPreferences.getEmail() ?: ""
+                    _navigationEvent.emit(NavigationDestination.ONBOARDING)
                 }
             } else {
-                // User not logged in, go to Employee Login (main login flow)
+                // User not logged in, go to Login
+                Log.d("SplashViewModel", "➡️ Navigating to LOGIN")
                 _navigationEvent.emit(NavigationDestination.LOGIN)
             }
-            */
         }
     }
 

@@ -132,13 +132,20 @@ class FinancialHealthFragment : Fragment() {
             binding.rating5
         )
 
+        val accentBlue = resources.getColor(com.koshpal_android.koshpalapp.R.color.login_accent_blue, null)
+        val transparent = resources.getColor(android.R.color.transparent, null)
+        val white = resources.getColor(android.R.color.white, null)
+        val labelGray = resources.getColor(com.koshpal_android.koshpalapp.R.color.login_text_label, null)
+
         ratingButtons.forEachIndexed { index, button ->
             if (index < selectedMoneyWorryLevel) {
-                button.setBackgroundColor(resources.getColor(android.R.color.holo_purple, null))
-                button.setTextColor(resources.getColor(android.R.color.white, null))
+                button.setBackgroundColor(accentBlue)
+                button.setTextColor(white)
+                button.strokeColor = android.content.res.ColorStateList.valueOf(accentBlue)
             } else {
-                button.setBackgroundColor(resources.getColor(android.R.color.transparent, null))
-                button.setTextColor(resources.getColor(android.R.color.black, null))
+                button.setBackgroundColor(transparent)
+                button.setTextColor(white)
+                button.strokeColor = android.content.res.ColorStateList.valueOf(labelGray)
             }
         }
     }

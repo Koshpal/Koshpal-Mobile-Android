@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/login_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,8 @@
             android:text="Goals &amp; Priorities"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="8dp" />
 
         <TextView
@@ -26,8 +27,8 @@
             android:layout_height="wrap_content"
             android:text="What matters most to you? (45 seconds)"
             android:textSize="14sp"
-            android:textColor="@color/black"
-            android:alpha="0.7"
+            android:textColor="@color/login_text_label"
+            android:fontFamily="@font/poppins_regular"
             android:layout_marginBottom="32dp" />
 
         <!-- Question 7: Primary Financial Goal -->
@@ -37,7 +38,8 @@
             android:text="Q7. What's your most important financial goal right now?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -46,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Question 8: Goal Timeframe -->
         <TextView
@@ -55,7 +57,8 @@
             android:text="Q8. When do you want to achieve this goal?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -64,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Question 9: Financial Stress Area -->
         <TextView
@@ -73,7 +76,8 @@
             android:text="Q9. Which area causes you the most financial stress?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -82,16 +86,16 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Completion Message -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/rounded_background"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:background="@drawable/bg_login_card"
+            android:padding="20dp"
+            android:layout_marginBottom="32dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -99,16 +103,18 @@
                 android:text="🎉 Almost Done!"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/purple_500"
+                android:textColor="@color/login_accent_blue"
+                android:fontFamily="@font/poppins_bold"
                 android:layout_marginBottom="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your personalized financial journey is ready to begin. We'll use your responses to provide tailored insights and recommendations."
+                android:text="Your personalized financial journey is ready to begin. We'll use your responses to provide tailored insights."
                 android:textSize="14sp"
-                android:textColor="@color/black"
+                android:textColor="@color/white"
                 android:alpha="0.8"
+                android:fontFamily="@font/poppins_regular"
                 android:lineSpacingExtra="2dp" />
 
         </LinearLayout>
@@ -118,12 +124,13 @@
             android:id="@+id/btnComplete"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Complete Setup"
+            android:text="COMPLETE SETUP"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/white"
-            app:backgroundTint="@color/purple_500"
-            app:cornerRadius="12dp"
+            android:fontFamily="@font/poppins_bold"
+            android:backgroundTint="@color/login_accent_blue"
+            app:cornerRadius="16dp"
             android:enabled="false"
             android:alpha="0.5" />
 
@@ -131,11 +138,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🔒 Your data is secure and never shared with your employer"
+            android:text="🔒 Your data is secure and private"
             android:textSize="12sp"
-            android:textColor="@color/black"
-            android:alpha="0.6"
-            android:layout_marginTop="16dp"
+            android:textColor="@color/login_text_label"
+            android:fontFamily="@font/poppins_regular"
+            android:layout_marginTop="20dp"
             android:layout_gravity="center_horizontal" />
 
     </LinearLayout>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/login_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,8 @@
             android:text="Financial Health"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="8dp" />
 
         <TextView
@@ -26,8 +27,8 @@
             android:layout_height="wrap_content"
             android:text="Let's understand your money habits (45 seconds)"
             android:textSize="14sp"
-            android:textColor="@color/black"
-            android:alpha="0.7"
+            android:textColor="@color/login_text_label"
+            android:fontFamily="@font/poppins_regular"
             android:layout_marginBottom="32dp" />
 
         <!-- Question 4: Expense Tracking -->
@@ -37,7 +38,8 @@
             android:text="Q4. Do you currently track your expenses?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -46,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Question 5: Money Worry Level -->
         <TextView
@@ -55,7 +57,8 @@
             android:text="Q5. How often do you worry about money?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <TextView
@@ -63,8 +66,8 @@
             android:layout_height="wrap_content"
             android:text="Rating Scale: 1 (Never) → 5 (Always)"
             android:textSize="12sp"
-            android:textColor="@color/black"
-            android:alpha="0.6"
+            android:textColor="@color/login_text_label"
+            android:fontFamily="@font/poppins_regular"
             android:layout_marginBottom="16dp" />
 
         <LinearLayout
@@ -81,7 +84,9 @@
                 android:layout_height="48dp"
                 android:text="1"
                 android:textSize="16sp"
-                android:layout_marginEnd="8dp"
+                android:textColor="@color/white"
+                android:layout_marginEnd="12dp"
+                app:strokeColor="@color/login_text_label"
                 app:cornerRadius="24dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -91,7 +96,9 @@
                 android:layout_height="48dp"
                 android:text="2"
                 android:textSize="16sp"
-                android:layout_marginEnd="8dp"
+                android:textColor="@color/white"
+                android:layout_marginEnd="12dp"
+                app:strokeColor="@color/login_text_label"
                 app:cornerRadius="24dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -101,7 +108,9 @@
                 android:layout_height="48dp"
                 android:text="3"
                 android:textSize="16sp"
-                android:layout_marginEnd="8dp"
+                android:textColor="@color/white"
+                android:layout_marginEnd="12dp"
+                app:strokeColor="@color/login_text_label"
                 app:cornerRadius="24dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -111,7 +120,9 @@
                 android:layout_height="48dp"
                 android:text="4"
                 android:textSize="16sp"
-                android:layout_marginEnd="8dp"
+                android:textColor="@color/white"
+                android:layout_marginEnd="12dp"
+                app:strokeColor="@color/login_text_label"
                 app:cornerRadius="24dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -121,6 +132,8 @@
                 android:layout_height="48dp"
                 android:text="5"
                 android:textSize="16sp"
+                android:textColor="@color/white"
+                app:strokeColor="@color/login_text_label"
                 app:cornerRadius="24dp" />
 
         </LinearLayout>
@@ -132,7 +145,8 @@
             android:text="Q6. Where do you spend the most money each month?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -141,19 +155,20 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Next Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Continue"
+            android:text="CONTINUE"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/white"
-            app:backgroundTint="@color/purple_500"
-            app:cornerRadius="12dp"
+            android:fontFamily="@font/poppins_bold"
+            android:backgroundTint="@color/login_accent_blue"
+            app:cornerRadius="16dp"
             android:enabled="false"
             android:alpha="0.5" />
 

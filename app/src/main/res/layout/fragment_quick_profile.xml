@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/login_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,8 @@
             android:text="Quick Profile"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="8dp" />
 
         <TextView
@@ -26,8 +27,8 @@
             android:layout_height="wrap_content"
             android:text="Tell us a bit about yourself (30 seconds)"
             android:textSize="14sp"
-            android:textColor="@color/black"
-            android:alpha="0.7"
+            android:textColor="@color/login_text_label"
+            android:fontFamily="@font/poppins_regular"
             android:layout_marginBottom="32dp" />
 
         <!-- Question 1: Age Group -->
@@ -37,7 +38,8 @@
             android:text="Q1. What's your age group?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -46,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Question 2: Monthly Salary -->
         <TextView
@@ -55,7 +57,8 @@
             android:text="Q2. What's your approximate monthly take-home salary?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -64,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Question 3: Financial Situation -->
         <TextView
@@ -73,7 +76,8 @@
             android:text="Q3. How would you describe your current financial situation?"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_bold"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.chip.ChipGroup
@@ -82,19 +86,20 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp" />
+            app:chipSpacingVertical="8dp" />
 
         <!-- Next Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Continue"
+            android:text="CONTINUE"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/white"
-            app:backgroundTint="@color/purple_500"
-            app:cornerRadius="12dp"
+            android:fontFamily="@font/poppins_bold"
+            android:backgroundTint="@color/login_accent_blue"
+            app:cornerRadius="16dp"
             android:enabled="false"
             android:alpha="0.5" />
 

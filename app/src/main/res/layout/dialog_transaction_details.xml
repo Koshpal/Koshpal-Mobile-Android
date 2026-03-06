@@ -5,21 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#0F1419">
+    android:background="#0B111D">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
         <!-- Header -->
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:background="#0F1419">
+            android:padding="16dp">
 
             <ImageButton
                 android:id="@+id/btnClose"
@@ -28,42 +26,46 @@
                 android:src="@drawable/ic_arrow_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back"
-                android:tint="@color/white"
-                app:tint="@color/white" />
+                app:tint="@color/white"
+                android:layout_gravity="start|center_vertical" />
 
             <TextView
                 android:id="@+id/tvTitle"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Transaction Details"
+                android:text="Credit transaction"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
-                android:layout_marginStart="16dp" />
+                android:layout_gravity="center" />
 
-            <ImageButton
-                android:id="@+id/btnStar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_star_outline"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Star Transaction"
-                android:tint="@color/white"
-                app:tint="@color/white"
-                android:layout_marginEnd="8dp" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end|center_vertical">
 
-            <ImageButton
-                android:id="@+id/btnMenu"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_more_vert"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More Options"
-                android:tint="@color/white"
-                app:tint="@color/white" />
+                <ImageButton
+                    android:id="@+id/btnStar"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_star_outline"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Star"
+                    app:tint="@color/white"
+                    android:layout_marginEnd="8dp" />
 
-        </LinearLayout>
+                <ImageButton
+                    android:id="@+id/btnMenu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_more_vert"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Menu"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
+        </FrameLayout>
 
         <!-- Main Transaction Card -->
         <androidx.cardview.widget.CardView
@@ -71,80 +73,77 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="16dp"
             app:cardBackgroundColor="#1A1F2E"
-            app:cardCornerRadius="12dp"
+            app:cardCornerRadius="32dp"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="32dp"
+                android:gravity="center">
 
-                <!-- Date at top -->
                 <TextView
                     android:id="@+id/tvDateTop"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sat, 5th, 12:28 pm"
-                    android:textColor="#A0AEC0"
-                    android:textSize="12sp"
-                    android:layout_gravity="end"
+                    android:text="MON, 16TH • 1:00 PM"
+                    android:textColor="#718096"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Amount with + or - -->
                 <TextView
                     android:id="@+id/tvAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+₹300"
+                    android:text="+₹42.0"
                     android:textColor="@color/white"
-                    android:textSize="32sp"
+                    android:textSize="48sp"
                     android:textStyle="bold"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- Credited/Debited Label -->
-                <TextView
-                    android:id="@+id/tvTransactionTypeLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Credited"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Description Text -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTransactionTypeBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#1E2B48"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="24dp">
+                    <TextView
+                        android:id="@+id/tvTransactionTypeLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Credited"
+                        android:textColor="#4299E1"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="4dp" />
+                </com.google.android.material.card.MaterialCardView>
+
                 <TextView
                     android:id="@+id/tvDescription"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="From Jaipur to Mumbai"
+                    android:text="Payment from your PRAN"
                     android:textColor="@color/white"
                     android:textSize="14sp"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="12dp" />
+                    android:gravity="center"
+                    android:layout_marginBottom="24dp" />
 
-                <!-- Divider -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2A3441"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Category Selection (Pill Shape) - Centered -->
+                <!-- Category Selection Pill -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCategorySelection"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="8dp"
-                    app:cardCornerRadius="20dp"
+                    app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
-                    app:cardBackgroundColor="#252D3D"
+                    app:cardBackgroundColor="#212631"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground">
@@ -154,575 +153,511 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="8dp"
-                        android:paddingBottom="8dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp">
 
                         <ImageView
                             android:id="@+id/ivCategoryIcon"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:src="@drawable/ic_info"
-                            android:tint="#A0AEC0"
-                            app:tint="#A0AEC0"
-                            android:layout_marginEnd="6dp" />
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_food_dining"
+                            app:tint="#48BB78"
+                            android:layout_marginEnd="10dp" />
 
                         <TextView
                             android:id="@+id/tvCategory"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Transport"
+                            android:text="Salary &amp; Income"
                             android:textColor="@color/white"
-                            android:textSize="12sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <ImageView
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
                             android:src="@drawable/ic_chevron_down"
-                            android:tint="#A0AEC0"
-                            app:tint="#A0AEC0"
-                            android:layout_marginStart="6dp" />
+                            app:tint="#718096"
+                            android:layout_marginStart="8dp" />
 
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Tags and Date at bottom -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="8dp">
-                    
-                    <!-- Tags Display -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvTagsInline"
-                        android:layout_width="wrap_content"
-                        android:layout_height="24dp"
-                        android:minHeight="24dp"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-                    
-                    <!-- Spacer if tags exist -->
-                    <TextView
-                        android:id="@+id/tvTagSpacer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" • "
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
-                    
-                    <!-- Date -->
-                    <TextView
-                        android:id="@+id/tvDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sat, 5th, 12:28 pm"
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
-        <!-- Transaction Type Toggle Card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="@color/primary"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="16dp">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_payments"
-                    android:tint="@color/white"
-                    app:tint="@color/white"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:id="@+id/tvIncomeExpenseLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Income"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchExpense"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:thumbTint="@color/white"
-                    app:trackTint="@color/switch_track_green" />
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Notes and Photo Side by Side -->
+        <!-- 2x2 Feature Grid -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="16dp">
 
-            <!-- Add Notes Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardNotes"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                app:cardBackgroundColor="#1A1F2E"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_edit"
-                        android:tint="@color/white"
-                        app:tint="@color/white"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Add Notes"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
-
-                    <!-- Notes Display Text -->
-                    <TextView
-                        android:id="@+id/tvNotesDisplay"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:gravity="center"
-                        android:visibility="gone"
-                        android:layout_marginBottom="8dp"
-                        android:maxLines="3"
-                        android:ellipsize="end" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAddNotes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Tap to add"
-                        android:textColor="@color/primary"
-                        android:textSize="12sp"
-                        android:backgroundTint="@android:color/transparent"
-                        app:cornerRadius="8dp"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Add Photo Card -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardAttach"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                app:cardBackgroundColor="#1A1F2E"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_image"
-                        android:tint="@color/primary"
-                        app:tint="@color/primary"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Add a photo of receipt/warranty"
-                        android:textColor="@color/white"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:gravity="center"
-                        android:layout_marginBottom="8dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnAttach"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Attach"
-                        android:textColor="@color/primary"
-                        android:textSize="12sp"
-                        android:backgroundTint="@android:color/transparent"
-                        app:cornerRadius="8dp"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-
-        <!-- Attached Photo Preview -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardPhotoPreview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#1A1F2E"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            android:visibility="gone">
-
-            <LinearLayout
+            <!-- Row 1: Notes & Receipt -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center_vertical">
+                android:layout_marginBottom="12dp">
 
-                <ImageView
-                    android:id="@+id/ivPhotoPreview"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:scaleType="centerCrop"
-                    android:background="@drawable/rounded_background"
-                    android:backgroundTint="#2A3441" />
+                <!-- Notes -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvNotes"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginEnd="6dp"
+                    app:cardBackgroundColor="#131B2B"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/cvAttach"
+                    app:layout_constraintHorizontal_weight="1">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardBackgroundColor="#2D2118"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="0dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_note"
+                                app:tint="#D69E2E"
+                                android:layout_gravity="center" />
+                        </androidx.cardview.widget.CardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notes"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="12dp" />
+                        <TextView
+                            android:id="@+id/tvNotesDisplay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TAP TO ADD"
+                            android:textColor="#3182CE"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="4dp" />
+                        <!-- Hidden EditText for notes input -->
+                        <EditText
+                            android:id="@+id/etNotes"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
-                <LinearLayout
+                <!-- Receipt -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvAttach"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="12dp">
-
-                    <TextView
+                    android:layout_marginStart="6dp"
+                    app:cardBackgroundColor="#131B2B"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/cvNotes"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_weight="1">
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Receipt Photo"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:layout_height="match_parent">
+                        
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:gravity="center">
+                            <androidx.cardview.widget.CardView
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                app:cardBackgroundColor="#1A202C"
+                                app:cardCornerRadius="24dp"
+                                app:cardElevation="0dp">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_image"
+                                    app:tint="#7F9CF5"
+                                    android:layout_gravity="center" />
+                            </androidx.cardview.widget.CardView>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Receipt"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="12dp" />
+                            <TextView
+                                android:id="@+id/tvAttachLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="ATTACH"
+                                android:textColor="#3182CE"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tvPhotoSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="2.3 MB"
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp" />
+                        <!-- Photo Preview Overlay -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardPhotoPreview"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:visibility="gone"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#131B2B">
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="120dp">
+                                <ImageView
+                                    android:id="@+id/ivPhotoPreview"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop" />
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:background="#80000000" />
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:layout_gravity="center"
+                                    android:gravity="center">
+                                    <TextView
+                                        android:id="@+id/tvPhotoSize"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Image attached"
+                                        android:textColor="@color/white"
+                                        android:textSize="9sp"
+                                        android:textStyle="bold" />
+                                    <ImageButton
+                                        android:id="@+id/btnRemovePhoto"
+                                        android:layout_width="24dp"
+                                        android:layout_height="24dp"
+                                        android:layout_marginTop="8dp"
+                                        android:src="@drawable/ic_close"
+                                        android:background="@drawable/circle_red_background"
+                                        app:tint="@color/white"
+                                        android:padding="4dp" />
+                                </LinearLayout>
+                            </FrameLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </FrameLayout>
+                </androidx.cardview.widget.CardView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/btnRemovePhoto"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_close"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Remove Photo"
-                    android:tint="#F44336"
-                    app:tint="#F44336" />
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Tags Section -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#1A1F2E"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
+            <!-- Row 2: Tags & Cash Flow -->
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="# Tags"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="0dp"
-                        app:cardBackgroundColor="@color/primary"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground">
-
-                        <ImageView
+                <!-- Tags -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvTags"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginEnd="6dp"
+                    app:cardBackgroundColor="#131B2B"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/cvCashFlow"
+                    app:layout_constraintHorizontal_weight="1">
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="16dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_tag"
+                                    app:tint="#718096" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:text="Tags"
+                                    android:textColor="@color/white"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                            <!-- Tags Display Container can go here -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvTags"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:visibility="gone" />
+                        </LinearLayout>
+                        <ImageButton
                             android:id="@+id/btnAddTag"
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:layout_gravity="center"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:src="@drawable/ic_add"
-                            android:tint="@color/white"
-                            app:tint="@color/white" />
+                            android:background="@drawable/circle_blue"
+                            android:layout_gravity="bottom|end"
+                            app:tint="@color/white"
+                            android:padding="4dp" />
+                    </FrameLayout>
+                </androidx.cardview.widget.CardView>
 
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-
-                <!-- Tags RecyclerView -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvTags"
-                    android:layout_width="match_parent"
+                <!-- Cash Flow -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cvCashFlow"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                    android:layout_marginStart="6dp"
+                    app:cardBackgroundColor="#131B2B"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/cvTags"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_weight="1">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_trending_up"
+                                app:tint="#718096" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Cash Flow"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="16dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="INCLUDE IN\nANALYSIS"
+                                android:textColor="#718096"
+                                android:textSize="8sp"
+                                android:textStyle="bold" />
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchCashFlow"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:thumbTint="@color/white"
+                                app:trackTint="#4299E1"
+                                android:checked="true" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Other Info Section -->
+        <!-- More Details Section -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#1A1F2E"
-            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#131B2B"
+            app:cardCornerRadius="32dp"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp">
-
+                    android:layout_marginBottom="24dp">
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_info"
-                        android:tint="#A0AEC0"
-                        app:tint="#A0AEC0"
-                        android:layout_marginEnd="8dp" />
-
+                        app:tint="#4299E1" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
                         android:text="More details"
                         android:textColor="@color/white"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
-
                 </LinearLayout>
 
-                <!-- Ref No -->
+                <!-- SMS Details Nested Box -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#1A1F2E"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="24dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="SMS DETAILS"
+                                android:textColor="#4A5568"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_message"
+                                app:tint="#4A5568"
+                                android:layout_gravity="end" />
+                        </FrameLayout>
+                        <TextView
+                            android:id="@+id/tvSms"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="APY(PRANXX4434) Contribution of Rs.42.00 for Feb-2026 credited to your PRAN. To complete Aadhar seeding Click https://gs.im/PTNNPS/e/vdjTflS4BZA -Protean"
+                            android:textColor="#CBD5E0"
+                            android:textSize="13sp"
+                            android:lineSpacingExtra="4dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+                
+                <!-- UPI Reference Number -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="12dp">
-
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp">
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="UPI Ref No:"
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp" />
-
+                        android:layout_weight="1"
+                        android:text="UPI REFERENCE"
+                        android:textColor="#4A5568"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05" />
                     <TextView
                         android:id="@+id/tvUpiRef"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="7638946854359"
+                        android:text="N/A"
                         android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textIsSelectable="true" />
-
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- SMS -->
+                <!-- Transaction Type Footer -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
+                    android:orientation="horizontal">
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="SMS"
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp" />
-
+                        android:layout_weight="1"
+                        android:text="TRANSACTION TYPE"
+                        android:textColor="#4A5568"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.05" />
                     <TextView
-                        android:id="@+id/tvSms"
-                        android:layout_width="match_parent"
+                        android:id="@+id/tvTransactionTypeLabelFooter"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="[VA-PNBSMS] Ac XXXX5891 Credited with Rs.20000.00,05-04-2025 11:50:34. Avl Bal Rs.31457.42CR.Helpline18001800/18002021.Check Cash deposit entry in Passbook/PNBOne-PNB"
+                        android:text="System Credit"
                         android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:textIsSelectable="true"
-                        android:maxLines="10"
-                        android:ellipsize="end" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Cash Flow Toggle -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="#1A1F2E"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_trending_up"
-                    android:tint="#A0AEC0"
-                    app:tint="#A0AEC0"
-                    android:layout_marginEnd="12dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Cash Flow"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Include in cash flow analysis"
-                        android:textColor="#A0AEC0"
-                        android:textSize="12sp" />
-
                 </LinearLayout>
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchCashFlow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:thumbTint="@color/white"
-                    app:trackTint="@color/primary" />
-
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
-        <!-- Save Changes Button -->
+        <!-- Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
             android:text="SAVE CHANGES"
             android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:letterSpacing="0.1"
-            app:cornerRadius="12dp"
+            app:cornerRadius="16dp"
             app:backgroundTint="@color/primary" />
+
+        <TextView
+            android:id="@+id/tvIncomeExpenseLabel"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchExpense"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
+

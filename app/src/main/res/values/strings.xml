@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Koshpal App</string>
+    <string name="app_name">Koshpal</string>
 
     <string name="welcome_message">Welcome to KoshpalApp</string>
     <string name="enter_phone_number">Enter your phone number</string>
@@ -16,4 +16,5 @@
     <string name="verify_phone">Verify Phone</string>
     <string name="otp_sent_to">Enter OTP sent to %s</string>
     <string name="resend_timer">Resend OTP in %ds</string>
+    <string name="media_permission_declaration">Our application allows users to upload and select images (such as profile pictures or attachments) from their device. To enable this functionality, the app requires access to media images stored on the user’s device. For devices running Android 13 (API level 33) and above, the app uses the Photo Picker to access images selected by the user. For devices running Android 12 (API level 32) and below, the app uses READ_EXTERNAL_STORAGE only for backward compatibility. The app accesses images only when the user explicitly selects an image to upload, and the permission is not used to scan or collect other media files from the device.</string>
 </resources>

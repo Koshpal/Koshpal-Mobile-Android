@@ -38,11 +38,9 @@ class DemoLoginActivity : AppCompatActivity() {
         Log.d("DemoLoginActivity", "🔧 Setting up UI components")
         
         binding.apply {
-            // Pre-fill demo credentials
-            etEmail.setText("demo@koshpal.com")
-            etPassword.setText("demo@123")
+            // Pre-fill demo credentials - REMOVED for production-like feel
             
-            Log.d("DemoLoginActivity", "✅ Demo credentials pre-filled")
+            Log.d("DemoLoginActivity", "✅ UI components initialized")
             
             btnLogin.setOnClickListener {
                 Log.d("DemoLoginActivity", "🔘 Login button clicked")
@@ -73,6 +71,10 @@ class DemoLoginActivity : AppCompatActivity() {
             
             // Remove skip button - login is now required
             btnSkip.visibility = View.GONE
+
+            tvForgotPassword.setOnClickListener {
+                Toast.makeText(this@DemoLoginActivity, "Forgot password clicked", Toast.LENGTH_SHORT).show()
+            }
         }
         
         Log.d("DemoLoginActivity", "✅ UI setup completed")
@@ -96,7 +98,7 @@ class DemoLoginActivity : AppCompatActivity() {
                     is LoginViewModel.LoginResult.Success -> {
                         Log.d("DemoLoginActivity", "✅ Login successful!")
                         Toast.makeText(this@DemoLoginActivity, "Login successful!", Toast.LENGTH_SHORT).show()
-                        navigateToSmsProcessing()
+                        navigateToNextScreen()
                     }
                     is LoginViewModel.LoginResult.Error -> {
                         Log.e("DemoLoginActivity", "❌ Login failed: ${result.message}")
@@ -112,16 +114,27 @@ class DemoLoginActivity : AppCompatActivity() {
         Log.d("DemoLoginActivity", "✅ ViewModel observers setup completed")
     }
     
-    private fun navigateToSmsProcessing() {
-        Log.d("DemoLoginActivity", "📱 Navigating to SMS Processing Activity")
+    private fun navigateToNextScreen() {
+        Log.d("DemoLoginActivity", "📱 Navigating to next screen after login")
         try {
-            val intent = Intent(this, com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity::class.java)
+            val userPreferences = com.koshpal_android.koshpalapp.data.local.UserPreferences(this)
+            
+            val intent = if (!userPreferences.isOnboardingCompleted()) {
+                Log.d("DemoLoginActivity", "➡️ Onboarding not complete, navigating to OnboardingActivity")
+                Intent(this, com.koshpal_android.koshpalapp.ui.onboarding.OnboardingActivity::class.java).apply {
+                    putExtra("email", loginViewModel.getCurrentUserEmail() ?: userPreferences.getEmail() ?: "")
+                }
+            } else {
+                Log.d("DemoLoginActivity", "➡️ Onboarding complete, navigating to SmsProcessingActivity")
+                Intent(this, com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity::class.java)
+            }
+            
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
-            Log.d("DemoLoginActivity", "✅ Successfully navigated to SMS Processing Activity")
+            Log.d("DemoLoginActivity", "✅ Successfully navigated to next screen")
         } catch (e: Exception) {
-            Log.e("DemoLoginActivity", "❌ Error navigating to SMS Processing: ${e.message}", e)
+            Log.e("DemoLoginActivity", "❌ Error navigating: ${e.message}", e)
             Toast.makeText(this, "Navigation error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }

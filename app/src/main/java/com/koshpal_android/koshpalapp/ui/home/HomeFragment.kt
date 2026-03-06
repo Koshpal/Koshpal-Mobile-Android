@@ -247,6 +247,12 @@ class HomeFragment : Fragment() {
             }
         }
         
+        val onSetBudgetClick: () -> Unit = remember {
+            {
+                (activity as? HomeActivity)?.showSetMonthlyBudgetFragment()
+            }
+        }
+        
         val onTransactionClick: (Transaction) -> Unit = remember {
             { transaction ->
                 android.util.Log.d("HomeFragment", "📱 Transaction clicked: ${transaction.merchant}")
@@ -281,6 +287,7 @@ class HomeFragment : Fragment() {
             onBankCardClick = onBankCardClick,
             onAddCashClick = onAddCashClick,
             onAddPaymentClick = onAddPaymentClick,
+            onSetBudgetClick = onSetBudgetClick,
             onTransactionClick = onTransactionClick,
             onViewAllTransactionsClick = onViewAllTransactionsClick,
             goalsViewModel = goalsViewModel,

@@ -1,15 +1,10 @@
 package com.koshpal_android.koshpalapp.ui.transactions.dialog
 
-import android.Manifest
-import android.app.Activity
 import android.app.Dialog
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,8 +12,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -63,38 +58,13 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
         "family", "friends", "online", "cash", "office"
     )
 
-    // Permission launcher for gallery access
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            openGallery()
+    // Photo Picker launcher
+    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            selectedImageUri = uri
+            showPhotoPreview(uri)
         } else {
-            Toast.makeText(requireContext(), "Permission denied to access gallery", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Multiple permissions launcher for Android 13+
-    private val requestMultiplePermissionsLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions.values.all { it }
-        if (granted) {
-            openGallery()
-        } else {
-            Toast.makeText(requireContext(), "Permission denied to access gallery", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Gallery launcher
-    private val galleryLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                selectedImageUri = uri
-                showPhotoPreview(uri)
-            }
+            android.util.Log.d("PhotoPicker", "No media selected")
         }
     }
 
@@ -169,17 +139,15 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 
                 // Set date and time - format: "Sat, 5th, 12:28 pm"
                 val dateStr = formatDateWithOrdinal(txn.date)
-                tvDate.text = dateStr
                 tvDateTop.text = dateStr
                 
                 // Display notes if they exist
                 if (txn.notes.isNullOrEmpty()) {
-                    binding.tvNotesDisplay.visibility = View.GONE
-                    btnAddNotes.text = "Tap to add"
+                    binding.tvNotesDisplay.text = "TAP TO ADD"
+                    binding.tvNotesDisplay.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
                 } else {
                     binding.tvNotesDisplay.text = txn.notes
-                    binding.tvNotesDisplay.visibility = View.VISIBLE
-                    btnAddNotes.text = "Edit notes"
+                    binding.tvNotesDisplay.setTextColor(Color.WHITE)
                 }
                 
                 // Set cash flow toggle - check if transaction is in cash flow table
@@ -196,23 +164,17 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                                     if (isChecked) {
                                         // Add to cash flow database
                                         transactionRepository.addToCashFlow(txn.id)
-                                        android.util.Log.d("TransactionDetailsDialog", "💰 Added transaction ${txn.id} to cash flow")
-                                        Toast.makeText(requireContext(), "Added to Cash Flow", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(requireContext(), "Included in Cash Flow", Toast.LENGTH_SHORT).show()
                                     } else {
                                         // Remove from cash flow database
                                         transactionRepository.removeFromCashFlow(txn.id)
-                                        android.util.Log.d("TransactionDetailsDialog", "💰 Removed transaction ${txn.id} from cash flow")
-                                        Toast.makeText(requireContext(), "Removed from Cash Flow", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(requireContext(), "Excluded from Cash Flow", Toast.LENGTH_SHORT).show()
                                     }
                                 } catch (e: Exception) {
-                                    android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update cash flow status: ${e.message}")
-                                    // Revert the switch state
                                     switchCashFlow.setOnCheckedChangeListener(null)
                                     switchCashFlow.isChecked = !isChecked
-                                    switchCashFlow.setOnCheckedChangeListener { _, isChecked ->
-                                        // Re-attach listener
-                                    }
-                                    Toast.makeText(requireContext(), "Failed to update cash flow status", Toast.LENGTH_SHORT).show()
+                                    switchCashFlow.setOnCheckedChangeListener { _, _ -> }
+                                    Toast.makeText(requireContext(), "Failed to update status", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -225,15 +187,16 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 // Set category icon and name
                 loadCategoryInfo(txn.categoryId)
                 
-                // Set transaction type toggle (always visible)
-                setupTransactionTypeToggle()
-                
                 // Set UPI reference
                 val upiRef = extractUpiReference(txn.smsBody)
                 tvUpiRef.text = if (upiRef == "N/A") "N/A" else upiRef
                 
                 // Set SMS
                 tvSms.text = txn.smsBody ?: "No SMS data available"
+                
+                // Set Transaction Type footer
+                val footerLabel = if (txn.type == com.koshpal_android.koshpalapp.model.TransactionType.CREDIT) "System Credit" else "System Debit"
+                tvTransactionTypeLabelFooter.text = footerLabel
                 
                 // Load existing tags (if any)
                 currentTags.clear()
@@ -280,20 +243,9 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
             adapter = tagsAdapter
         }
         
-        // Setup inline tags adapter (next to date)
-        inlineTagsAdapter = TagsAdapter(
-            tags = currentTags,
-            onTagRemoved = { tag ->
-                currentTags.remove(tag)
-                updateTagsDisplay()
-                // Save tags immediately when removed
-                saveTagsToTransaction()
-            }
-        )
-        
-        binding.rvTagsInline.apply {
+        binding.rvTags.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = inlineTagsAdapter
+            adapter = tagsAdapter
         }
     }
 
@@ -302,24 +254,8 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
         if (::tagsAdapter.isInitialized) {
             android.util.Log.d("TransactionDetailsDialog", "🔄 Updating tags display: $currentTags (size: ${currentTags.size})")
             tagsAdapter.updateTags(currentTags)
-            // Update inline tags adapter
-            inlineTagsAdapter?.let { adapter ->
-                adapter.updateTags(currentTags)
-                android.util.Log.d("TransactionDetailsDialog", "✅ Updated inline tags adapter with ${currentTags.size} tags")
-            } ?: run {
-                android.util.Log.e("TransactionDetailsDialog", "❌ Inline tags adapter is null")
-            }
-            // Show/hide inline tags and spacer
-            if (currentTags.isNotEmpty()) {
-                binding.rvTagsInline.visibility = View.VISIBLE
-                binding.tvTagSpacer.visibility = View.VISIBLE
-                android.util.Log.d("TransactionDetailsDialog", "👁️ Showing inline tags (${currentTags.size} tags)")
-            } else {
-                binding.rvTagsInline.visibility = View.GONE
-                binding.tvTagSpacer.visibility = View.GONE
-                android.util.Log.d("TransactionDetailsDialog", "👁️ Hiding inline tags (no tags)")
-            }
-            // Also update main tags section
+            
+            // Show/hide main tags section
             if (currentTags.isNotEmpty()) {
                 binding.rvTags.visibility = View.VISIBLE
             } else {
@@ -396,15 +332,11 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 }
             }
             
-            cardAttach.setOnClickListener {
-                checkGalleryPermissionAndOpen()
+            cvAttach.setOnClickListener {
+                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
             
-            btnAddNotes.setOnClickListener {
-                showNotesDialog()
-            }
-            
-            cardNotes.setOnClickListener {
+            cvNotes.setOnClickListener {
                 showNotesDialog()
             }
             
@@ -487,43 +419,6 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
         // TODO: Update category icon
     }
 
-    private fun checkGalleryPermissionAndOpen() {
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                // Android 13+ uses READ_MEDIA_IMAGES
-                when {
-                    ContextCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.READ_MEDIA_IMAGES
-                    ) == PackageManager.PERMISSION_GRANTED -> {
-                        openGallery()
-                    }
-                    else -> {
-                        requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                    }
-                }
-            }
-            else -> {
-                // Below Android 13 uses READ_EXTERNAL_STORAGE
-                when {
-                    ContextCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED -> {
-                        openGallery()
-                    }
-                    else -> {
-                        requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        galleryLauncher.launch(intent)
-    }
 
     private fun showPhotoPreview(uri: Uri) {
         binding.apply {
@@ -598,7 +493,6 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 val updatedTags = currentTags.toMutableList()
                 dialogTagsAdapter?.updateTags(updatedTags)
                 tagsAdapter.updateTags(updatedTags)
-                inlineTagsAdapter?.updateTags(updatedTags)
                 // Show/hide existing tags section
                 rvExistingTags.visibility = if (currentTags.isNotEmpty()) View.VISIBLE else View.GONE
                 // Update chip states
@@ -638,7 +532,6 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
             }
             dialogTagsAdapter?.updateTags(currentTags)
             tagsAdapter.updateTags(currentTags)
-            inlineTagsAdapter?.updateTags(currentTags)
             // Show/hide existing tags section
             rvExistingTags.visibility = if (currentTags.isNotEmpty()) View.VISIBLE else View.GONE
             // Update chip state
@@ -758,11 +651,10 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                 // Update notes display and button text
                 if (notes.isNotEmpty()) {
                     binding.tvNotesDisplay.text = notes
-                    binding.tvNotesDisplay.visibility = View.VISIBLE
-                    binding.btnAddNotes.text = "Edit notes"
+                    binding.tvNotesDisplay.setTextColor(Color.WHITE)
                 } else {
-                    binding.tvNotesDisplay.visibility = View.GONE
-                    binding.btnAddNotes.text = "Tap to add"
+                    binding.tvNotesDisplay.text = "TAP TO ADD"
+                    binding.tvNotesDisplay.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
                 }
             }
             
@@ -784,58 +676,7 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
         )
     }
 
-    private fun setupTransactionTypeToggle() {
-        transaction?.let { txn ->
-            val isExpense = txn.type == com.koshpal_android.koshpalapp.model.TransactionType.DEBIT
-            binding.switchExpense.setOnCheckedChangeListener(null)
-            binding.switchExpense.isChecked = isExpense
-            updateTransactionTypeLabel(isExpense)
-            
-            binding.switchExpense.setOnCheckedChangeListener { _, isChecked ->
-                val newType = if (isChecked) {
-                    com.koshpal_android.koshpalapp.model.TransactionType.DEBIT
-                } else {
-                    com.koshpal_android.koshpalapp.model.TransactionType.CREDIT
-                }
-                
-                // Update transaction type
-                transaction = txn.copy(type = newType)
-                
-                // Update title
-                val titleText = when (newType) {
-                    com.koshpal_android.koshpalapp.model.TransactionType.DEBIT -> "Debit transaction"
-                    com.koshpal_android.koshpalapp.model.TransactionType.CREDIT -> "Credit transaction"
-                    else -> "Transaction Details"
-                }
-                binding.tvTitle.text = titleText
-                
-                // Update label
-                updateTransactionTypeLabel(isChecked)
-                
-                // Save immediately to database
-                lifecycleScope.launch {
-                    try {
-                        transactionRepository.updateTransaction(transaction!!)
-                        android.util.Log.d("TransactionDetailsDialog", "✅ Transaction type updated: ${txn.id} -> $newType")
-                        Toast.makeText(requireContext(), "Transaction type updated", Toast.LENGTH_SHORT).show()
-                    } catch (e: Exception) {
-                        android.util.Log.e("TransactionDetailsDialog", "❌ Failed to update transaction type: ${e.message}")
-                        // Revert switch
-                        binding.switchExpense.setOnCheckedChangeListener(null)
-                        binding.switchExpense.isChecked = !isChecked
-                        updateTransactionTypeLabel(!isChecked)
-                        // Re-attach listener
-                        setupTransactionTypeToggle()
-                        Toast.makeText(requireContext(), "Failed to update transaction type", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-    }
-
     private fun updateTransactionTypeLabel(isExpense: Boolean) {
-        binding.tvIncomeExpenseLabel.text = if (isExpense) "Expense" else "Income"
-        
         // Update amount prefix and label
         transaction?.let { txn ->
             val amountPrefix = if (isExpense) "-" else "+"
@@ -843,9 +684,18 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
             
             val typeLabel = if (isExpense) "Debited" else "Credited"
             binding.tvTransactionTypeLabel.text = typeLabel
-            binding.tvTransactionTypeLabel.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.primary)
-            )
+            
+            // Update badge style
+            if (isExpense) {
+                binding.cardTransactionTypeBadge.setCardBackgroundColor(Color.parseColor("#441A1A")) // Dark red
+                binding.tvTransactionTypeLabel.setTextColor(Color.parseColor("#F56565")) // Red
+            } else {
+                binding.cardTransactionTypeBadge.setCardBackgroundColor(Color.parseColor("#1E2B48")) // Dark blue
+                binding.tvTransactionTypeLabel.setTextColor(Color.parseColor("#4299E1")) // Blue
+            }
+            
+            // Update footer
+            binding.tvTransactionTypeLabelFooter.text = if (isExpense) "System Debit" else "System Credit"
         }
     }
 
@@ -1000,12 +850,11 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
                         
                         // Update notes display
                         if (latest.notes.isNullOrEmpty()) {
-                            binding.tvNotesDisplay.visibility = View.GONE
-                            binding.btnAddNotes.text = "Tap to add"
+                            binding.tvNotesDisplay.text = "TAP TO ADD"
+                            binding.tvNotesDisplay.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
                         } else {
                             binding.tvNotesDisplay.text = latest.notes
-                            binding.tvNotesDisplay.visibility = View.VISIBLE
-                            binding.btnAddNotes.text = "Edit notes"
+                            binding.tvNotesDisplay.setTextColor(Color.WHITE)
                         }
                         
                         // Reload tags

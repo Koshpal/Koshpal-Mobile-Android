@@ -6,15 +6,23 @@
     android:orientation="vertical"
     android:padding="24dp"
     android:gravity="center"
-    android:background="@color/white">
+    android:background="@color/login_bg">
 
-    <!-- Welcome Icon -->
-    <ImageView
+    <!-- Welcome Logo Section -->
+    <FrameLayout
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher"
-        android:layout_marginBottom="32dp"
-        android:contentDescription="Koshpal Logo" />
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/bg_login_card">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_sync"
+            app:tint="@color/login_accent_blue"
+            android:contentDescription="Koshpal Logo" />
+    </FrameLayout>
 
     <!-- Welcome Title -->
     <TextView
@@ -23,7 +31,8 @@
         android:text="Welcome to Koshpal!"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
+        android:fontFamily="@font/poppins_bold"
         android:layout_marginBottom="16dp"
         android:textAlignment="center" />
 
@@ -31,36 +40,46 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="We'll ask you 9 quick questions to personalize your financial wellness journey. Your data stays private and is never shared with your employer."
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:alpha="0.8"
-        android:layout_marginBottom="48dp"
+        android:text="We'll ask you 9 quick questions to personalize your financial wellness journey."
+        android:textSize="15sp"
+        android:textColor="@color/white"
+        android:alpha="0.9"
+        android:fontFamily="@font/poppins_regular"
+        android:layout_marginBottom="12dp"
         android:textAlignment="center"
         android:lineSpacingExtra="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Your data stays private and is never shared with your employer."
+        android:textSize="13sp"
+        android:textColor="@color/login_text_label"
+        android:fontFamily="@font/poppins_regular"
+        android:layout_marginBottom="40dp"
+        android:textAlignment="center" />
 
     <!-- Features List -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="48dp">
+        android:layout_marginBottom="48dp"
+        android:paddingHorizontal="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="20dp"
             android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✓"
-                android:textSize="18sp"
-                android:textColor="@color/purple_500"
-                android:textStyle="bold"
-                android:layout_marginEnd="12dp" />
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_check_circle"
+                app:tint="@color/login_accent_blue"
+                android:layout_marginEnd="16dp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -68,7 +87,8 @@
                 android:layout_weight="1"
                 android:text="Personalized financial insights"
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:fontFamily="@font/poppins_bold"
+                android:textColor="@color/white" />
 
         </LinearLayout>
 
@@ -76,17 +96,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="20dp"
             android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✓"
-                android:textSize="18sp"
-                android:textColor="@color/purple_500"
-                android:textStyle="bold"
-                android:layout_marginEnd="12dp" />
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_check_circle"
+                app:tint="@color/login_accent_blue"
+                android:layout_marginEnd="16dp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -94,7 +112,8 @@
                 android:layout_weight="1"
                 android:text="Smart budgeting recommendations"
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:fontFamily="@font/poppins_bold"
+                android:textColor="@color/white" />
 
         </LinearLayout>
 
@@ -104,14 +123,12 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✓"
-                android:textSize="18sp"
-                android:textColor="@color/purple_500"
-                android:textStyle="bold"
-                android:layout_marginEnd="12dp" />
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_check_circle"
+                app:tint="@color/login_accent_blue"
+                android:layout_marginEnd="16dp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -119,7 +136,8 @@
                 android:layout_weight="1"
                 android:text="Complete privacy and security"
                 android:textSize="14sp"
-                android:textColor="@color/black" />
+                android:fontFamily="@font/poppins_bold"
+                android:textColor="@color/white" />
 
         </LinearLayout>
 
@@ -130,12 +148,13 @@
         android:id="@+id/btnGetStarted"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="Get Started"
+        android:text="GET STARTED"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/white"
-        app:backgroundTint="@color/purple_500"
-        app:cornerRadius="12dp" />
+        android:fontFamily="@font/poppins_bold"
+        android:backgroundTint="@color/login_accent_blue"
+        app:cornerRadius="16dp" />
 
     <!-- Time Estimate -->
     <TextView
@@ -143,8 +162,8 @@
         android:layout_height="wrap_content"
         android:text="Takes less than 2 minutes"
         android:textSize="12sp"
-        android:textColor="@color/black"
-        android:alpha="0.6"
+        android:textColor="@color/login_text_label"
+        android:fontFamily="@font/poppins_regular"
         android:layout_marginTop="16dp" />
 
 </LinearLayout>

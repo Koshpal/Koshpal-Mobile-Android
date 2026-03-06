@@ -25,13 +25,7 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
 
     <application
@@ -62,7 +56,8 @@
             android:exported="false" />
         <activity
             android:name=".ui.onboarding.OnboardingActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.KoshpalApp.NoActionBar" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
@@ -83,6 +78,7 @@
         <activity
             android:name=".ui.sms.SmsProcessingActivity"
             android:exported="false"
+            android:theme="@style/Theme.KoshpalApp.NoActionBar"
             android:screenOrientation="portrait" />
 
         <activity
@@ -93,6 +89,7 @@
         <activity
             android:name=".ui.login.DemoLoginActivity"
             android:exported="false"
+            android:theme="@style/Theme.KoshpalApp.NoActionBar"
             android:screenOrientation="portrait" />
 
         <activity
