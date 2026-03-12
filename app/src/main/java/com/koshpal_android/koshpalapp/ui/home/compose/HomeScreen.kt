@@ -814,8 +814,8 @@ private fun BankCardItem(
     
     Card(
         modifier = Modifier
-            .width(280.dp)
-            .height(128.dp) // Reduced by 20% (from 160dp to 128dp)
+            .width(220.dp)
+            .height(116.dp)
             .clickable(onClick = onCardClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -833,7 +833,7 @@ private fun BankCardItem(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(126.dp) // ~45% of 280dp
+                        .width(110.dp) // 50% split
                         .background(leftColor)
                 )
                 
@@ -896,39 +896,7 @@ private fun BankCardItem(
                     }
                 }
                 
-                // Top Right: Recent transaction amount with arrow (only for India Post or if there's recent activity)
-                if (isIndiaPost && bankSpending.totalSpending > 0) {
-                    Box(
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = currencyFormatter.format(bankSpending.totalSpending).replace(".00", ""),
-                                color = Color.Black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            // Arrow icon in circular background
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFE0E0E0)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_arrow_up_right),
-                                    contentDescription = null,
-                                    tint = Color(0xFF666666),
-                                    modifier = Modifier.size(12.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+                // Top Right: Empty
                 
                 // Bottom Left: Bank Name and Account Number
                 Column(
@@ -948,7 +916,7 @@ private fun BankCardItem(
                     )
                 }
                 
-                // Bottom Right: Timestamp, Balance, and Refresh Icon
+                // Bottom Right: Timestamp
                 Column(
                     modifier = Modifier.align(Alignment.BottomEnd),
                     horizontalAlignment = Alignment.End
@@ -959,14 +927,7 @@ private fun BankCardItem(
                             color = Color(0xFF808080), // Light gray
                             fontSize = 10.sp
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                    Text(
-                        text = currencyFormatter.format(displaySpending).replace(".00", ""),
-                        color = Color.Black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
         }

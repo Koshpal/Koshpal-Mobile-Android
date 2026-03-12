@@ -21,7 +21,6 @@ import com.koshpal_android.koshpalapp.ui.home.HomeActivity
 import com.koshpal_android.koshpalapp.ui.sms.SmsProcessingActivity
 import com.koshpal_android.koshpalapp.ui.sync.SyncActivity
 import com.koshpal_android.koshpalapp.utils.NotificationPermissionHelper
-import com.koshpal_android.koshpalapp.ml.SmsClassifier
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -322,10 +321,10 @@ class SplashActivity : AppCompatActivity() {
     private fun initializeSmsClassifier() {
         try {
             Log.d("SplashActivity", "🤖 Initializing SMS Classifier model...")
-            val classifier = SmsClassifier(this)
+            //val classifier = SmsClassifier(this)
             Log.d("SplashActivity", "✅ SMS Classifier initialized and ready")
         } catch (e: Exception) {
-            Log.e("SplashActivity", "❌ Failed to initialize SMS Classifier: ${e.message}", e)
+            Log.e("SplashActivity", "❌ Failed to initiajlize SMS Classifier: ${e.message}", e)
         }
     }
 

@@ -32,7 +32,7 @@ fun TransactionsFilterRow(
     onFilterSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val filters = listOf("All", "Income", "Expense", "This Month", "Last Month")
+    val filters = listOf("All", "Income", "Expense", "This Month", "Last Month", "Starred", "Cashflow")
     val scrollState = rememberScrollState()
     
     Row(

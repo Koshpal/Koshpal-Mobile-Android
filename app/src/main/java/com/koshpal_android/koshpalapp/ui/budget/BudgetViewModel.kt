@@ -7,10 +7,12 @@ import com.koshpal_android.koshpalapp.data.local.dao.BudgetNewDao
 import com.koshpal_android.koshpalapp.model.Budget
 import com.koshpal_android.koshpalapp.model.BudgetCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,16 +21,21 @@ class BudgetViewModel @Inject constructor(
     private val categoryDao: BudgetCategoryNewDao
 ) : ViewModel() {
     
-    private val _uiState = MutableStateFlow(BudgetUiState())
-    val uiState: StateFlow<BudgetUiState> = _uiState.asStateFlow()
-    
-    fun load() {
-        viewModelScope.launch {
-            val budget = budgetDao.getSingleBudget()
-            val categories = if (budget != null) categoryDao.getCategoriesForBudget(budget.id) else emptyList()
-            _uiState.value = BudgetUiState(budget = budget, categories = categories)
+    val uiState: StateFlow<BudgetUiState> = budgetDao.getSingleBudgetFlow()
+        .flatMapLatest { budget ->
+            if (budget != null) {
+                categoryDao.getCategoriesForBudgetFlow(budget.id).combine(flowOf(budget)) { categories, b ->
+                    BudgetUiState(budget = b, categories = categories)
+                }
+            } else {
+                flowOf(BudgetUiState(budget = null, categories = emptyList()))
+            }
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = BudgetUiState()
+        )
 }
 
 data class BudgetUiState(

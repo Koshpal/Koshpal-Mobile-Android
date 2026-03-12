@@ -67,20 +67,25 @@ class TransactionsViewModel @Inject constructor(
                 _searchQuery,
                 _selectedMonth
             ) { transactions, filter, query, monthFilter ->
-                val filtered = applyFiltersAndSearch(transactions, filter, query, monthFilter)
-                // Only update displayed transactions if we're not in initial loading
-                // and if filter/search actually changed (to reset pagination)
+                // 1. Get transactions filtered by TIMEFRAME only (dropdown or timeframe chips)
+                val timeframeFiltered = getTimeframeFilteredTransactions(transactions, filter, monthFilter)
+                
+                // 2. Get transactions further filtered for DISPLAY (type, search, status chips)
+                val displayFiltered = applyDisplayFilters(timeframeFiltered, filter, query)
+                
+                // 3. Handle pagination and view updates
                 if (_loadingState.value != TransactionsLoadingState.InitialLoading) {
-                    // Reset pagination when filter/search changes
                     currentPage = 0
-                    hasMoreData = filtered.isNotEmpty()
-                    updateDisplayedTransactions(filtered)
+                    hasMoreData = displayFiltered.isNotEmpty()
+                    updateDisplayedTransactions(displayFiltered)
                 }
-                filtered
+                
+                // Return timeframeFiltered for summary, displayFiltered for UI list
+                Pair(timeframeFiltered, displayFiltered)
             }
             .distinctUntilChanged()
-            .collect { filtered ->
-                updateSummary(filtered)
+            .collect { (timeframeFiltered, displayFiltered) ->
+                updateSummary(timeframeFiltered)
             }
         }
     }
@@ -221,15 +226,18 @@ class TransactionsViewModel @Inject constructor(
         // This could emit a UI event
     }
 
-    private fun applyFiltersAndSearch(
+    /**
+     * Filter transactions based on selected timeframe (Month dropdown or "This Month"/"Last Month" chips)
+     * This list is used for Summary calculation to ensure totals reflect the correct period context.
+     */
+    private fun getTimeframeFilteredTransactions(
         transactions: List<Transaction>,
         filter: String,
-        query: String,
         monthFilter: Pair<Int, Int>?
     ): List<Transaction> {
         var filtered = transactions
 
-        // Apply month filter first
+        // Apply dropdown month filter first (if active)
         if (monthFilter != null) {
             val (month, year) = monthFilter
             val calendar = Calendar.getInstance()
@@ -241,63 +249,65 @@ class TransactionsViewModel @Inject constructor(
             calendar.add(Calendar.MILLISECOND, -1)
             val endOfMonth = calendar.timeInMillis
             
-            filtered = filtered.filter { transaction ->
-                transaction.timestamp in startOfMonth..endOfMonth
-            }
+            filtered = filtered.filter { it.timestamp in startOfMonth..endOfMonth }
         }
 
-        // Apply type filter
+        // Apply timeframe chip filters (if active)
         filtered = when (filter.lowercase()) {
-            "income" -> filtered.filter { it.type == TransactionType.CREDIT }
-            "expense" -> filtered.filter { it.type == TransactionType.DEBIT }
             "this month" -> {
                 val calendar = Calendar.getInstance()
-                val currentMonth = calendar.get(Calendar.MONTH)
-                val currentYear = calendar.get(Calendar.YEAR)
-                
-                // Calculate month boundaries once
                 calendar.set(Calendar.DAY_OF_MONTH, 1)
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
                 calendar.set(Calendar.MINUTE, 0)
                 calendar.set(Calendar.SECOND, 0)
                 calendar.set(Calendar.MILLISECOND, 0)
-                val startOfMonth = calendar.timeInMillis
+                val start = calendar.timeInMillis
                 
                 calendar.add(Calendar.MONTH, 1)
                 calendar.add(Calendar.MILLISECOND, -1)
-                val endOfMonth = calendar.timeInMillis
+                val end = calendar.timeInMillis
                 
-                // Use timestamp comparison instead of creating Calendar for each transaction
-                filtered.filter { transaction ->
-                    transaction.timestamp in startOfMonth..endOfMonth
-                }
+                filtered.filter { it.timestamp in start..end }
             }
             "last month" -> {
                 val calendar = Calendar.getInstance()
                 calendar.add(Calendar.MONTH, -1)
-                val lastMonth = calendar.get(Calendar.MONTH)
-                val lastMonthYear = calendar.get(Calendar.YEAR)
-                
-                // Calculate month boundaries once
                 calendar.set(Calendar.DAY_OF_MONTH, 1)
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
                 calendar.set(Calendar.MINUTE, 0)
                 calendar.set(Calendar.SECOND, 0)
                 calendar.set(Calendar.MILLISECOND, 0)
-                val startOfLastMonth = calendar.timeInMillis
+                val start = calendar.timeInMillis
                 
                 calendar.add(Calendar.MONTH, 1)
                 calendar.add(Calendar.MILLISECOND, -1)
-                val endOfLastMonth = calendar.timeInMillis
+                val end = calendar.timeInMillis
                 
-                // Use timestamp comparison instead of creating Calendar for each transaction
-                filtered.filter { transaction ->
-                    transaction.timestamp in startOfLastMonth..endOfLastMonth
-                }
+                filtered.filter { it.timestamp in start..end }
             }
+            else -> filtered
+        }
+
+        return filtered
+    }
+
+    /**
+     * Filter transactions based on selection chips (Income, Expense, Starred, Cashflow) and search query.
+     */
+    private fun applyDisplayFilters(
+        transactions: List<Transaction>,
+        filter: String,
+        query: String
+    ): List<Transaction> {
+        var filtered = transactions
+
+        // Apply type/status filters
+        filtered = when (filter.lowercase()) {
+            "income" -> filtered.filter { it.type == TransactionType.CREDIT }
+            "expense" -> filtered.filter { it.type == TransactionType.DEBIT }
             "starred" -> filtered.filter { it.isStarred }
             "cashflow" -> filtered.filter { it.id in _cashFlowTransactionIds.value }
-            else -> filtered // "All"
+            else -> filtered // timeframe chips or "all" - already handled in timeframe filtering
         }
 
         // Apply search query
@@ -310,6 +320,17 @@ class TransactionsViewModel @Inject constructor(
         }
 
         return filtered.sortedByDescending { it.timestamp }
+    }
+
+    // Deprecated for better separation
+    private fun applyFiltersAndSearch(
+        transactions: List<Transaction>,
+        filter: String,
+        query: String,
+        monthFilter: Pair<Int, Int>?
+    ): List<Transaction> {
+        val timeframe = getTimeframeFilteredTransactions(transactions, filter, monthFilter)
+        return applyDisplayFilters(timeframe, filter, query)
     }
 
     private fun updateSummary(transactions: List<Transaction>) {

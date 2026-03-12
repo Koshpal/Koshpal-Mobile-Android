@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.Intent
 import android.net.Uri
+import com.koshpal_android.koshpalapp.utils.FileUtils
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -51,9 +52,15 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-            selectedAttachmentUri = uri
-            binding.tvAttachmentHint.text = "Photo attached"
-            binding.tvAttachmentHint.setTextColor(requireContext().getColor(R.color.primary))
+            // Save image to internal storage to ensure permanent access
+            val localPath = FileUtils.saveImageToInternalStorage(requireContext(), uri)
+            if (localPath != null) {
+                selectedAttachmentUri = Uri.parse("file://$localPath")
+                binding.tvAttachmentHint.text = "Photo attached"
+                binding.tvAttachmentHint.setTextColor(requireContext().getColor(R.color.primary))
+            } else {
+                Toast.makeText(requireContext(), "Failed to save image", Toast.LENGTH_SHORT).show()
+            }
         } else {
             android.util.Log.d("PhotoPicker", "No media selected")
         }
@@ -551,6 +558,7 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             isCashFlow = isCash,
             confidence = 1.0f,
             isBankEnabled = true,
+            attachmentPath = selectedAttachmentUri?.toString(),
             tags = tagsString // Include tags in transaction
         )
 

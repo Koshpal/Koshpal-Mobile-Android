@@ -11,6 +11,9 @@ import com.koshpal_android.koshpalapp.model.Budget
 @Dao
 interface BudgetNewDao {
     @Query("SELECT * FROM budgets LIMIT 1")
+    fun getSingleBudgetFlow(): kotlinx.coroutines.flow.Flow<Budget?>
+
+    @Query("SELECT * FROM budgets LIMIT 1")
     suspend fun getSingleBudget(): Budget?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

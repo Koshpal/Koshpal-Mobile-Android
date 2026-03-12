@@ -40,7 +40,6 @@ class BudgetFragment : Fragment() {
         setupList()
         setupClicks()
         observeState()
-        viewModel.load()
     }
 
     private fun setupList() {
@@ -134,7 +133,6 @@ class BudgetFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.load()
     }
     
     override fun onDestroyView() {

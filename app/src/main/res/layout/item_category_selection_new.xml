@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="12dp"
+    android:padding="8dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true">
@@ -32,16 +32,16 @@
     <!-- Category Name -->
     <TextView
         android:id="@+id/tvCategoryName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Category"
         android:textColor="@color/white"
-        android:textSize="12sp"
-        android:textAlignment="center"
+        android:textSize="11sp"
+        android:gravity="center"
         android:layout_marginTop="8dp"
         android:maxLines="2"
-        android:ellipsize="end"
-        android:maxWidth="80dp" />
+        android:minHeight="32dp"
+        android:ellipsize="end" />
 
 </LinearLayout>
 

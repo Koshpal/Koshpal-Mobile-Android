@@ -10,6 +10,9 @@ import com.koshpal_android.koshpalapp.model.BudgetCategory
 @Dao
 interface BudgetCategoryNewDao {
     @Query("SELECT * FROM budget_categories WHERE budgetId = :budgetId ORDER BY id ASC")
+    fun getCategoriesForBudgetFlow(budgetId: Int): kotlinx.coroutines.flow.Flow<List<BudgetCategory>>
+
+    @Query("SELECT * FROM budget_categories WHERE budgetId = :budgetId ORDER BY id ASC")
     suspend fun getCategoriesForBudget(budgetId: Int): List<BudgetCategory>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

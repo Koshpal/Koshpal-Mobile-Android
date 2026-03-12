@@ -3,6 +3,7 @@ package com.koshpal_android.koshpalapp.ui.transactions.dialog
 import android.app.Dialog
 import android.graphics.Color
 import android.net.Uri
+import com.koshpal_android.koshpalapp.utils.FileUtils
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -61,8 +62,14 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
     // Photo Picker launcher
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-            selectedImageUri = uri
-            showPhotoPreview(uri)
+            // Save image to internal storage to ensure permanent access
+            val localPath = FileUtils.saveImageToInternalStorage(requireContext(), uri)
+            if (localPath != null) {
+                selectedImageUri = Uri.parse("file://$localPath")
+                showPhotoPreview(selectedImageUri!!)
+            } else {
+                Toast.makeText(requireContext(), "Failed to save image", Toast.LENGTH_SHORT).show()
+            }
         } else {
             android.util.Log.d("PhotoPicker", "No media selected")
         }
@@ -422,40 +429,50 @@ class TransactionDetailsDialog : BottomSheetDialogFragment() {
 
     private fun showPhotoPreview(uri: Uri) {
         binding.apply {
-            cardPhotoPreview.visibility = View.VISIBLE
-            ivPhotoPreview.setImageURI(uri)
-            
-            // TODO: Calculate and show file size
-            tvPhotoSize.text = "Image attached"
-            
-            // Add click listener to open image in full screen
-            ivPhotoPreview.setOnClickListener {
-                showFullScreenImage(uri)
-            }
-            
-            // Also make the card clickable
-            cardPhotoPreview.setOnClickListener {
-                showFullScreenImage(uri)
+            try {
+                cardPhotoPreview.visibility = View.VISIBLE
+                ivPhotoPreview.setImageURI(uri)
+                
+                // Check if we can actually read it (for legacy content uris)
+                ivPhotoPreview.drawable ?: throw Exception("Invalid drawable")
+
+                tvPhotoSize.text = "Image attached"
+                
+                ivPhotoPreview.setOnClickListener {
+                    showFullScreenImage(uri)
+                }
+                
+                cardPhotoPreview.setOnClickListener {
+                    showFullScreenImage(uri)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("TransactionDetailsDialog", "❌ Failed to preview image: ${e.message}")
+                cardPhotoPreview.visibility = View.GONE
             }
         }
     }
     
     private fun showFullScreenImage(uri: Uri) {
-        val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_fullscreen_image, null)
-        dialog.setContentView(dialogView)
-        
-        val ivFullScreen = dialogView.findViewById<android.widget.ImageView>(R.id.ivFullScreen)
-        val btnCloseFullScreen = dialogView.findViewById<ImageButton>(R.id.btnCloseFullScreen)
-        
-        ivFullScreen.setImageURI(uri)
-        ivFullScreen.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-        
-        btnCloseFullScreen.setOnClickListener {
-            dialog.dismiss()
+        try {
+            val dialog = Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_fullscreen_image, null)
+            dialog.setContentView(dialogView)
+            
+            val ivFullScreen = dialogView.findViewById<android.widget.ImageView>(R.id.ivFullScreen)
+            val btnCloseFullScreen = dialogView.findViewById<ImageButton>(R.id.btnCloseFullScreen)
+            
+            ivFullScreen.setImageURI(uri)
+            ivFullScreen.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            
+            btnCloseFullScreen.setOnClickListener {
+                dialog.dismiss()
+            }
+            
+            dialog.show()
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionDetailsDialog", "❌ Failed to show full screen image: ${e.message}")
+            Toast.makeText(requireContext(), "Cannot open image", Toast.LENGTH_SHORT).show()
         }
-        
-        dialog.show()
     }
 
     private fun removePhoto() {
