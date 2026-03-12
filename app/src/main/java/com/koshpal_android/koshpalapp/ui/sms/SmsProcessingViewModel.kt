@@ -75,23 +75,6 @@ class SmsProcessingViewModel @Inject constructor(
                     delay(500)
                     
                     // 🤖 AUTO-CATEGORIZE all transactions after SMS parsing
-                    Log.d("SmsProcessing", "🤖 ===== STARTING AUTO-CATEGORIZATION =====")
-                    Log.d("SmsProcessing", "📊 SMS Results: ${result.transactionsCreated} transactions created")
-                    _processingState.value = SmsProcessingState.Processing(
-                        message = "🤖 Categorizing transactions...",
-                        details = "Applying smart categorization based on merchants",
-                        smsFound = result.smsFound,
-                        transactionSms = result.transactionSmsFound,
-                        transactionsCreated = result.transactionsCreated
-                    )
-                    
-                    val categorizedCount = transactionRepository.autoCategorizeExistingTransactions()
-                    Log.d("SmsProcessing", "✅ ===== AUTO-CATEGORIZATION COMPLETE =====")
-                    Log.d("SmsProcessing", "✅ Successfully categorized $categorizedCount transactions")
-                    Log.d("SmsProcessing", "🎯 Transactions are now ready with proper categories")
-                    
-                    delay(500)
-                    
                     _processingState.value = SmsProcessingState.Success(
                         summary = buildSuccessSummary(result),
                         smsFound = result.smsFound,

@@ -36,4 +36,9 @@ interface PaymentSmsDao {
     
     @Query("SELECT * FROM payment_sms WHERE smsBody = :body AND sender = :address LIMIT 1")
     suspend fun getSMSByBodyAndSender(body: String, address: String): PaymentSms?
+
+    @Query("SELECT smsBody, sender FROM payment_sms")
+    suspend fun getAllBodySenderPairs(): List<BodySenderPair>
 }
+
+data class BodySenderPair(val smsBody: String, val sender: String)

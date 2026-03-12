@@ -34,16 +34,6 @@ android {
             ndk {
                 abiFilters.add("arm64-v8a")
             }
-            packaging {
-                // Exclude emulator ABIs from release builds
-                jniLibs {
-                    excludes.addAll(listOf(
-                        "lib/x86/libtensorflowlite_jni.so",
-                        "lib/x86_64/libtensorflowlite_jni.so",
-                        "lib/armeabi-v7a/libtensorflowlite_jni.so"
-                    ))
-                }
-            }
         }
         debug {
             // Debug builds can include emulator ABIs for testing
@@ -147,12 +137,6 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
-    
-    // ============================================
-    // INTEGRATED ML MODULE: TensorFlow Lite for ML inference
-    // Used for SMS transaction classification using INT8 quantized model
-    // ============================================
-    implementation("org.tensorflow:tensorflow-lite:2.17.0")
     
     // ============================================
     // ADDED LOTTIE ANIMATION: Lottie library for splash screen animation

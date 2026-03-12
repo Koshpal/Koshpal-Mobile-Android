@@ -202,6 +202,9 @@ interface TransactionDao {
 
     @Query("SELECT * FROM transactions WHERE smsBody = :smsBody LIMIT 1")
     suspend fun getTransactionBySmsBody(smsBody: String): Transaction?
+
+    @Query("SELECT smsBody FROM transactions WHERE smsBody IS NOT NULL AND smsBody != ''")
+    suspend fun getAllSmsBodies(): List<String>
     
     // Month-over-month comparison queries
     @Query("""

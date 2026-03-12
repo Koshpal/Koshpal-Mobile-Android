@@ -9,7 +9,7 @@ import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import com.koshpal_android.koshpalapp.data.local.KoshpalDatabase
 import com.koshpal_android.koshpalapp.data.local.UserPreferences
-import com.koshpal_android.koshpalapp.ml.SmsClassifier
+import com.koshpal_android.koshpalapp.sms.rules.RuleEngine
 import com.koshpal_android.koshpalapp.service.TransactionSyncScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -43,17 +43,11 @@ class Application : Application(), Configuration.Provider {
             Log.e("Application", "❌ Failed to schedule background sync: ${e.message}", e)
         }
 
-        // ============================================
-        // INTEGRATED ML MODULE: Pre-initialize SMS Classifier model
-        // This ensures the TensorFlow Lite model is loaded and ready when SMS arrives
-        // Improves responsiveness by avoiding model loading delay during SMS processing
-        // ============================================
+        // Initialize rule engine once (rules.json loaded & regex compiled)
         try {
-            Log.d("Application", "🤖 Pre-initializing SMS Classifier model...")
-            val classifier = SmsClassifier(this)
-            Log.d("Application", "✅ SMS Classifier instance created and initialized")
+            RuleEngine.initialize(this)
         } catch (e: Exception) {
-            Log.e("Application", "❌ Failed to create SMS Classifier instance: ${e.message}", e)
+            Log.e("Application", "❌ Failed to initialize RuleEngine: ${e.message}", e)
         }
     }
 
